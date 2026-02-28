@@ -8,7 +8,7 @@ from config import Config
 
 def consume_embedding(config: Config):
     consumer = KafkaConsumer(
-        config.kafka_topic_embedding_queue,
+        config.kafka_topic_chunks_queue,
         bootstrap_servers=config.kafka_uri,
         group_id=config.kafka_consumer_group,
         auto_offset_reset="earliest",
@@ -16,7 +16,7 @@ def consume_embedding(config: Config):
         enable_auto_commit=True,
     )
 
-    logging.info(f"Subscribed to {config.kafka_topic_embedding_queue}")
+    logging.info(f"Subscribed to {config.kafka_topic_chunks_queue}")
 
     for message in consumer:
         logging.info(message.value)
