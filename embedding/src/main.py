@@ -4,6 +4,7 @@ import logging
 from kafka import KafkaConsumer, KafkaProducer
 
 from config import Config
+from models.chunks import ChunkEnqueued
 
 
 def consume_embedding(config: Config):
@@ -12,7 +13,7 @@ def consume_embedding(config: Config):
         bootstrap_servers=config.kafka_uri,
         group_id=config.kafka_consumer_group,
         auto_offset_reset="earliest",
-        value_deserializer=lambda v: v.decode("utf-8"),
+        value_deserializer=ChunkEnqueued.model_validate_json,
         enable_auto_commit=True,
     )
 
