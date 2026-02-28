@@ -8,9 +8,9 @@ from models.search import SearchRequest, SearchResponse
 
 
 class SearchAdapter:
-    def __init__(self, config: Config, transformer: SentenceTransformer) -> None:
+    def __init__(self, config: Config) -> None:
         self.__config = config
-        self.__transformer = transformer
+        self.__transformer = SentenceTransformer(config.sentence_transformer)
         self.__consumer = KafkaConsumer(
             config.kafka_topic_search_requests,
             bootstrap_servers=config.kafka_uri,
