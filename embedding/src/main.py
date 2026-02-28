@@ -2,15 +2,8 @@ import json
 import logging
 
 from kafka import KafkaConsumer, KafkaProducer
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
-class Config(BaseSettings):
-    kafka_uri: str
-    kafka_consumer_group: str = "embedding-consumer-group"
-    kafka_topic_embedding_queue: str = "embedding.queue"
-
-    model_config = SettingsConfigDict(env_prefix="CARMEN_EMBEDDING_")
+from config import Config
 
 
 def consume_embedding(config: Config):
@@ -23,7 +16,7 @@ def consume_embedding(config: Config):
         enable_auto_commit=True,
     )
 
-    logging.info("Started consuming embedding messages")
+    logging.info(f"Subscribed to {config.kafka_topic_embedding_queue}")
 
     for message in consumer:
         logging.info(message.value)
