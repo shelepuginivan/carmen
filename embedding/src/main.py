@@ -1,40 +1,14 @@
-import json
 import logging
 
-from kafka import KafkaConsumer, KafkaProducer
-
-from models.chunks import ChunkEnqueued
+from adapters.chunks import ChunkAdapter
 from models.config import Config
-
-
-def consume_embedding(config: Config):
-    consumer = KafkaConsumer(
-        config.kafka_topic_chunks_queue,
-        bootstrap_servers=config.kafka_uri,
-        group_id=config.kafka_consumer_group,
-        auto_offset_reset="earliest",
-        value_deserializer=ChunkEnqueued.model_validate_json,
-        enable_auto_commit=True,
-    )
-
-    logging.info(f"Subscribed to {config.kafka_topic_chunks_queue}")
-
-    for message in consumer:
-        logging.info(message.value)
-
-    consumer.close()
 
 
 def main():
     logging.basicConfig(level=logging.INFO)
     config = Config()  # type: ignore
-
-    producer = KafkaProducer(
-        bootstrap_servers=config.kafka_uri,
-        value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-    )
-
-    consume_embedding(config)
+    adapter = ChunkAdapter(config)
+    adapter.handle()
 
 
 if __name__ == "__main__":
