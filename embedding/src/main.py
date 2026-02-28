@@ -3,8 +3,8 @@ import logging
 
 from kafka import KafkaConsumer, KafkaProducer
 
-from config import Config
 from models.chunks import ChunkEnqueued
+from models.config import Config
 
 
 def consume_embedding(config: Config):
