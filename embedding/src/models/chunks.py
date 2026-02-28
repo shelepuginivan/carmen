@@ -9,3 +9,4 @@ class ChunkEnqueued(BaseModel):
 class ChunkReady(BaseModel):
     document_id: int
     chunk_text: str
+    embedding: list[float]

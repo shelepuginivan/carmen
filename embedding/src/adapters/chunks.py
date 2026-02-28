@@ -1,4 +1,3 @@
-import logging
 from typing import Any
 
 from kafka import KafkaConsumer, KafkaProducer
@@ -30,19 +29,12 @@ class ChunkAdapter:
 
     def handle(self) -> None:
         for message in map(self.__decode_message, self.__consumer):
-            a = list(map(
-                lambda a: a.tolist(),
-                self.__transformer.encode(message.chunk_text),
-            ))
-
-            logging.info(a)
-            logging.info(type(a))
-            logging.info(len(a))
-            logging.info(type(a[0]))
+            embedding = self.__transformer.encode(message.chunk_text).tolist()
 
             result = ChunkReady(
                 document_id=message.document_id,
                 chunk_text=message.chunk_text,
+                embedding=embedding,
             )
 
             self.__producer.send(self.__config.kafka_topic_chunks_ready, result)
