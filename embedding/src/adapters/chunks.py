@@ -1,14 +1,17 @@
+import logging
 from typing import Any
 
 from kafka import KafkaConsumer, KafkaProducer
+from sentence_transformers import SentenceTransformer
 
 from models.config import Config
 from models.chunks import ChunkEnqueued, ChunkReady
 
 
 class ChunkAdapter:
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: Config, transformer: SentenceTransformer) -> None:
         self.__config = config
+        self.__transformer = transformer
         self.__consumer = KafkaConsumer(
             config.kafka_topic_chunks_queue,
             bootstrap_servers=config.kafka_uri,
@@ -27,6 +30,16 @@ class ChunkAdapter:
 
     def handle(self) -> None:
         for message in map(self.__decode_message, self.__consumer):
+            a = list(map(
+                lambda a: a.tolist(),
+                self.__transformer.encode(message.chunk_text),
+            ))
+
+            logging.info(a)
+            logging.info(type(a))
+            logging.info(len(a))
+            logging.info(type(a[0]))
+
             result = ChunkReady(
                 document_id=message.document_id,
                 chunk_text=message.chunk_text,
