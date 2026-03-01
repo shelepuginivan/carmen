@@ -1,0 +1,50 @@
+services:
+  kafka-controller:
+    image: apache/kafka:latest
+    container_name: kafka-controller
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: controller
+      KAFKA_LISTENERS: CONTROLLER://:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-controller:9093
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 1000
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
+
+  kafka-broker:
+    image: apache/kafka:latest
+    container_name: kafka-broker
+    environment:
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-controller:9093
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 1000
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
+    depends_on:
+      - kafka-controller
+
+  embedding:
+    build:
+      context: ./embedding
+      args:
+        # Should match environment variables below.
+        SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
+        SENTENCE_TRANSFORMERS_MODEL: sentence-transformers/static-retrieval-mrl-en-v1
+    container_name: embedding
+    environment:
+      CARMEN_EMBEDDING_KAFKA_URI: kafka-broker:9092
+      CARMEN_EMBEDDING_KAFKA_CONSUMER_GROUP: embedding-consumer-group
+      CARMEN_EMBEDDING_KAFKA_TOPIC_CHUNKS_QUEUE: chunks.queue
+      CARMEN_EMBEDDING_KAFKA_TOPIC_CHUNKS_READY: chunks.ready
+      CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
+      CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_MODEL: sentence-transformers/static-retrieval-mrl-en-v1
+    depends_on:
+      - kafka-broker
