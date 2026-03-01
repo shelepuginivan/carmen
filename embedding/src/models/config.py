@@ -2,7 +2,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Config(BaseSettings):
-    sentence_transformer: str
+    sentence_transformers_home: str | None = None
+    sentence_transformers_model: str
     kafka_uri: str
     kafka_consumer_group: str = "embedding-consumer-group"
     kafka_topic_chunks_queue: str = "chunks.queue"

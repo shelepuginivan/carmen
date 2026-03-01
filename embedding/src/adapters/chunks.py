@@ -10,7 +10,11 @@ from models.chunks import ChunkEnqueued, ChunkReady
 class ChunkAdapter:
     def __init__(self, config: Config) -> None:
         self.__config = config
-        self.__transformer = SentenceTransformer(config.sentence_transformer)
+        self.__transformer = SentenceTransformer(
+            config.sentence_transformers_model,
+            cache_folder=config.sentence_transformers_home,
+            local_files_only=config.sentence_transformers_home is not None,
+        )
         self.__consumer = KafkaConsumer(
             config.kafka_topic_chunks_queue,
             bootstrap_servers=config.kafka_uri,
