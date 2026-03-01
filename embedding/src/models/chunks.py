@@ -3,10 +3,10 @@ from pydantic import BaseModel
 
 class ChunkEnqueued(BaseModel):
     document_id: int
-    chunk_text: str
+    text: str
 
 
 class ChunkReady(BaseModel):
     document_id: int
-    chunk_text: str
+    text: str
     embedding: list[float]

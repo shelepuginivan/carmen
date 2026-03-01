@@ -29,11 +29,11 @@ class ChunkAdapter:
 
     def handle(self) -> None:
         for message in map(self.__decode_message, self.__consumer):
-            embedding = self.__transformer.encode(message.chunk_text).tolist()
+            embedding = self.__transformer.encode(message.text).tolist()
 
             result = ChunkReady(
                 document_id=message.document_id,
-                chunk_text=message.chunk_text,
+                text=message.text,
                 embedding=embedding,
             )
 
