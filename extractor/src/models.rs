@@ -2,12 +2,14 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 pub struct Document {
-    document_id: String,
-    object_key: String,
+    #[serde(rename = "document_id")]
+    pub id: String,
+    pub object_key: String,
 }
 
 #[derive(Serialize)]
 pub struct Chunk {
-    document_id: String,
-    text: String,
+    #[serde(rename = "document_id")]
+    pub id: String,
+    pub text: String,
 }

@@ -1,6 +1,5 @@
-use std::io::Write;
-
-use log::info;
+use anyhow::bail;
+use log::{error, info};
 use rdkafka::consumer::{Consumer, StreamConsumer};
 use rdkafka::message::BorrowedMessage;
 use rdkafka::producer::FutureProducer;
@@ -8,6 +7,7 @@ use rdkafka::{ClientConfig, Message};
 use tokio::{select, signal};
 
 use crate::config::Config;
+use crate::models::Document;
 
 pub struct DocumentAdapter {
     producer: FutureProducer,
@@ -35,9 +35,16 @@ impl DocumentAdapter {
         loop {
             select! {
                 message = self.consumer.recv() => {
-                    if let Ok(msg) = message {
-                        self.handle_message(msg).await;
-                        continue;
+                    let msg = match message {
+                        Ok(m) => m,
+                        Err(e) => {
+                            error!("Failed to receive message: {e}");
+                            continue;
+                        }
+                    };
+
+                    if let Err(e) = self.handle_message(msg).await {
+                        error!("Failed to process message: {e}");
                     }
                 },
                 _ = signal::ctrl_c() => {
@@ -50,12 +57,15 @@ impl DocumentAdapter {
         self.consumer.unsubscribe();
     }
 
-    async fn handle_message(&self, msg: BorrowedMessage<'_>) {
+    async fn handle_message(&self, msg: BorrowedMessage<'_>) -> anyhow::Result<()> {
         let payload = match msg.payload() {
             Some(p) => p,
-            None => return,
+            None => bail!("failed to retrieve message payload"),
         };
 
-        let _ = std::io::stderr().write(payload);
+        let document: Document = serde_json::from_slice(payload)?;
+        info!("Processing document {}...", document.id);
+
+        Ok(())
     }
 }
