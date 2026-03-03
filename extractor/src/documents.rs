@@ -1,5 +1,6 @@
 use std::io::Write;
 
+use log::info;
 use rdkafka::consumer::{Consumer, StreamConsumer};
 use rdkafka::message::BorrowedMessage;
 use rdkafka::producer::FutureProducer;
@@ -40,7 +41,7 @@ impl DocumentAdapter {
                     }
                 },
                 _ = signal::ctrl_c() => {
-                    println!("Received SIGING, shutting down gracefully...");
+                    info!("Received SIGING, stopping document adapter...");
                     break;
                 }
             }

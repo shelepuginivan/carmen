@@ -1,12 +1,10 @@
-use anyhow::Ok;
-use rdkafka::{ClientConfig, producer::FutureProducer};
-use s3::{Bucket, Region, creds::Credentials};
-
 use extractor::config::Config;
 use extractor::documents::DocumentAdapter;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    env_logger::init_from_env("CARMEN_EXTRACTOR_LOG");
+
     let config = Config::read_from_env()?;
 
     //let region = Region::Custom {
@@ -29,7 +27,6 @@ async fn main() -> anyhow::Result<()> {
 
     //let response_data = bucket.put_object(s3_path, test).await?;
     //assert_eq!(response_data.status_code(), 200);
-    //
 
     let document_adapter = DocumentAdapter::new(&config)?;
 

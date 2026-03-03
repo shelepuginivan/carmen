@@ -71,6 +71,7 @@ services:
       context: ./extractor
     container_name: extractor
     environment:
+      CARMEN_EXTRACTOR_LOG: warn,extractor=info
       CARMEN_EXTRACTOR_S3_ENDPOINT: s3:9000
       CARMEN_EXTRACTOR_S3_REGION: eu-central-1
       CARMEN_EXTRACTOR_S3_BUCKET: carmen-tmp-bucket
