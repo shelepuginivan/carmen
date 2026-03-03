@@ -1,4 +1,8 @@
-use std::env;
+macro_rules! cfg_env {
+    ($name:literal) => {
+        std::env::var(concat!("CARMEN_EXTRACTOR_", $name))
+    };
+}
 
 pub struct Config {
     pub s3_endpoint: String,
@@ -10,11 +14,11 @@ pub struct Config {
 
 impl Config {
     pub fn read_from_env() -> anyhow::Result<Self> {
-        let s3_endpoint = env::var("CARMEN_EXTRACTOR_S3_ENDPOINT")?;
-        let s3_region = env::var("CARMEN_EXTRACTOR_S3_REGION")?;
-        let s3_bucket = env::var("CARMEN_EXTRACTOR_S3_BUCKET")?;
-        let s3_access_key = env::var("CARMEN_EXTRACTOR_S3_ACCESS_KEY")?;
-        let s3_secret_key = env::var("CARMEN_EXTRACTOR_S3_SECRET_KEY")?;
+        let s3_endpoint = cfg_env!("S3_ENDPOINT")?;
+        let s3_region = cfg_env!("S3_REGION")?;
+        let s3_bucket = cfg_env!("S3_BUCKET")?;
+        let s3_access_key = cfg_env!("S3_ACCESS_KEY")?;
+        let s3_secret_key = cfg_env!("S3_SECRET_KEY")?;
 
         Ok(Self {
             s3_endpoint,
