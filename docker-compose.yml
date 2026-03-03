@@ -1,4 +1,21 @@
 services:
+  s3:
+    image: rustfs/rustfs:latest
+    container_name: s3
+    environment:
+      RUSTFS_ADDRESS: :9000
+      RUSTFS_CONSOLE_ADDRESS: :9001
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_VOLUMES: /data/rustfs
+    env_file:
+      # Contains RUSTFS_ACCESS_KEY and RUSTFS_SECRET_KEY
+      - .env.s3
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - s3_data:/data/rustfs
+
   kafka-controller:
     image: apache/kafka:latest
     container_name: kafka-controller
@@ -48,3 +65,6 @@ services:
       CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_MODEL: sentence-transformers/static-retrieval-mrl-en-v1
     depends_on:
       - kafka-broker
+
+volumes:
+  s3_data:
