@@ -1,0 +1,10 @@
+[package]
+name = "extractor"
+description = "Carmen - Extractor microservice"
+authors = [
+    "Ivan Shelepugin <shelepuginivanm@gmail.com>"
+]
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
