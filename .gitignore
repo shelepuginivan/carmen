@@ -1,2 +1,2 @@
-.env.s3
-!.env.s3.example
+.env.*
+!.env.*.example
