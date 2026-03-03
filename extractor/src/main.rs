@@ -1,5 +1,5 @@
+use extractor::adapter::DocumentAdapter;
 use extractor::config::Config;
-use extractor::documents::DocumentAdapter;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
