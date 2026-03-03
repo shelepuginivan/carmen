@@ -4,21 +4,20 @@ use rdkafka::consumer::{Consumer, StreamConsumer};
 use rdkafka::message::BorrowedMessage;
 use rdkafka::producer::FutureProducer;
 use rdkafka::{ClientConfig, Message};
-use s3::creds::Credentials;
-use s3::{Bucket, Region};
 use tokio::{select, signal};
 
 use crate::config::Config;
 use crate::models::Document;
+use crate::storage::DocumentStorage;
 
 pub struct DocumentAdapter {
     producer: FutureProducer,
     consumer: StreamConsumer,
-    bucket: Box<Bucket>,
+    storage: DocumentStorage,
 }
 
 impl DocumentAdapter {
-    pub fn new(cfg: &Config) -> anyhow::Result<Self> {
+    pub fn new(cfg: &Config, storage: DocumentStorage) -> anyhow::Result<Self> {
         let producer = ClientConfig::new()
             .set("bootstrap.servers", &cfg.kafka_uri)
             .set("queue.buffering.max.ms", "0")
@@ -29,27 +28,12 @@ impl DocumentAdapter {
             .set("group.id", &cfg.kafka_consumer_group)
             .create()?;
 
-        let region = Region::Custom {
-            region: cfg.s3_region.clone(),
-            endpoint: cfg.s3_endpoint.clone(),
-        };
-
-        let credentials = Credentials::new(
-            Some(&cfg.s3_access_key),
-            Some(&cfg.s3_secret_key),
-            None,
-            None,
-            None,
-        )?;
-
-        let bucket = Bucket::new(&cfg.s3_bucket, region, credentials)?.with_path_style();
-
         consumer.subscribe(&[&cfg.kafka_topic_documents_queue])?;
 
         Ok(Self {
             producer,
             consumer,
-            bucket,
+            storage,
         })
     }
 
@@ -88,11 +72,7 @@ impl DocumentAdapter {
         let document: Document = serde_json::from_slice(payload)?;
         info!("Processing document {}...", document.id);
 
-        let document_bytes = self
-            .bucket
-            .get_object(document.object_key)
-            .await?
-            .as_slice();
+        let document_bytes = self.storage.get_document(&document.object_key);
 
         Ok(())
     }
