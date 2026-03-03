@@ -25,7 +25,7 @@ impl Config {
         let s3_access_key = cfg_env!("S3_ACCESS_KEY")?;
         let s3_secret_key = cfg_env!("S3_SECRET_KEY")?;
 
-        let kafka_uri = cfg_env!("KAFKA_BOOTSTRAP_SERVERS")?;
+        let kafka_uri = cfg_env!("KAFKA_URI")?;
         let kafka_consumer_group = cfg_env!("KAFKA_CONSUMER_GROUP")?;
         let kafka_topic_documents_queue = cfg_env!("KAFKA_TOPIC_DOCUMENTS_QUEUE")?;
         let kafka_topic_chunks_queue = cfg_env!("KAFKA_TOPIC_CHUNKS_QUEUE")?;
