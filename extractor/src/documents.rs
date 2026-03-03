@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use rdkafka::consumer::{Consumer, StreamConsumer};
 use rdkafka::producer::FutureProducer;
 use rdkafka::{ClientConfig, Message};
@@ -18,11 +20,27 @@ impl DocumentAdapter {
 
         let consumer: StreamConsumer = ClientConfig::new()
             .set("bootstrap.servers", &cfg.kafka_uri)
-            .set("consumer.group", &cfg.kafka_consumer_group)
+            .set("group.id", &cfg.kafka_consumer_group)
             .create()?;
 
         consumer.subscribe(&[&cfg.kafka_topic_documents_queue])?;
 
         Ok(Self { producer, consumer })
+    }
+
+    pub async fn handle(&self) {
+        loop {
+            let msg = match self.consumer.recv().await {
+                Ok(m) => m,
+                Err(_) => continue,
+            };
+
+            let payload = match msg.payload() {
+                Some(p) => p,
+                None => continue,
+            };
+
+            std::io::stderr().write(payload);
+        }
     }
 }
