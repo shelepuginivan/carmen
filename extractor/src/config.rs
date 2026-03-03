@@ -10,6 +10,11 @@ pub struct Config {
     pub s3_bucket: String,
     pub s3_access_key: String,
     pub s3_secret_key: String,
+
+    pub kafka_uri: String,
+    pub kafka_consumer_group: String,
+    pub kafka_topic_documents_queue: String,
+    pub kafka_topic_chunks_queue: String,
 }
 
 impl Config {
@@ -20,12 +25,22 @@ impl Config {
         let s3_access_key = cfg_env!("S3_ACCESS_KEY")?;
         let s3_secret_key = cfg_env!("S3_SECRET_KEY")?;
 
+        let kafka_uri = cfg_env!("KAFKA_BOOTSTRAP_SERVERS")?;
+        let kafka_consumer_group = cfg_env!("KAFKA_CONSUMER_GROUP")?;
+        let kafka_topic_documents_queue = cfg_env!("KAFKA_TOPIC_DOCUMENTS_QUEUE")?;
+        let kafka_topic_chunks_queue = cfg_env!("KAFKA_TOPIC_CHUNKS_QUEUE")?;
+
         Ok(Self {
             s3_endpoint,
             s3_region,
             s3_bucket,
             s3_access_key,
             s3_secret_key,
+
+            kafka_uri,
+            kafka_consumer_group,
+            kafka_topic_documents_queue,
+            kafka_topic_chunks_queue,
         })
     }
 }
