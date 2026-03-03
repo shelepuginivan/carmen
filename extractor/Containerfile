@@ -1,0 +1,23 @@
+FROM rust:1.91 as builder
+
+WORKDIR /app
+
+COPY . .
+RUN cargo build --release
+
+
+FROM debian:trixie-slim AS runtime
+
+RUN apt-get update && \
+    rm -rf /var/lib/apt/lists/*
+
+ARG USER=extractor
+ARG GROUP=extractor
+
+RUN groupadd "$GROUP" && \
+    useradd -g "$GROUP" -m -d /app "$USER"
+
+WORKDIR /app
+COPY --from=builder /app/target/release/extractor .
+
+ENTRYPOINT ["./extractor"]
