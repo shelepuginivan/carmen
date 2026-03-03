@@ -1,8 +1,10 @@
 use std::io::Write;
 
 use rdkafka::consumer::{Consumer, StreamConsumer};
+use rdkafka::message::BorrowedMessage;
 use rdkafka::producer::FutureProducer;
 use rdkafka::{ClientConfig, Message};
+use tokio::{select, signal};
 
 use crate::config::Config;
 
@@ -30,17 +32,29 @@ impl DocumentAdapter {
 
     pub async fn handle(&self) {
         loop {
-            let msg = match self.consumer.recv().await {
-                Ok(m) => m,
-                Err(_) => continue,
-            };
-
-            let payload = match msg.payload() {
-                Some(p) => p,
-                None => continue,
-            };
-
-            std::io::stderr().write(payload);
+            select! {
+                message = self.consumer.recv() => {
+                    if let Ok(msg) = message {
+                        self.handle_message(msg).await;
+                        continue;
+                    }
+                },
+                _ = signal::ctrl_c() => {
+                    println!("Received SIGING, shutting down gracefully...");
+                    break;
+                }
+            }
         }
+
+        self.consumer.unsubscribe();
+    }
+
+    async fn handle_message(&self, msg: BorrowedMessage<'_>) {
+        let payload = match msg.payload() {
+            Some(p) => p,
+            None => return,
+        };
+
+        let _ = std::io::stderr().write(payload);
     }
 }

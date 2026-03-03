@@ -1,15 +1,9 @@
 use anyhow::Ok;
-use extractor::{config::Config, documents::DocumentAdapter};
 use rdkafka::{ClientConfig, producer::FutureProducer};
 use s3::{Bucket, Region, creds::Credentials};
 
-fn create_producer(bootstrap_server: &str) -> FutureProducer {
-    ClientConfig::new()
-        .set("bootstrap.servers", bootstrap_server)
-        .set("queue.buffering.max.ms", "0")
-        .create()
-        .expect("Failed to create client")
-}
+use extractor::config::Config;
+use extractor::documents::DocumentAdapter;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -35,6 +29,7 @@ async fn main() -> anyhow::Result<()> {
 
     //let response_data = bucket.put_object(s3_path, test).await?;
     //assert_eq!(response_data.status_code(), 200);
+    //
 
     let document_adapter = DocumentAdapter::new(&config)?;
 
