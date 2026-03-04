@@ -1,5 +1,7 @@
+mod markdown;
 mod plaintext;
 
+pub use markdown::*;
 pub use plaintext::*;
 
 pub trait Extractor {
