@@ -1,3 +1,7 @@
+use std::mem;
+
+/// Splits text by paragraphs, i.e. text chunks separated by 2 or more line breaks (LF or CRLF) are
+/// considered paragraphs.
 pub struct ParagraphIterator {
     text: String,
 }
@@ -7,15 +11,34 @@ impl ParagraphIterator {
         Self { text }
     }
 
-    fn find_split_index(&self) -> Option<usize> {
-        let mut prev_char = '\0';
+    fn find_split_index(&self) -> Option<(usize, usize)> {
+        let mut count = 0;
+        let mut has_cr = false;
 
-        for (i, char) in self.text.char_indices() {
-            if char == '\n' && prev_char == '\n' {
-                return Some(i - 1);
+        for (i, ch) in self.text.char_indices() {
+            if ch == '\r' {
+                has_cr = true;
+                count += 1;
+                continue;
             }
 
-            prev_char = char;
+            if ch == '\n' {
+                count += 1;
+                continue;
+            }
+
+            let threshold = if has_cr { 4 } else { 2 };
+            if count >= threshold {
+                return Some((i - count, count));
+            }
+
+            count = 0;
+            has_cr = false;
+        }
+
+        let threshold = if has_cr { 4 } else { 2 };
+        if count >= threshold {
+            return Some((self.text.len() - count, count));
         }
 
         None
