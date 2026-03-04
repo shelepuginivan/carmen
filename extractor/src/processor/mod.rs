@@ -23,7 +23,7 @@ impl Processor {
     ) -> anyhow::Result<impl Iterator<Item = String>> {
         let text = self.extract_text(filename, bytes)?;
 
-        Ok(ParagraphIterator::new(text))
+        Ok(ParagraphSplitter::new(text))
     }
 
     fn extract_text(&self, filename: &str, bytes: Vec<u8>) -> anyhow::Result<String> {

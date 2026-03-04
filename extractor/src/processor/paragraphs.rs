@@ -2,11 +2,11 @@ use std::mem;
 
 /// Splits text by paragraphs, i.e. text chunks separated by 2 or more line breaks (LF or CRLF) are
 /// considered paragraphs.
-pub struct ParagraphIterator {
+pub struct ParagraphSplitter {
     text: String,
 }
 
-impl ParagraphIterator {
+impl ParagraphSplitter {
     pub fn new(text: String) -> Self {
         Self { text }
     }
@@ -45,7 +45,7 @@ impl ParagraphIterator {
     }
 }
 
-impl Iterator for ParagraphIterator {
+impl Iterator for ParagraphSplitter {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -58,7 +58,7 @@ impl Iterator for ParagraphIterator {
             None => return Some(mem::take(&mut self.text)),
         };
 
-        let paragraph = self.text.drain(..idx).collect::<String>();
+        let paragraph = self.text.drain(..idx).collect();
 
         self.text.drain(..lf_count);
 
@@ -68,10 +68,10 @@ impl Iterator for ParagraphIterator {
 
 #[cfg(test)]
 mod tests {
-    use super::ParagraphIterator;
+    use super::ParagraphSplitter;
 
     #[test]
-    fn test_paragraph_iterator() {
+    fn test_paragraph_splitter() {
         let tests = vec![
             (
                 "Lorem Ipsum\n\ndolor\nsit\namet",
@@ -83,7 +83,7 @@ mod tests {
         ];
 
         for (case_idx, (input, expected)) in tests.into_iter().enumerate() {
-            let actual: Vec<String> = ParagraphIterator::new(String::from(input)).collect();
+            let actual: Vec<String> = ParagraphSplitter::new(String::from(input)).collect();
 
             if expected.len() != actual.len() {
                 panic!(
