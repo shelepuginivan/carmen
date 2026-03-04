@@ -53,15 +53,53 @@ impl Iterator for ParagraphIterator {
             return None;
         }
 
-        let idx = match self.find_split_index() {
-            Some(i) => i,
-            None => return Some(std::mem::take(&mut self.text)),
+        let (idx, lf_count) = match self.find_split_index() {
+            Some(v) => v,
+            None => return Some(mem::take(&mut self.text)),
         };
 
         let paragraph = self.text.drain(..idx).collect::<String>();
 
-        self.text.drain(..2);
+        self.text.drain(..lf_count);
 
         Some(paragraph)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ParagraphIterator;
+
+    #[test]
+    fn test_paragraph_iterator() {
+        let tests = vec![
+            (
+                "Lorem Ipsum\n\ndolor\nsit\namet",
+                vec!["Lorem Ipsum", "dolor\nsit\namet"],
+            ),
+            ("a\n\nb\n\nc\n\ndef", vec!["a", "b", "c", "def"]),
+            ("a\r\n\r\nb\r\n\r\nc\r\n\r\ndef", vec!["a", "b", "c", "def"]),
+            ("0\n\n1\n\n\n2\n\n\n\n3", vec!["0", "1", "2", "3"]),
+        ];
+
+        for (case_idx, (input, expected)) in tests.into_iter().enumerate() {
+            let actual: Vec<String> = ParagraphIterator::new(String::from(input)).collect();
+
+            if expected.len() != actual.len() {
+                panic!(
+                    "case {case_idx}: length mismatch (want {}, got {})",
+                    expected.len(),
+                    actual.len()
+                );
+            }
+
+            for (par_idx, (lhs, rhs)) in actual.iter().zip(expected).enumerate() {
+                if lhs != rhs {
+                    panic!(
+                        "case {case_idx}: paragraph {par_idx} mismatch (want '{rhs}', got '{lhs}')"
+                    )
+                }
+            }
+        }
     }
 }
