@@ -1,5 +1,7 @@
+mod character;
 mod paragraphs;
 
+pub use character::*;
 pub use paragraphs::*;
 
 use anyhow::bail;
