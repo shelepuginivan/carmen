@@ -2,6 +2,9 @@
 package db
 
 import (
+	"github.com/shelepuginivan/carmen/search/chunk"
+	"github.com/shelepuginivan/carmen/search/document"
+	"github.com/shelepuginivan/carmen/search/workspace"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -16,6 +19,14 @@ func Connect() (*gorm.DB, error) {
 	}
 
 	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS vector").Error; err != nil {
+		return nil, err
+	}
+
+	if err := db.AutoMigrate(
+		&workspace.Workspace{},
+		&document.Document{},
+		&chunk.Chunk{},
+	); err != nil {
 		return nil, err
 	}
 
