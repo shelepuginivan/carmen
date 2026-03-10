@@ -1,5 +1,6 @@
 use super::Extractor;
 
+#[derive(Default)]
 pub struct PlaintextExtractor {}
 
 impl Extractor for PlaintextExtractor {

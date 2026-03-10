@@ -3,6 +3,7 @@ use comrak::{Arena, Options, parse_document};
 
 use super::Extractor;
 
+#[derive(Default)]
 pub struct MarkdownExtractor {}
 
 impl Extractor for MarkdownExtractor {
