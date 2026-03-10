@@ -16,6 +16,19 @@ services:
     volumes:
       - s3_data:/data/rustfs
 
+  postgres:
+    image: pgvector/pgvector:pg18-trixie
+    container_name: postgres
+    environment:
+      POSTGRES_DB: carmen
+    env_file:
+      # Contains POSTGRES_USER and POSTGRES_PASSWORD
+      - .env.postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - pg_data:/var/lib/postgresql
+
   kafka-controller:
     image: apache/kafka:latest
     container_name: kafka-controller
@@ -89,3 +102,4 @@ services:
 
 volumes:
   s3_data:
+  pg_data:

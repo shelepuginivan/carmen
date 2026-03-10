@@ -1,7 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+
+	"github.com/shelepuginivan/carmen/search/db"
+)
 
 func main() {
-	fmt.Println("hello")
+	db, err := db.Connect()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(db)
 }
