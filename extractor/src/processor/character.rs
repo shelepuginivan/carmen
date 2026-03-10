@@ -24,7 +24,7 @@ impl Iterator for CharacterSplitter {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.text.is_empty() {
+        if self.text.len() <= self.chunk_overlap {
             return None;
         }
 
@@ -40,5 +40,55 @@ impl Iterator for CharacterSplitter {
         let overlap = &self.text[..self.chunk_overlap].to_string();
 
         Some(next_chunk + overlap)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CharacterSplitter;
+
+    #[test]
+    fn test_character_splitter() {
+        let tests = vec![(
+            (
+                "Lorem ipsum dolor sit amet. A accusamus consequatur et soluta autem aut neque corrupti non galisum molestiae est facilis voluptatibus cum omnis fuga",
+                20,
+                4,
+            ),
+            vec![
+                "Lorem ipsum dolor si",
+                "r sit amet. A accusa",
+                "cusamus consequatur ",
+                "tur et soluta autem ",
+                "tem aut neque corrup",
+                "rrupti non galisum m",
+                "um molestiae est fac",
+                " facilis voluptatibu",
+                "tibus cum omnis fuga",
+            ],
+        )];
+
+        for (case_idx, ((text, chunk_size, chunk_overlap), expected)) in
+            tests.into_iter().enumerate()
+        {
+            let actual: Vec<String> =
+                CharacterSplitter::new(String::from(text), chunk_size, chunk_overlap).collect();
+
+            if expected.len() != actual.len() {
+                panic!(
+                    "case {case_idx}: length mismatch (want {}, got {})",
+                    expected.len(),
+                    actual.len()
+                );
+            }
+
+            for (par_idx, (lhs, rhs)) in actual.iter().zip(expected).enumerate() {
+                if lhs != rhs {
+                    panic!(
+                        "case {case_idx}: paragraph {par_idx} mismatch (want '{rhs}', got '{lhs}')"
+                    )
+                }
+            }
+        }
     }
 }
