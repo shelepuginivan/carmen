@@ -8,8 +8,8 @@ pub struct Document {
 }
 
 #[derive(Serialize)]
-pub struct Chunk {
+pub struct Chunk<'a> {
     #[serde(rename = "document_id")]
-    pub id: String,
+    pub id: &'a str,
     pub text: String,
 }
