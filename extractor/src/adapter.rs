@@ -35,6 +35,7 @@ impl DocumentAdapter {
         let consumer: StreamConsumer = ClientConfig::new()
             .set("bootstrap.servers", &cfg.kafka_uri)
             .set("group.id", &cfg.kafka_consumer_group)
+            .set("auto.offset.reset", "earliest")
             .create()?;
 
         consumer.subscribe(&[&cfg.kafka_topic_documents_queue])?;
@@ -84,7 +85,9 @@ impl DocumentAdapter {
         info!("Processing document {}...", document.id);
 
         let document_bytes = self.storage.get_document(&document.object_key).await?;
-        let chunk_iterator = self.processor.process(&document.id, document_bytes)?;
+        let chunk_iterator = self
+            .processor
+            .process(&document.object_key, document_bytes)?;
 
         let handles = chunk_iterator.map(|text| {
             let chunk = Chunk {
