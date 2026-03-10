@@ -25,7 +25,8 @@ impl Processor {
     ) -> anyhow::Result<impl Iterator<Item = String>> {
         let text = self.extract_text(filename, bytes)?;
 
-        Ok(ParagraphSplitter::new(text))
+        // TODO: allow to configure splitting.
+        Ok(CharacterSplitter::new(text, 500, 50))
     }
 
     fn extract_text(&self, filename: &str, bytes: Vec<u8>) -> anyhow::Result<String> {
