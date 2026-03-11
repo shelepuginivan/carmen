@@ -10,7 +10,8 @@ import (
 type Chunk struct {
 	gorm.Model
 
-	ID        string `gorm:"primaryKey"`
-	Text      string
-	Embedding pgvector.Vector `gorm:"type:vector(1024)"`
+	ID         string `gorm:"primaryKey"`
+	DocumentID string
+	Text       string
+	Embedding  pgvector.Vector `gorm:"type:vector(1024)"`
 }
