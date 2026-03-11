@@ -2,7 +2,7 @@
 package document
 
 import (
-	"github.com/shelepuginivan/carmen/search/chunk"
+	"github.com/shelepuginivan/carmen/search/pkg/chunk"
 	"gorm.io/gorm"
 )
 

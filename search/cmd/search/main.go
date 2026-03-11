@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shelepuginivan/carmen/search/db"
+	"github.com/shelepuginivan/carmen/search/pkg/db"
 )
 
 func main() {

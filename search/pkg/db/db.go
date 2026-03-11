@@ -2,9 +2,9 @@
 package db
 
 import (
-	"github.com/shelepuginivan/carmen/search/chunk"
-	"github.com/shelepuginivan/carmen/search/document"
-	"github.com/shelepuginivan/carmen/search/workspace"
+	"github.com/shelepuginivan/carmen/search/pkg/chunk"
+	"github.com/shelepuginivan/carmen/search/pkg/document"
+	"github.com/shelepuginivan/carmen/search/pkg/workspace"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

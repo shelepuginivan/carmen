@@ -2,7 +2,7 @@
 package workspace
 
 import (
-	"github.com/shelepuginivan/carmen/search/document"
+	"github.com/shelepuginivan/carmen/search/pkg/document"
 	"gorm.io/gorm"
 )
 
