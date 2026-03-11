@@ -100,6 +100,13 @@ services:
       - kafka-broker
       - s3
 
+  search:
+    build:
+      context: ./search
+    container_name: search
+    depends_on:
+      - postgres
+
 volumes:
   s3_data:
   pg_data:
