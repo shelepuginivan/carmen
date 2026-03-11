@@ -104,6 +104,13 @@ services:
     build:
       context: ./search
     container_name: search
+    environment:
+      CARMEN_SEARCH_POSTGRES_DB: carmen
+      CARMEN_SEARCH_POSTGRES_HOST: postgres
+      CARMEN_SEARCH_POSTGRES_PORT: 5432
+    env_file:
+      # Contains CARMEN_SEARCH_POSTGRES_USER and CARMEN_SEARCH_POSTGRES_PASSWORD
+      - .env.search
     depends_on:
       - postgres
 

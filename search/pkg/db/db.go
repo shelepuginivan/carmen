@@ -3,6 +3,7 @@ package db
 
 import (
 	"github.com/shelepuginivan/carmen/search/pkg/chunk"
+	"github.com/shelepuginivan/carmen/search/pkg/config"
 	"github.com/shelepuginivan/carmen/search/pkg/document"
 	"github.com/shelepuginivan/carmen/search/pkg/workspace"
 	"gorm.io/driver/postgres"
@@ -10,10 +11,8 @@ import (
 )
 
 // Connect connects to the database and performs necessary setup.
-func Connect() (*gorm.DB, error) {
-	// TODO: configure via env vars
-	dsn := "host=localhost user=postgres password=postgres dbname=carmen port=5432"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+func Connect(cfg *config.Config) (*gorm.DB, error) {
+	db, err := gorm.Open(postgres.Open(cfg.PostgresDSN()), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
