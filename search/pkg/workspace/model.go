@@ -2,6 +2,7 @@
 package workspace
 
 import (
+	"github.com/google/uuid"
 	"github.com/shelepuginivan/carmen/search/pkg/document"
 	"gorm.io/gorm"
 )
@@ -15,4 +16,9 @@ type Workspace struct {
 	Description string
 
 	Documents []document.Document
+}
+
+func (w *Workspace) BeforeCreate(tx *gorm.DB) (err error) {
+	w.ID = uuid.New().String()
+	return
 }

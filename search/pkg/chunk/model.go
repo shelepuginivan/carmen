@@ -2,6 +2,7 @@
 package chunk
 
 import (
+	"github.com/google/uuid"
 	"github.com/pgvector/pgvector-go"
 	"gorm.io/gorm"
 )
@@ -14,4 +15,9 @@ type Chunk struct {
 	DocumentID string
 	Text       string
 	Embedding  pgvector.Vector `gorm:"type:vector(1024)"`
+}
+
+func (c *Chunk) BeforeCreate(tx *gorm.DB) (err error) {
+	c.ID = uuid.New().String()
+	return
 }
