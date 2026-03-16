@@ -1,4 +1,4 @@
-package search
+package dal
 
 import (
 	"context"
@@ -9,12 +9,12 @@ import (
 	"github.com/shelepuginivan/carmen/search/pkg/config"
 )
 
-type DocumentStorage struct {
+type S3 struct {
 	client *s3.Client
 	bucket string
 }
 
-func NewDocumentStorage(cfg *config.Config) *DocumentStorage {
+func NewS3(cfg *config.Config) *S3 {
 	client := s3.New(s3.Options{
 		Region:       cfg.S3Region,
 		Credentials:  credentials.NewStaticCredentialsProvider(cfg.S3AccessKey, cfg.S3SecretKey, ""),
@@ -22,13 +22,13 @@ func NewDocumentStorage(cfg *config.Config) *DocumentStorage {
 		UsePathStyle: true,
 	})
 
-	return &DocumentStorage{
+	return &S3{
 		client: client,
 		bucket: cfg.S3Bucket,
 	}
 }
 
-func (ds *DocumentStorage) GetDocument(ctx context.Context, key string) ([]byte, error) {
+func (ds *S3) GetDocument(ctx context.Context, key string) ([]byte, error) {
 	res, err := ds.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: &ds.bucket,
 		Key:    &key,
@@ -41,7 +41,7 @@ func (ds *DocumentStorage) GetDocument(ctx context.Context, key string) ([]byte,
 	return io.ReadAll(res.Body)
 }
 
-func (ds *DocumentStorage) PutDocument(ctx context.Context, key string, body io.Reader) error {
+func (ds *S3) PutDocument(ctx context.Context, key string, body io.Reader) error {
 	_, err := ds.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: &ds.bucket,
 		Key:    &key,
@@ -50,7 +50,7 @@ func (ds *DocumentStorage) PutDocument(ctx context.Context, key string, body io.
 	return err
 }
 
-func (ds *DocumentStorage) DeleteDocument(ctx context.Context, key string) error {
+func (ds *S3) DeleteDocument(ctx context.Context, key string) error {
 	_, err := ds.client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: &ds.bucket,
 		Key:    &key,
