@@ -13,7 +13,7 @@ type Workspace struct {
 	Name        string `gorm:"uniqueIndex" json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 
-	Documents []Document `json:"documents,omitempty"`
+	Documents []Document `gorm:"constraint:OnDelete:CASCADE" json:"documents,omitempty"`
 }
 
 func (w *Workspace) BeforeCreate(tx *gorm.DB) (err error) {

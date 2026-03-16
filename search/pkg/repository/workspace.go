@@ -73,8 +73,6 @@ func (wr *WorkspaceRepository) DeleteWorkspace(ctx context.Context, identifier s
 	return wr.db.
 		WithContext(ctx).
 		Unscoped().
-		Where("id = ?", identifier).
-		Or("name = ?", identifier).
-		Delete(&model.Workspace{}).
+		Delete(workspace).
 		Error
 }
