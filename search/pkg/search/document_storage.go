@@ -40,3 +40,20 @@ func (ds *DocumentStorage) GetDocument(ctx context.Context, key string) ([]byte,
 
 	return io.ReadAll(res.Body)
 }
+
+func (ds *DocumentStorage) PutDocument(ctx context.Context, key string, body io.Reader) error {
+	_, err := ds.client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket: &ds.bucket,
+		Key:    &key,
+		Body:   body,
+	})
+	return err
+}
+
+func (ds *DocumentStorage) DeleteDocument(ctx context.Context, key string) error {
+	_, err := ds.client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: &ds.bucket,
+		Key:    &key,
+	})
+	return err
+}
