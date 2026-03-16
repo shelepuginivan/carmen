@@ -2,10 +2,8 @@
 package db
 
 import (
-	"github.com/shelepuginivan/carmen/search/pkg/chunk"
 	"github.com/shelepuginivan/carmen/search/pkg/config"
-	"github.com/shelepuginivan/carmen/search/pkg/document"
-	"github.com/shelepuginivan/carmen/search/pkg/workspace"
+	"github.com/shelepuginivan/carmen/search/pkg/search"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -22,9 +20,9 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 	}
 
 	if err := db.AutoMigrate(
-		&workspace.Workspace{},
-		&document.Document{},
-		&chunk.Chunk{},
+		&search.Workspace{},
+		&search.Document{},
+		&search.Chunk{},
 	); err != nil {
 		return nil, err
 	}
