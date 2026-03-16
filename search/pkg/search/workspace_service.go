@@ -1,6 +1,9 @@
 package search
 
-import "gorm.io/gorm"
+import (
+	"github.com/shelepuginivan/carmen/search/pkg/model"
+	"gorm.io/gorm"
+)
 
 type WorkspaceService struct {
 	db *gorm.DB
@@ -13,20 +16,20 @@ func NewWorkspaceService(db *gorm.DB) *WorkspaceService {
 }
 
 func (ws *WorkspaceService) CreateWorkspace(name string, description string) error {
-	return ws.db.Create(&Workspace{
+	return ws.db.Create(&model.Workspace{
 		Name:        name,
 		Description: description,
 	}).Error
 }
 
-func (ws *WorkspaceService) GetWorkspace(identifier string) (*Workspace, error) {
-	var workspace Workspace
+func (ws *WorkspaceService) GetWorkspace(identifier string) (*model.Workspace, error) {
+	var workspace model.Workspace
 	res := ws.db.Where("id = ?", identifier).Or("name = ?", identifier).First(&workspace)
 	return &workspace, res.Error
 }
 
-func (ws *WorkspaceService) ListWorkspaces() ([]*Workspace, error) {
-	var workspaces []*Workspace
+func (ws *WorkspaceService) ListWorkspaces() ([]*model.Workspace, error) {
+	var workspaces []*model.Workspace
 	res := ws.db.Select("name", "description").Order("name").Find(&workspaces)
 	return workspaces, res.Error
 }
@@ -36,6 +39,6 @@ func (ws *WorkspaceService) DeleteWorkspace(identifier string) error {
 		Unscoped().
 		Where("id = ?", identifier).
 		Or("name = ?", identifier).
-		Delete(&Workspace{}).
+		Delete(&model.Workspace{}).
 		Error
 }
