@@ -10,6 +10,12 @@ type Config struct {
 	PostgresDatabase string
 	PostgresHost     string
 	PostgresPort     int
+
+	S3AccessKey      string
+	S3SecretKey      string
+	S3Region         string
+	S3Endpoint       string
+	S3DocumentBucket string
 }
 
 // Load loads configuration from env variables.
@@ -20,6 +26,12 @@ func Load() *Config {
 		PostgresDatabase: requiredEnvStr("POSTGRES_DB"),
 		PostgresHost:     requiredEnvStr("POSTGRES_HOST"),
 		PostgresPort:     requiredEnvInt("POSTGRES_PORT"),
+
+		S3AccessKey:      requiredEnvStr("S3_ACCESS_KEY"),
+		S3SecretKey:      requiredEnvStr("S3_SECRET_KEY"),
+		S3Region:         requiredEnvStr("S3_REGION"),
+		S3Endpoint:       requiredEnvStr("S3_ENDPOINT"),
+		S3DocumentBucket: requiredEnvStr("S3_DOCUMENT_BUCKET"),
 	}
 }
 
