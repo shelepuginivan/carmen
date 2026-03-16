@@ -8,13 +8,13 @@ import (
 
 // Workspace represents a collection of related documents.
 type Workspace struct {
-	gorm.Model
+	gorm.Model `json:"-"`
 
-	ID          string `gorm:"primaryKey"`
-	Name        string
-	Description string
+	ID          string `gorm:"primaryKey" json:"id,omitempty"`
+	Name        string `gorm:"uniqueIndex" json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
 
-	Documents []Document
+	Documents []Document `json:"documents,omitempty"`
 }
 
 func (w *Workspace) BeforeCreate(tx *gorm.DB) (err error) {
