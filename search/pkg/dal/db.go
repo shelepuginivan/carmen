@@ -1,5 +1,5 @@
-// Package db provides database utilities.
-package db
+// Package dal provides data access layer utilities.
+package dal
 
 import (
 	"github.com/shelepuginivan/carmen/search/pkg/config"
@@ -8,8 +8,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// Connect connects to the database and performs necessary setup.
-func Connect(cfg *config.Config) (*gorm.DB, error) {
+// NewDBConnection connects to the database and performs necessary setup.
+func NewDBConnection(cfg *config.Config) (*gorm.DB, error) {
 	db, err := gorm.Open(postgres.Open(cfg.PostgresDSN()), &gorm.Config{})
 	if err != nil {
 		return nil, err
