@@ -11,6 +11,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
+RUN go tool swag init -g ./pkg/controller/* -o swagger
 RUN go build -o /app/search -trimpath -ldflags="-s -w" ./cmd/search
 
 

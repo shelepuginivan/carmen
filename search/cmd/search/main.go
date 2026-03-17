@@ -9,6 +9,10 @@ import (
 	"github.com/shelepuginivan/carmen/search/pkg/dal"
 	"github.com/shelepuginivan/carmen/search/pkg/repository"
 	"github.com/shelepuginivan/carmen/search/pkg/service"
+
+	_ "github.com/shelepuginivan/carmen/search/swagger"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -28,6 +32,8 @@ func main() {
 
 	workspaces := srv.Group("/workspace")
 	workspaces.POST("/", workspaceController.CreateWorkspace)
+
+	srv.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	if err := srv.Run(cfg.Addr); err != nil {
 		log.Fatal(err)

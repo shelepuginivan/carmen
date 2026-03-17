@@ -8,7 +8,7 @@ import (
 
 // Chunk represents chunk of a document that is indexed for hybrid search.
 type Chunk struct {
-	gorm.Model
+	gorm.Model `json:"-"`
 
 	ID         string `gorm:"primaryKey"`
 	DocumentID string
