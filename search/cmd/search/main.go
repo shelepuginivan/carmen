@@ -32,6 +32,7 @@ func main() {
 
 	workspaces := srv.Group("/workspace")
 	workspaces.POST("/", workspaceController.CreateWorkspace)
+	workspaces.GET("/:id-or-name", workspaceController.GetWorkspace)
 
 	srv.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
