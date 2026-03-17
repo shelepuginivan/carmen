@@ -6,13 +6,13 @@ import (
 )
 
 type Document struct {
-	gorm.Model
+	gorm.Model `json:"-"`
 
-	ID          string `gorm:"primaryKey"`
+	ID          string `gorm:"primaryKey" json:"id,omitempty"`
 	WorkspaceID string
-	Filename    string
+	Filename    string `json:"filename,omitempty"`
 
-	Chunks []Chunk
+	Chunks []Chunk `gorm:"constraint:OnDelete:CASCADE"`
 }
 
 func (d *Document) BeforeCreate(tx *gorm.DB) (err error) {
