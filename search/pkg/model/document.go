@@ -10,8 +10,7 @@ type Document struct {
 
 	ID          string `gorm:"primaryKey"`
 	WorkspaceID string
-	Name        string
-	ObjectKey   string
+	Filename    string
 
 	Chunks []Chunk
 }

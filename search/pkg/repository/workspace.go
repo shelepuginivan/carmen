@@ -44,7 +44,7 @@ func (wr *WorkspaceRepository) ListWorkspaces(ctx context.Context) ([]*model.Wor
 
 	res := wr.db.
 		WithContext(ctx).
-		Select("name", "description").
+		Select("id", "name", "description").
 		Order("name").Find(&workspaces)
 
 	return workspaces, res.Error
@@ -56,9 +56,9 @@ func (wr *WorkspaceRepository) DeleteWorkspace(ctx context.Context, identifier s
 	err := wr.db.
 		WithContext(ctx).
 		Preload("Documents", func(db *gorm.DB) *gorm.DB {
-			return db.Select("object_key")
+			return db.Select("filename")
 		}).
-		Where("id = ?").
+		Where("id = ?", identifier).
 		Or("name = ?", identifier).
 		First(&workspace).
 		Error
@@ -67,7 +67,7 @@ func (wr *WorkspaceRepository) DeleteWorkspace(ctx context.Context, identifier s
 	}
 
 	for _, document := range workspace.Documents {
-		wr.s3.DeleteDocument(ctx, document.ObjectKey)
+		wr.s3.DeleteDocument(ctx, document.Filename)
 	}
 
 	return wr.db.
