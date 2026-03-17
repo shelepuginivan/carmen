@@ -28,7 +28,7 @@ func NewS3(cfg *config.Config) *S3 {
 	}
 }
 
-func (ds *S3) GetDocument(ctx context.Context, key string) ([]byte, error) {
+func (ds *S3) GetDocument(ctx context.Context, key string) (io.Reader, error) {
 	res, err := ds.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: &ds.bucket,
 		Key:    &key,
@@ -36,9 +36,8 @@ func (ds *S3) GetDocument(ctx context.Context, key string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
 
-	return io.ReadAll(res.Body)
+	return res.Body, err
 }
 
 func (ds *S3) PutDocument(ctx context.Context, key string, body io.Reader) error {
