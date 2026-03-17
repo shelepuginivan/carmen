@@ -87,7 +87,7 @@ services:
       CARMEN_EXTRACTOR_LOG: warn,extractor=info
       CARMEN_EXTRACTOR_S3_ENDPOINT: http://s3:9000
       CARMEN_EXTRACTOR_S3_REGION: eu-central-1
-      CARMEN_EXTRACTOR_S3_BUCKET: carmen-tmp-bucket
+      CARMEN_EXTRACTOR_S3_BUCKET: carmen-documents
       CARMEN_EXTRACTOR_KAFKA_URI: kafka-broker:9092
       CARMEN_EXTRACTOR_KAFKA_CONSUMER_GROUP: extractor-consumer-group
       CARMEN_EXTRACTOR_KAFKA_TOPIC_DOCUMENTS_QUEUE: documents.queue
@@ -105,14 +105,25 @@ services:
       context: ./search
     container_name: search
     environment:
+      CARMEN_SEARCH_ADDR: :5124
       CARMEN_SEARCH_POSTGRES_DB: carmen
       CARMEN_SEARCH_POSTGRES_HOST: postgres
       CARMEN_SEARCH_POSTGRES_PORT: 5432
+      CARMEN_SEARCH_S3_REGION: eu-central-1
+      CARMEN_SEARCH_S3_ENDPOINT: http://s3:9000
+      CARMEN_SEARCH_S3_BUCKET: carmen-documents
     env_file:
-      # Contains CARMEN_SEARCH_POSTGRES_USER and CARMEN_SEARCH_POSTGRES_PASSWORD
+      # Contains the following env variables:
+      #   - CARMEN_SEARCH_POSTGRES_USER
+      #   - CARMEN_SEARCH_POSTGRES_PASSWORD
+      #   - CARMEN_SEARCH_S3_ACCESS_KEY
+      #   - CARMEN_SEARCH_S3_SECRET_KEY
       - .env.search
+    ports:
+      - 5124:5124
     depends_on:
       - postgres
+      - s3
 
 volumes:
   s3_data:

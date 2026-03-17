@@ -5,6 +5,8 @@ import "fmt"
 
 // Config represents service configuration.
 type Config struct {
+	Addr string
+
 	PostgresUser     string
 	PostgresPassword string
 	PostgresDatabase string
@@ -21,6 +23,8 @@ type Config struct {
 // Load loads configuration from env variables.
 func Load() *Config {
 	return &Config{
+		Addr: requiredEnvStr("ADDR"),
+
 		PostgresUser:     requiredEnvStr("POSTGRES_USER"),
 		PostgresPassword: requiredEnvStr("POSTGRES_PASSWORD"),
 		PostgresDatabase: requiredEnvStr("POSTGRES_DB"),
