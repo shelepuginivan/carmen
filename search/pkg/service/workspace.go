@@ -27,6 +27,10 @@ func (ws *WorkspaceService) ListWorkspaces(ctx context.Context) ([]*model.Worksp
 	return ws.repo.ListWorkspaces(ctx)
 }
 
+func (ws *WorkspaceService) PaginateWorkspaces(ctx context.Context, page, limit int) ([]*model.Workspace, error) {
+	return ws.repo.PaginateWorkspaces(ctx, page, limit)
+}
+
 func (ws *WorkspaceService) DeleteWorkspace(ctx context.Context, identifier string) error {
 	return ws.repo.DeleteWorkspace(ctx, identifier)
 }
