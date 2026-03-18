@@ -24,31 +24,25 @@ func NewDocument(db *gorm.DB, s3 *dal.S3) *DocumentRepository {
 
 func (dr *DocumentRepository) CreateDocument(
 	ctx context.Context,
-	workspaceIdentifier string,
+	workspaceID string,
 	filename string,
 	body io.Reader,
-) error {
-	var workspace model.Workspace
-
-	err := dr.db.
-		WithContext(ctx).
-		Where("id = ?", workspaceIdentifier).
-		Or("name = ?", workspaceIdentifier).
-		First(&workspace).
-		Error
-	if err != nil {
-		return err
-	}
-
-	err = dr.db.WithContext(ctx).Create(&model.Document{
+) (*model.Document, error) {
+	document := model.Document{
 		Filename:    filename,
-		WorkspaceID: workspace.ID,
-	}).Error
-	if err != nil {
-		return err
+		WorkspaceID: workspaceID,
 	}
 
-	return dr.s3.PutDocument(ctx, filename, body)
+	err := dr.db.WithContext(ctx).Create(&document).Error
+	if err != nil {
+		return nil, err
+	}
+
+	if err := dr.s3.PutDocument(ctx, filename, body); err != nil {
+		return nil, err
+	}
+
+	return &document, nil
 }
 
 func (dr *DocumentRepository) GetDocumentMetadata(

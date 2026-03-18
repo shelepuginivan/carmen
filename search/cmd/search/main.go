@@ -35,6 +35,7 @@ func main() {
 	workspaces.POST("/", workspaceController.CreateWorkspace)
 	workspaces.GET("/:id-or-name", workspaceController.GetWorkspace)
 	workspaces.GET("/:id-or-name/document/all", workspaceController.GetWorkspaceDocuments)
+	workspaces.POST("/:id-or-name/document", workspaceController.UploadDocument)
 	workspaces.GET("/all", workspaceController.ListWorkspaces)
 	workspaces.GET("/all/page/:page", workspaceController.PaginateWorkspaces)
 	workspaces.DELETE("/:id-or-name", workspaceController.DeleteWorkspace)

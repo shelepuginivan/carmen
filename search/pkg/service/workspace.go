@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"io"
 
 	"github.com/shelepuginivan/carmen/search/pkg/model"
 	"github.com/shelepuginivan/carmen/search/pkg/repository"
@@ -48,4 +49,25 @@ func (ws *WorkspaceService) PaginateWorkspaces(ctx context.Context, page, limit 
 
 func (ws *WorkspaceService) DeleteWorkspace(ctx context.Context, identifier string) error {
 	return ws.wr.DeleteWorkspace(ctx, identifier)
+}
+
+func (ws *WorkspaceService) UploadDocumentToWorkspace(
+	ctx context.Context,
+	identifier string,
+	filename string,
+	content io.Reader,
+) (*model.Document, error) {
+	workspace, err := ws.wr.GetWorkspace(ctx, identifier)
+	if err != nil {
+		return nil, err
+	}
+
+	document, err := ws.dr.CreateDocument(ctx, workspace.ID, filename, content)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: enqueue document chunking to carmen-extractor
+
+	return document, nil
 }

@@ -184,3 +184,43 @@ func (wc *WorkspaceController) DeleteWorkspace(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }
+
+// UploadDocument godoc
+//
+// @summary Upload document to workspace
+// @router /workspace/{id-or-name}/document [post]
+// @tags workspace
+// @param id-or-name path string true "ID or name of the workspace"
+// @param file formData file true "Uploaded document"
+// @accept multipart/form-data
+// @produce json
+// @success 202 {object} dto.DocumentMetadata
+// @failure 400
+// @failure 500
+func (wc *WorkspaceController) UploadDocument(c *gin.Context) {
+	var upload dto.DocumentUpload
+	if err := c.ShouldBind(&upload); err != nil {
+		respondWithError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	workspace := c.Param("id-or-name")
+	filename := upload.File.Filename
+	file, err := upload.File.Open()
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err)
+		return
+	}
+	defer file.Close()
+
+	document, err := wc.srv.UploadDocumentToWorkspace(c.Request.Context(), workspace, filename, file)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusAccepted, &dto.DocumentMetadata{
+		ID:       document.ID,
+		Filename: document.Filename,
+	})
+}
