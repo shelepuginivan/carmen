@@ -33,6 +33,9 @@ func main() {
 	workspaces := srv.Group("/workspace")
 	workspaces.POST("/", workspaceController.CreateWorkspace)
 	workspaces.GET("/:id-or-name", workspaceController.GetWorkspace)
+	workspaces.GET("/all", workspaceController.ListWorkspaces)
+	workspaces.GET("/all/page/:page", workspaceController.PaginateWorkspaces)
+	workspaces.DELETE("/:id-or-name", workspaceController.DeleteWorkspace)
 
 	srv.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
