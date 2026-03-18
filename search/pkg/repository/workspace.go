@@ -82,7 +82,7 @@ func (wr *WorkspaceRepository) DeleteWorkspace(ctx context.Context, identifier s
 	err := wr.db.
 		WithContext(ctx).
 		Preload("Documents", func(db *gorm.DB) *gorm.DB {
-			return db.Select("filename")
+			return db.Select("workspace_id", "filename")
 		}).
 		Where("id = ?", identifier).
 		Or("name = ?", identifier).
