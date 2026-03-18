@@ -1,5 +1,5 @@
-// Package dal provides data access layer utilities.
-package dal
+// Package infra provides utilities for communicating with infrastructure.
+package infra
 
 import (
 	"fmt"

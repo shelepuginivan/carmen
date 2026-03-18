@@ -3,17 +3,17 @@ package repository
 import (
 	"context"
 
-	"github.com/shelepuginivan/carmen/search/pkg/dal"
+	"github.com/shelepuginivan/carmen/search/pkg/infra"
 	"github.com/shelepuginivan/carmen/search/pkg/model"
 	"gorm.io/gorm"
 )
 
 type WorkspaceRepository struct {
 	db *gorm.DB
-	s3 *dal.S3
+	s3 *infra.S3
 }
 
-func NewWorkspace(db *gorm.DB, s3 *dal.S3) *WorkspaceRepository {
+func NewWorkspace(db *gorm.DB, s3 *infra.S3) *WorkspaceRepository {
 	return &WorkspaceRepository{
 		db: db,
 		s3: s3,

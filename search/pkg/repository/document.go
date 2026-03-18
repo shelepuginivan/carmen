@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/shelepuginivan/carmen/search/pkg/dal"
+	"github.com/shelepuginivan/carmen/search/pkg/infra"
 	"github.com/shelepuginivan/carmen/search/pkg/model"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -12,10 +12,10 @@ import (
 
 type DocumentRepository struct {
 	db *gorm.DB
-	s3 *dal.S3
+	s3 *infra.S3
 }
 
-func NewDocument(db *gorm.DB, s3 *dal.S3) *DocumentRepository {
+func NewDocument(db *gorm.DB, s3 *infra.S3) *DocumentRepository {
 	return &DocumentRepository{
 		db: db,
 		s3: s3,
