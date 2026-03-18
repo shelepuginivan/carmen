@@ -12,13 +12,13 @@ import (
 )
 
 func connectWithBackoff(
-	cfg *config.Config,
+	cfg *config.Postgres,
 	initDelay time.Duration,
 	delayScaleFactor int,
 	retries int,
 ) (*gorm.DB, error) {
 	var (
-		dsn    = cfg.PostgresDSN()
+		dsn    = cfg.DSN()
 		delay  = initDelay
 		factor = time.Duration(delayScaleFactor)
 
@@ -40,7 +40,7 @@ func connectWithBackoff(
 }
 
 // NewDBConnection connects to the database and performs necessary setup.
-func NewDBConnection(cfg *config.Config) (*gorm.DB, error) {
+func NewDBConnection(cfg *config.Postgres) (*gorm.DB, error) {
 	db, err := connectWithBackoff(cfg, time.Second, 2, 5)
 	if err != nil {
 		return nil, err

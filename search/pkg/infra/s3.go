@@ -14,17 +14,17 @@ type S3 struct {
 	bucket string
 }
 
-func NewS3(cfg *config.Config) *S3 {
+func NewS3(cfg *config.S3) *S3 {
 	client := s3.New(s3.Options{
-		Region:       cfg.S3Region,
-		Credentials:  credentials.NewStaticCredentialsProvider(cfg.S3AccessKey, cfg.S3SecretKey, ""),
-		BaseEndpoint: &cfg.S3Endpoint,
+		Region:       cfg.Region,
+		Credentials:  credentials.NewStaticCredentialsProvider(cfg.AccessKey, cfg.SecretKey, ""),
+		BaseEndpoint: &cfg.Endpoint,
 		UsePathStyle: true,
 	})
 
 	return &S3{
 		client: client,
-		bucket: cfg.S3Bucket,
+		bucket: cfg.Bucket,
 	}
 }
 

@@ -3,50 +3,66 @@ package config
 
 import "fmt"
 
+type Server struct {
+	Addr string
+}
+
+type Postgres struct {
+	User     string
+	Password string
+	Database string
+	Host     string
+	Port     int
+}
+
+type S3 struct {
+	AccessKey string
+	SecretKey string
+	Region    string
+	Endpoint  string
+	Bucket    string
+}
+
+// DSN returns DSN for PostgreSQL database connection.
+func (p *Postgres) DSN() string {
+	return fmt.Sprintf(
+		"host=%s port=%d user=%s password=%s dbname=%s",
+		p.Host,
+		p.Port,
+		p.User,
+		p.Password,
+		p.Database,
+	)
+}
+
 // Config represents service configuration.
 type Config struct {
-	Addr string
-
-	PostgresUser     string
-	PostgresPassword string
-	PostgresDatabase string
-	PostgresHost     string
-	PostgresPort     int
-
-	S3AccessKey string
-	S3SecretKey string
-	S3Region    string
-	S3Endpoint  string
-	S3Bucket    string
+	Server   *Server
+	Postgres *Postgres
+	S3       *S3
 }
 
 // Load loads configuration from env variables.
 func Load() *Config {
 	return &Config{
-		Addr: requiredEnvStr("ADDR"),
+		Server: &Server{
+			Addr: requiredEnvStr("ADDR"),
+		},
 
-		PostgresUser:     requiredEnvStr("POSTGRES_USER"),
-		PostgresPassword: requiredEnvStr("POSTGRES_PASSWORD"),
-		PostgresDatabase: requiredEnvStr("POSTGRES_DB"),
-		PostgresHost:     requiredEnvStr("POSTGRES_HOST"),
-		PostgresPort:     requiredEnvInt("POSTGRES_PORT"),
+		Postgres: &Postgres{
+			User:     requiredEnvStr("POSTGRES_USER"),
+			Password: requiredEnvStr("POSTGRES_PASSWORD"),
+			Database: requiredEnvStr("POSTGRES_DB"),
+			Host:     requiredEnvStr("POSTGRES_HOST"),
+			Port:     requiredEnvInt("POSTGRES_PORT"),
+		},
 
-		S3AccessKey: requiredEnvStr("S3_ACCESS_KEY"),
-		S3SecretKey: requiredEnvStr("S3_SECRET_KEY"),
-		S3Region:    requiredEnvStr("S3_REGION"),
-		S3Endpoint:  requiredEnvStr("S3_ENDPOINT"),
-		S3Bucket:    requiredEnvStr("S3_BUCKET"),
+		S3: &S3{
+			AccessKey: requiredEnvStr("S3_ACCESS_KEY"),
+			SecretKey: requiredEnvStr("S3_SECRET_KEY"),
+			Region:    requiredEnvStr("S3_REGION"),
+			Endpoint:  requiredEnvStr("S3_ENDPOINT"),
+			Bucket:    requiredEnvStr("S3_BUCKET"),
+		},
 	}
-}
-
-// PostgresDSN returns DSN for PostgreSQL database connection.
-func (c *Config) PostgresDSN() string {
-	return fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s",
-		c.PostgresHost,
-		c.PostgresPort,
-		c.PostgresUser,
-		c.PostgresPassword,
-		c.PostgresDatabase,
-	)
 }

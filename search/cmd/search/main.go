@@ -18,8 +18,8 @@ import (
 func main() {
 	cfg := config.Load()
 
-	s3 := infra.NewS3(cfg)
-	db, err := infra.NewDBConnection(cfg)
+	s3 := infra.NewS3(cfg.S3)
+	db, err := infra.NewDBConnection(cfg.Postgres)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,7 +42,7 @@ func main() {
 
 	srv.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	if err := srv.Run(cfg.Addr); err != nil {
+	if err := srv.Run(cfg.Server.Addr); err != nil {
 		log.Fatal(err)
 	}
 }
