@@ -70,7 +70,7 @@ func (dr *DocumentRepository) GetDocumentMetadata(
 func (dr *DocumentRepository) GetDocumentContents(
 	ctx context.Context,
 	documentID string,
-) (io.Reader, error) {
+) (io.ReadCloser, error) {
 	var document model.Document
 
 	err := dr.db.Select("filename").First(&document, documentID).Error

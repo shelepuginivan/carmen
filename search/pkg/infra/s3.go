@@ -28,7 +28,7 @@ func NewS3(cfg *config.S3) *S3 {
 	}
 }
 
-func (ds *S3) GetDocument(ctx context.Context, key string) (io.Reader, error) {
+func (ds *S3) GetDocument(ctx context.Context, key string) (io.ReadCloser, error) {
 	res, err := ds.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: &ds.bucket,
 		Key:    &key,
