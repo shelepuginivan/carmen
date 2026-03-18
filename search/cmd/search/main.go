@@ -24,11 +24,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	ep := infra.NewExtractorProducer(cfg.Kafka)
+	defer ep.Close()
+
 	srv := gin.Default()
 
 	workspaceRepo := repository.NewWorkspace(db, s3)
 	documentsRepo := repository.NewDocument(db, s3)
-	workspaceService := service.NewWorkspace(workspaceRepo, documentsRepo)
+	workspaceService := service.NewWorkspace(workspaceRepo, documentsRepo, ep)
 	workspaceController := controller.NewWorkspace(workspaceService)
 
 	workspaces := srv.Group("/workspace")

@@ -36,12 +36,13 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: controller
       KAFKA_LISTENERS: CONTROLLER://:9093
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-controller:9093
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 1000
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
+    volumes:
+      - kafka-controller-data:/var/lib/kafka/data
 
   kafka-broker:
     image: apache/kafka:latest
@@ -58,8 +59,29 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 1000
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
     depends_on:
       - kafka-controller
+    volumes:
+      - kafka-broker-data:/var/lib/kafka/data
+
+  kafka-init:
+    image: apache/kafka:latest
+    container_name: kafka-init
+    depends_on:
+      - kafka-controller
+      - kafka-broker
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --list
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic chunks.queue
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic chunks.ready
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic documents.ready
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic documents.ready
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic search.requests
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic search.responses
+      "
 
   embedding:
     build:
@@ -105,13 +127,16 @@ services:
       context: ./search
     container_name: search
     environment:
-      CARMEN_SEARCH_ADDR: :5124
+      CARMEN_SEARCH_SERVER_ADDR: :5124
       CARMEN_SEARCH_POSTGRES_DB: carmen
       CARMEN_SEARCH_POSTGRES_HOST: postgres
       CARMEN_SEARCH_POSTGRES_PORT: 5432
       CARMEN_SEARCH_S3_REGION: eu-central-1
       CARMEN_SEARCH_S3_ENDPOINT: http://s3:9000
       CARMEN_SEARCH_S3_BUCKET: carmen-documents
+      CARMEN_SEARCH_KAFKA_URI: kafka-broker:9092
+      CARMEN_SEARCH_KAFKA_CONSUMER_GROUP: search-consumer-group
+      CARMEN_SEARCH_KAFKA_TOPIC_DOCUMENTS_QUEUE: documents.queue
     env_file:
       # Contains the following env variables:
       #   - CARMEN_SEARCH_POSTGRES_USER
@@ -122,9 +147,12 @@ services:
     ports:
       - 5124:5124
     depends_on:
+      - kafka-broker
       - postgres
       - s3
 
 volumes:
+  kafka-controller-data:
+  kafka-broker-data:
   s3_data:
   pg_data:

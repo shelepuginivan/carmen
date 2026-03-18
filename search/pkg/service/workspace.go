@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/shelepuginivan/carmen/search/pkg/infra"
 	"github.com/shelepuginivan/carmen/search/pkg/model"
 	"github.com/shelepuginivan/carmen/search/pkg/repository"
 )
@@ -11,10 +12,15 @@ import (
 type WorkspaceService struct {
 	wr *repository.WorkspaceRepository
 	dr *repository.DocumentRepository
+	ep *infra.ExtractorProducer
 }
 
-func NewWorkspace(wr *repository.WorkspaceRepository, dr *repository.DocumentRepository) *WorkspaceService {
-	return &WorkspaceService{wr, dr}
+func NewWorkspace(
+	wr *repository.WorkspaceRepository,
+	dr *repository.DocumentRepository,
+	ep *infra.ExtractorProducer,
+) *WorkspaceService {
+	return &WorkspaceService{wr, dr, ep}
 }
 
 func (ws *WorkspaceService) CreateWorkspace(ctx context.Context, name string, description string) (*model.Workspace, error) {
@@ -67,7 +73,10 @@ func (ws *WorkspaceService) UploadDocumentToWorkspace(
 		return nil, err
 	}
 
-	// TODO: enqueue document chunking to carmen-extractor
+	err = ws.ep.EnqueueDocumentForExtraction(ctx, document.ID, document.Filename)
+	if err != nil {
+		return nil, err
+	}
 
 	return document, nil
 }

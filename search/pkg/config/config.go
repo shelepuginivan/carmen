@@ -23,6 +23,12 @@ type S3 struct {
 	Bucket    string
 }
 
+type Kafka struct {
+	URI                 string
+	ConsumerGroup       string
+	TopicDocumentsQueue string
+}
+
 // DSN returns DSN for PostgreSQL database connection.
 func (p *Postgres) DSN() string {
 	return fmt.Sprintf(
@@ -40,13 +46,14 @@ type Config struct {
 	Server   *Server
 	Postgres *Postgres
 	S3       *S3
+	Kafka    *Kafka
 }
 
 // Load loads configuration from env variables.
 func Load() *Config {
 	return &Config{
 		Server: &Server{
-			Addr: requiredEnvStr("ADDR"),
+			Addr: requiredEnvStr("SERVER_ADDR"),
 		},
 
 		Postgres: &Postgres{
@@ -63,6 +70,12 @@ func Load() *Config {
 			Region:    requiredEnvStr("S3_REGION"),
 			Endpoint:  requiredEnvStr("S3_ENDPOINT"),
 			Bucket:    requiredEnvStr("S3_BUCKET"),
+		},
+
+		Kafka: &Kafka{
+			URI:                 requiredEnvStr("KAFKA_URI"),
+			ConsumerGroup:       requiredEnvStr("KAFKA_CONSUMER_GROUP"),
+			TopicDocumentsQueue: requiredEnvStr("KAFKA_TOPIC_DOCUMENTS_QUEUE"),
 		},
 	}
 }
