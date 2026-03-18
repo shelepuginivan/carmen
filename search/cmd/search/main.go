@@ -27,12 +27,14 @@ func main() {
 	srv := gin.Default()
 
 	workspaceRepo := repository.NewWorkspace(db, s3)
-	workspaceService := service.NewWorkspace(workspaceRepo)
+	documentsRepo := repository.NewDocument(db, s3)
+	workspaceService := service.NewWorkspace(workspaceRepo, documentsRepo)
 	workspaceController := controller.NewWorkspace(workspaceService)
 
 	workspaces := srv.Group("/workspace")
 	workspaces.POST("/", workspaceController.CreateWorkspace)
 	workspaces.GET("/:id-or-name", workspaceController.GetWorkspace)
+	workspaces.GET("/:id-or-name/document/all", workspaceController.GetWorkspaceDocuments)
 	workspaces.GET("/all", workspaceController.ListWorkspaces)
 	workspaces.GET("/all/page/:page", workspaceController.PaginateWorkspaces)
 	workspaces.DELETE("/:id-or-name", workspaceController.DeleteWorkspace)

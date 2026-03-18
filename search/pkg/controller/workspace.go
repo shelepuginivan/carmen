@@ -69,6 +69,34 @@ func (wc *WorkspaceController) GetWorkspace(c *gin.Context) {
 	})
 }
 
+// GetWorkspaceDocuments godoc
+//
+// @summary Get all documents in workspaces
+// @router /workspace/{id-or-name}/document/all [get]
+// @tags workspace
+// @param id-or-name path string true "ID or name of the workspace"
+// @produce json
+// @success 200 {array} dto.DocumentMetadata
+// @failure 404
+func (wc *WorkspaceController) GetWorkspaceDocuments(c *gin.Context) {
+	documents, err := wc.srv.GetWorkspaceDocuments(c.Request.Context(), c.Param("id-or-name"))
+	if err != nil {
+		respondWithError(c, http.StatusNotFound, err)
+		return
+	}
+
+	result := make([]*dto.DocumentMetadata, len(documents))
+
+	for idx, doc := range documents {
+		result[idx] = &dto.DocumentMetadata{
+			ID:       doc.ID,
+			Filename: doc.Filename,
+		}
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
 // ListWorkspaces godoc
 //
 // @summary Get all workspaces

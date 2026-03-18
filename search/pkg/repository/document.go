@@ -87,6 +87,25 @@ func (dr *DocumentRepository) GetDocumentContents(
 	return dr.s3.GetDocument(ctx, document.Filename)
 }
 
+func (dr *DocumentRepository) ListDocumentsInWorkspace(
+	ctx context.Context,
+	workspaceID string,
+) ([]*model.Document, error) {
+	var documents []*model.Document
+
+	err := dr.db.
+		WithContext(ctx).
+		Select("id", "filename").
+		Where("workspace_id = ?", workspaceID).
+		Find(&documents).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return documents, nil
+}
+
 func (dr *DocumentRepository) DeleteDocument(ctx context.Context, documentID string) error {
 	var document model.Document
 
