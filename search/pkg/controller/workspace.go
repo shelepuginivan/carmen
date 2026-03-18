@@ -71,7 +71,7 @@ func (wc *WorkspaceController) GetWorkspace(c *gin.Context) {
 
 // GetWorkspaceDocuments godoc
 //
-// @summary Get all documents in workspaces
+// @summary Get all documents in workspace
 // @router /workspace/{id-or-name}/document/all [get]
 // @tags workspace
 // @param id-or-name path string true "ID or name of the workspace"
@@ -80,6 +80,47 @@ func (wc *WorkspaceController) GetWorkspace(c *gin.Context) {
 // @failure 404
 func (wc *WorkspaceController) GetWorkspaceDocuments(c *gin.Context) {
 	documents, err := wc.srv.GetWorkspaceDocuments(c.Request.Context(), c.Param("id-or-name"))
+	if err != nil {
+		respondWithError(c, http.StatusNotFound, err)
+		return
+	}
+
+	result := make([]*dto.DocumentMetadata, len(documents))
+
+	for idx, doc := range documents {
+		result[idx] = &dto.DocumentMetadata{
+			ID:       doc.ID,
+			Filename: doc.Filename,
+		}
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// PaginateWorkspaceDocuments godoc
+//
+// @summary Get documents in workspace with pagination
+// @router /workspace/{id-or-name}/document/page/{page} [get]
+// @tags workspace
+// @param id-or-name path string true "ID or name of the workspace"
+// @param page path int true "Page" minimum(1)
+// @param limit query int false "Page size limit" minimum(10) maximum(100) default(10)
+// @produce json
+// @success 200 {array} dto.DocumentMetadata
+// @failure 404
+func (wc *WorkspaceController) PaginateWorkspaceDocuments(c *gin.Context) {
+	pagination, err := paginate(c)
+	if err != nil {
+		respondWithError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	documents, err := wc.srv.PaginateWorkspaceDocuments(
+		c.Request.Context(),
+		c.Param("id-or-name"),
+		pagination.Page,
+		pagination.Limit,
+	)
 	if err != nil {
 		respondWithError(c, http.StatusNotFound, err)
 		return

@@ -45,6 +45,29 @@ func (ws *WorkspaceService) GetWorkspaceDocuments(ctx context.Context, identifie
 	return documents, nil
 }
 
+func (ws *WorkspaceService) PaginateWorkspaceDocuments(
+	ctx context.Context,
+	identifier string,
+	page int,
+	limit int,
+) ([]*model.Document, error) {
+	workspace, err := ws.wr.GetWorkspace(ctx, identifier)
+	if err != nil {
+		return nil, err
+	}
+
+	documents, err := ws.dr.ListDocumentsInWorkspace(
+		ctx,
+		workspace.ID,
+		repository.Paginate(page, limit),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return documents, nil
+}
+
 func (ws *WorkspaceService) ListWorkspaces(ctx context.Context) ([]*model.Workspace, error) {
 	return ws.wr.ListWorkspaces(ctx)
 }
