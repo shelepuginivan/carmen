@@ -20,11 +20,18 @@ func NewWorkspace(db *gorm.DB, s3 *dal.S3) *WorkspaceRepository {
 	}
 }
 
-func (wr *WorkspaceRepository) CreateWorkspace(ctx context.Context, name string, description string) error {
-	return wr.db.WithContext(ctx).Create(&model.Workspace{
+func (wr *WorkspaceRepository) CreateWorkspace(ctx context.Context, name string, description string) (*model.Workspace, error) {
+	workspace := model.Workspace{
 		Name:        name,
 		Description: description,
-	}).Error
+	}
+
+	err := wr.db.WithContext(ctx).Create(&workspace).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &workspace, nil
 }
 
 func (wr *WorkspaceRepository) GetWorkspace(ctx context.Context, identifier string) (*model.Workspace, error) {

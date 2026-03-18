@@ -24,22 +24,26 @@ func NewWorkspace(srv *service.WorkspaceService) *WorkspaceController {
 // @accept json
 // @param workspace body dto.WorkspaceCreate true "New workspace metadata"
 // @produce json
-// @success 204
+// @success 201 {object} dto.WorkspaceGet
 // @failure 400
 func (wc *WorkspaceController) CreateWorkspace(c *gin.Context) {
-	var workspace dto.WorkspaceCreate
-	if err := c.ShouldBind(&workspace); err != nil {
+	var params dto.WorkspaceCreate
+	if err := c.ShouldBind(&params); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"detail": err.Error()})
 		return
 	}
 
-	err := wc.srv.CreateWorkspace(c.Request.Context(), workspace.Name, workspace.Description)
+	workspace, err := wc.srv.CreateWorkspace(c.Request.Context(), params.Name, params.Description)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"detail": err.Error()})
 		return
 	}
 
-	c.AbortWithStatus(http.StatusNoContent)
+	c.JSON(http.StatusCreated, &dto.WorkspaceGet{
+		ID:          workspace.ID,
+		Name:        workspace.Name,
+		Description: workspace.Description,
+	})
 }
 
 // GetWorkspace godoc

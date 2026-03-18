@@ -15,7 +15,7 @@ func NewWorkspace(repo *repository.WorkspaceRepository) *WorkspaceService {
 	return &WorkspaceService{repo}
 }
 
-func (ws *WorkspaceService) CreateWorkspace(ctx context.Context, name string, description string) error {
+func (ws *WorkspaceService) CreateWorkspace(ctx context.Context, name string, description string) (*model.Workspace, error) {
 	return ws.repo.CreateWorkspace(ctx, name, description)
 }
 
