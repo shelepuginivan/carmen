@@ -50,7 +50,7 @@ func (ws *WorkspaceService) ListWorkspaces(ctx context.Context) ([]*model.Worksp
 }
 
 func (ws *WorkspaceService) PaginateWorkspaces(ctx context.Context, page, limit int) ([]*model.Workspace, error) {
-	return ws.wr.PaginateWorkspaces(ctx, page, limit)
+	return ws.wr.ListWorkspaces(ctx, repository.Paginate(page, limit))
 }
 
 func (ws *WorkspaceService) DeleteWorkspace(ctx context.Context, identifier string) error {

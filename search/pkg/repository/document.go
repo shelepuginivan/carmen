@@ -84,11 +84,13 @@ func (dr *DocumentRepository) GetDocumentContents(
 func (dr *DocumentRepository) ListDocumentsInWorkspace(
 	ctx context.Context,
 	workspaceID string,
+	scopes ...Scope,
 ) ([]*model.Document, error) {
 	var documents []*model.Document
 
 	err := dr.db.
 		WithContext(ctx).
+		Scopes(scopes...).
 		Select("id", "filename").
 		Where("workspace_id = ?", workspaceID).
 		Find(&documents).

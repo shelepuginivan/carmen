@@ -47,28 +47,12 @@ func (wr *WorkspaceRepository) GetWorkspace(ctx context.Context, identifier stri
 	return &workspace, err
 }
 
-func (wr *WorkspaceRepository) ListWorkspaces(ctx context.Context) ([]*model.Workspace, error) {
+func (wr *WorkspaceRepository) ListWorkspaces(ctx context.Context, scopes ...Scope) ([]*model.Workspace, error) {
 	var workspaces []*model.Workspace
 
 	res := wr.db.
 		WithContext(ctx).
-		Select("id", "name", "description").
-		Order("name").
-		Find(&workspaces)
-
-	return workspaces, res.Error
-}
-
-func (wr *WorkspaceRepository) PaginateWorkspaces(
-	ctx context.Context,
-	page int,
-	limit int,
-) ([]*model.Workspace, error) {
-	var workspaces []*model.Workspace
-
-	res := wr.db.
-		WithContext(ctx).
-		Scopes(paginate(page, limit)).
+		Scopes(scopes...).
 		Select("id", "name", "description").
 		Order("name").
 		Find(&workspaces)
