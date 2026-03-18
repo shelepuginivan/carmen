@@ -44,6 +44,14 @@ func main() {
 	workspaces.GET("/all/page/:page", workspaceController.PaginateWorkspaces)
 	workspaces.DELETE("/:id-or-name", workspaceController.DeleteWorkspace)
 
+	documentsService := service.NewDocument(documentsRepo)
+	documentController := controller.NewDocument(documentsService)
+
+	documents := srv.Group("/document")
+	documents.GET("/:id", documentController.GetDocumentMetadata)
+	documents.GET("/:id/content", documentController.GetDocumentContents)
+	documents.DELETE("/:id", documentController.DeleteDocument)
+
 	srv.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	if err := srv.Run(cfg.Server.Addr); err != nil {
