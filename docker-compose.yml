@@ -74,10 +74,12 @@ services:
     entrypoint: [ '/bin/sh', '-c' ]
     command: |
       "
-      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --list
+      until /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --list; do
+        echo 'Waiting for Kafka broker to be ready...'
+        sleep 5
+      done
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic chunks.queue
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic chunks.ready
-      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic documents.ready
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic documents.ready
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic search.requests
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic search.responses
@@ -99,7 +101,10 @@ services:
       CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
       CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_MODEL: sentence-transformers/static-retrieval-mrl-en-v1
     depends_on:
-      - kafka-broker
+      kafka-init:
+        condition: service_completed_successfully
+      kafka-broker:
+        condition: service_started
 
   extractor:
     build:
@@ -119,8 +124,12 @@ services:
       # CARMEN_EXTRACTOR_S3_SECRET_KEY 
       - .env.extractor
     depends_on:
-      - kafka-broker
-      - s3
+      kafka-init:
+        condition: service_completed_successfully
+      kafka-broker:
+        condition: service_started
+      s3:
+        condition: service_started
 
   search:
     build:
@@ -147,9 +156,14 @@ services:
     ports:
       - 5124:5124
     depends_on:
-      - kafka-broker
-      - postgres
-      - s3
+      kafka-broker:
+        condition: service_started
+      kafka-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_started
+      s3:
+        condition: service_started
 
 volumes:
   kafka-controller-data:
