@@ -27,6 +27,7 @@ type Kafka struct {
 	URI                 string
 	ConsumerGroup       string
 	TopicDocumentsQueue string
+	TopicChunksReady    string
 }
 
 // DSN returns DSN for PostgreSQL database connection.
