@@ -146,6 +146,7 @@ services:
       CARMEN_SEARCH_KAFKA_URI: kafka-broker:9092
       CARMEN_SEARCH_KAFKA_CONSUMER_GROUP: search-consumer-group
       CARMEN_SEARCH_KAFKA_TOPIC_DOCUMENTS_QUEUE: documents.queue
+      CARMEN_SEARCH_KAFKA_TOPIC_CHUNKS_READY: chunks.ready
     env_file:
       # Contains the following env variables:
       #   - CARMEN_SEARCH_POSTGRES_USER

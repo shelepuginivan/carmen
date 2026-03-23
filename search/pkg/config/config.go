@@ -77,6 +77,7 @@ func Load() *Config {
 			URI:                 requiredEnvStr("KAFKA_URI"),
 			ConsumerGroup:       requiredEnvStr("KAFKA_CONSUMER_GROUP"),
 			TopicDocumentsQueue: requiredEnvStr("KAFKA_TOPIC_DOCUMENTS_QUEUE"),
+			TopicChunksReady:    requiredEnvStr("KAFKA_TOPIC_CHUNKS_READY"),
 		},
 	}
 }
