@@ -23,10 +23,16 @@ func NewExtractorProducer(cfg *config.Kafka) *ExtractorProducer {
 	return &ExtractorProducer{w}
 }
 
-func (ep *ExtractorProducer) EnqueueDocumentForExtraction(ctx context.Context, id string, filename string) error {
+func (ep *ExtractorProducer) EnqueueDocumentForExtraction(
+	ctx context.Context,
+	id string,
+	filename string,
+	mimetype string,
+) error {
 	payload := map[string]string{
 		"document_id": id,
 		"object_key":  filename,
+		"mimetype":    mimetype,
 	}
 
 	body, err := json.Marshal(payload)

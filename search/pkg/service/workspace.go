@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/shelepuginivan/carmen/search/pkg/infra"
 	"github.com/shelepuginivan/carmen/search/pkg/model"
 	"github.com/shelepuginivan/carmen/search/pkg/repository"
@@ -84,7 +85,7 @@ func (ws *WorkspaceService) UploadDocumentToWorkspace(
 	ctx context.Context,
 	identifier string,
 	filename string,
-	content io.Reader,
+	content io.ReadSeeker,
 ) (*model.Document, error) {
 	workspace, err := ws.wr.GetWorkspace(ctx, identifier)
 	if err != nil {
@@ -96,7 +97,13 @@ func (ws *WorkspaceService) UploadDocumentToWorkspace(
 		return nil, err
 	}
 
-	err = ws.ep.EnqueueDocumentForExtraction(ctx, document.ID, document.Filename)
+	mime, err := mimetype.DetectReader(content)
+	if err != nil {
+		return nil, err
+	}
+	content.Seek(0, io.SeekStart)
+
+	err = ws.ep.EnqueueDocumentForExtraction(ctx, document.ID, document.Filename, mime.String())
 	if err != nil {
 		return nil, err
 	}
