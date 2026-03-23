@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shelepuginivan/carmen/search/pkg/adapter"
 	"github.com/shelepuginivan/carmen/search/pkg/config"
 	"github.com/shelepuginivan/carmen/search/pkg/controller"
 	"github.com/shelepuginivan/carmen/search/pkg/infra"
@@ -51,6 +53,13 @@ func main() {
 	documents.GET("/:id", documentController.GetDocumentMetadata)
 	documents.GET("/:id/content", documentController.GetDocumentContents)
 	documents.DELETE("/:id", documentController.DeleteDocument)
+
+	chunksRepo := repository.NewChunk(db)
+	chunksAdapter := adapter.NewChunk(cfg.Kafka, chunksRepo)
+
+	go func() {
+		chunksAdapter.Handle(context.Background())
+	}()
 
 	srv.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
