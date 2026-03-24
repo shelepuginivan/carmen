@@ -9,7 +9,6 @@ from models.search import SearchRequest, SearchResponse
 
 class SearchAdapter:
     def __init__(self, config: Config) -> None:
-        self.__config = config
         self.__transformer = SentenceTransformer(
             config.sentence_transformers_model,
             cache_folder=config.sentence_transformers_home,
@@ -35,7 +34,7 @@ class SearchAdapter:
         for message in map(self.__decode_message, self.__consumer):
             embedding = self.__transformer.encode(message.query).tolist()
             result = SearchResponse(embedding=embedding)
-            self.__producer.send(self.__config.kafka_topic_search_responses, result)
+            self.__producer.send(message.response_topic, result)
 
     def __decode_message(self, message: Any) -> SearchRequest:
         return SearchRequest.model_validate_json(message.value)

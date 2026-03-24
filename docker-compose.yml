@@ -100,7 +100,6 @@ services:
       CARMEN_EMBEDDING_KAFKA_TOPIC_CHUNKS_QUEUE: chunks.queue
       CARMEN_EMBEDDING_KAFKA_TOPIC_CHUNKS_READY: chunks.ready
       CARMEN_EMBEDDING_KAFKA_TOPIC_SEARCH_REQUESTS: search.requests
-      CARMEN_EMBEDDING_KAFKA_TOPIC_SEARCH_RESPONSES: search.responses
       CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
       CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_MODEL: sentence-transformers/static-retrieval-mrl-en-v1
     depends_on:
