@@ -214,7 +214,7 @@ func (wc *WorkspaceController) PaginateWorkspaces(c *gin.Context) {
 // @tags workspace
 // @param id-or-name path string true "ID or name of the workspace"
 // @produce json
-// @success 200 {object} dto.WorkspaceGet
+// @success 200
 // @failure 500
 func (wc *WorkspaceController) DeleteWorkspace(c *gin.Context) {
 	err := wc.srv.DeleteWorkspace(c.Request.Context(), c.Param("id-or-name"))
