@@ -31,10 +31,11 @@ class SearchAdapter:
         self.__producer.close()
 
     def handle(self) -> None:
-        for message in map(self.__decode_message, self.__consumer):
+        for raw_msg in self.__consumer:
+            message = self.__decode_message(raw_msg)
             embedding = self.__transformer.encode(message.query).tolist()
             result = SearchResponse(embedding=embedding)
-            self.__producer.send(message.response_topic, result)
+            self.__producer.send(message.response_topic, result, key=raw_msg.key)
 
     def __decode_message(self, message: Any) -> SearchRequest:
         return SearchRequest.model_validate_json(message.value)
