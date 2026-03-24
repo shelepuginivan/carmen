@@ -99,6 +99,8 @@ services:
       CARMEN_EMBEDDING_KAFKA_CONSUMER_GROUP: embedding-consumer-group
       CARMEN_EMBEDDING_KAFKA_TOPIC_CHUNKS_QUEUE: chunks.queue
       CARMEN_EMBEDDING_KAFKA_TOPIC_CHUNKS_READY: chunks.ready
+      CARMEN_EMBEDDING_KAFKA_TOPIC_SEARCH_REQUESTS: search.requests
+      CARMEN_EMBEDDING_KAFKA_TOPIC_SEARCH_RESPONSES: search.responses
       CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
       CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_MODEL: sentence-transformers/static-retrieval-mrl-en-v1
     depends_on:
@@ -148,6 +150,8 @@ services:
       CARMEN_SEARCH_KAFKA_CONSUMER_GROUP: search-consumer-group
       CARMEN_SEARCH_KAFKA_TOPIC_DOCUMENTS_QUEUE: documents.queue
       CARMEN_SEARCH_KAFKA_TOPIC_CHUNKS_READY: chunks.ready
+      CARMEN_SEARCH_KAFKA_TOPIC_SEARCH_REQUESTS: search.requests
+      CARMEN_SEARCH_KAFKA_TOPIC_SEARCH_RESPONSES: search.responses
     env_file:
       # Contains the following env variables:
       #   - CARMEN_SEARCH_POSTGRES_USER

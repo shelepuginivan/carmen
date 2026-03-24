@@ -24,10 +24,12 @@ type S3 struct {
 }
 
 type Kafka struct {
-	URI                 string
-	ConsumerGroup       string
-	TopicDocumentsQueue string
-	TopicChunksReady    string
+	URI                  string
+	ConsumerGroup        string
+	TopicDocumentsQueue  string
+	TopicChunksReady     string
+	TopicSearchRequests  string
+	TopicSearchResponses string
 }
 
 // DSN returns DSN for PostgreSQL database connection.
@@ -74,10 +76,12 @@ func Load() *Config {
 		},
 
 		Kafka: &Kafka{
-			URI:                 requiredEnvStr("KAFKA_URI"),
-			ConsumerGroup:       requiredEnvStr("KAFKA_CONSUMER_GROUP"),
-			TopicDocumentsQueue: requiredEnvStr("KAFKA_TOPIC_DOCUMENTS_QUEUE"),
-			TopicChunksReady:    requiredEnvStr("KAFKA_TOPIC_CHUNKS_READY"),
+			URI:                  requiredEnvStr("KAFKA_URI"),
+			ConsumerGroup:        requiredEnvStr("KAFKA_CONSUMER_GROUP"),
+			TopicDocumentsQueue:  requiredEnvStr("KAFKA_TOPIC_DOCUMENTS_QUEUE"),
+			TopicChunksReady:     requiredEnvStr("KAFKA_TOPIC_CHUNKS_READY"),
+			TopicSearchRequests:  requiredEnvStr("KAFKA_TOPIC_SEARCH_REQUESTS"),
+			TopicSearchResponses: requiredEnvStr("KAFKA_TOPIC_SEARCH_RESPONSES"),
 		},
 	}
 }
