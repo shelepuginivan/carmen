@@ -34,5 +34,18 @@ func (cr *ChunksRepository) Create(
 	}
 
 	return &chunk, nil
+}
 
+func (cr *ChunksRepository) SemanticSearch(ctx context.Context, vec []float32, limit int) ([]*model.Chunk, error) {
+	var chunks []*model.Chunk
+
+	err := cr.db.
+		WithContext(ctx).
+		Scopes(VectorSearch("embedding", vec)).
+		Limit(limit).
+		Select("id", "document_id", "text").
+		Find(&chunks).
+		Error
+
+	return chunks, err
 }
