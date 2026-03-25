@@ -113,3 +113,20 @@ func (ssa *SemanticSearchAdapter) ReadResponse(ctx context.Context) (*dto.Semant
 
 	return &res, string(msg.Key), nil
 }
+
+func (ssa *SemanticSearchAdapter) Close() error {
+	ssa.mu.Lock()
+	defer ssa.mu.Unlock()
+
+	for key, ch := range ssa.ch {
+		close(ch)
+		delete(ssa.ch, key)
+	}
+
+	err := ssa.r.Close()
+	if err != nil {
+		return err
+	}
+
+	return ssa.w.Close()
+}

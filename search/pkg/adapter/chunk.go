@@ -54,3 +54,7 @@ func (cc *ChunkAdapter) ReadReadyChunk(ctx context.Context) (*dto.ChunkReady, er
 
 	return &chunk, nil
 }
+
+func (cc *ChunkAdapter) Close() error {
+	return cc.r.Close()
+}

@@ -68,10 +68,12 @@ func main() {
 	go func() {
 		chunksAdapter.Handle(context.Background())
 	}()
+	defer chunksAdapter.Close()
 
 	go func() {
 		searchAdapter.Handle(context.Background())
 	}()
+	defer searchAdapter.Close()
 
 	srv.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
