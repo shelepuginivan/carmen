@@ -50,11 +50,21 @@ func NewDBConnection(cfg *config.Postgres) (*gorm.DB, error) {
 		return nil, err
 	}
 
+	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS pg_trgm").Error; err != nil {
+		return nil, err
+	}
+
 	if err := db.AutoMigrate(
 		&model.Workspace{},
 		&model.Document{},
 		&model.Chunk{},
 	); err != nil {
+		return nil, err
+	}
+
+	if err := db.Exec(
+		"CREATE INDEX IF NOT EXISTS idx_text_trgm ON chunks USING GIN (text gin_trgm_ops)",
+	).Error; err != nil {
 		return nil, err
 	}
 
