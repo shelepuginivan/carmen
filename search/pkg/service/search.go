@@ -32,3 +32,12 @@ func (ss *SearchService) SemanticSearch(
 
 	return ss.cr.SemanticSearch(ctx, workspaceID, res.Embedding, limit)
 }
+
+func (ss *SearchService) SimilaritySearch(
+	ctx context.Context,
+	workspaceID string,
+	query string,
+	limit int,
+) ([]*model.Chunk, error) {
+	return ss.cr.SimilaritySearch(ctx, workspaceID, query, limit)
+}

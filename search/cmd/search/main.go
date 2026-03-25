@@ -55,10 +55,22 @@ func main() {
 	documents.DELETE("/:id", documentController.DeleteDocument)
 
 	chunksRepo := repository.NewChunk(db)
+	searchAdapter := adapter.NewSemanticSearch(cfg.Kafka)
+	searchService := service.NewSearch(chunksRepo, searchAdapter)
+	searchController := controller.NewSearch(searchService)
+
+	search := srv.Group("/search")
+	search.GET("/semantic", searchController.SemanticSearch)
+	search.GET("/similarity", searchController.SimilaritySearch)
+
 	chunksAdapter := adapter.NewChunk(cfg.Kafka, chunksRepo)
 
 	go func() {
 		chunksAdapter.Handle(context.Background())
+	}()
+
+	go func() {
+		searchAdapter.Handle(context.Background())
 	}()
 
 	srv.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
