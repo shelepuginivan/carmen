@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"strings"
 
+	"github.com/pemistahl/lingua-go"
 	"github.com/pgvector/pgvector-go"
 	"github.com/shelepuginivan/carmen/search/pkg/model"
 	"gorm.io/gorm"
@@ -10,10 +12,21 @@ import (
 
 type ChunksRepository struct {
 	db *gorm.DB
+	ld lingua.LanguageDetector
 }
 
 func NewChunk(db *gorm.DB) *ChunksRepository {
-	return &ChunksRepository{db}
+	// TODO: support more languages via configuration.
+	ld := lingua.NewLanguageDetectorBuilder().
+		FromLanguages(
+			lingua.English,
+			lingua.Chinese,
+			lingua.Russian,
+		).
+		WithLowAccuracyMode().
+		Build()
+
+	return &ChunksRepository{db, ld}
 }
 
 func (cr *ChunksRepository) Create(
@@ -25,6 +38,7 @@ func (cr *ChunksRepository) Create(
 	chunk := model.Chunk{
 		DocumentID: documentID,
 		Text:       text,
+		Language:   cr.detectLanguage(text),
 		Embedding:  pgvector.NewVector(embedding),
 	}
 
@@ -76,4 +90,13 @@ func (cr *ChunksRepository) SimilaritySearch(
 		Error
 
 	return chunks, err
+}
+
+func (cr *ChunksRepository) detectLanguage(text string) string {
+	lang, ok := cr.ld.DetectLanguageOf(text)
+	if !ok {
+		return "simple"
+	}
+
+	return strings.ToLower(lang.String())
 }

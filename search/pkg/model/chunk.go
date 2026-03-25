@@ -13,6 +13,7 @@ type Chunk struct {
 	ID         string `gorm:"primaryKey"`
 	DocumentID string
 	Text       string
+	Language   string
 	Embedding  pgvector.Vector `gorm:"type:vector(1024)"`
 }
 
