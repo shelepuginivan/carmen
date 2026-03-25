@@ -36,14 +36,21 @@ func (cr *ChunksRepository) Create(
 	return &chunk, nil
 }
 
-func (cr *ChunksRepository) SemanticSearch(ctx context.Context, vec []float32, limit int) ([]*model.Chunk, error) {
+func (cr *ChunksRepository) SemanticSearch(
+	ctx context.Context,
+	workspaceID string,
+	vec []float32,
+	limit int,
+) ([]*model.Chunk, error) {
 	var chunks []*model.Chunk
 
 	err := cr.db.
 		WithContext(ctx).
 		Scopes(VectorSearch("embedding", vec)).
 		Limit(limit).
-		Select("id", "document_id", "text").
+		Select("chunks.id, chunks.document_id, chunks.text").
+		Joins("JOIN documents ON documents.id = chunks.document_id").
+		Where("documents.workspace_id = ?", workspaceID).
 		Find(&chunks).
 		Error
 

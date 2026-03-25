@@ -23,7 +23,7 @@ func VectorSearch(field string, vec []float32) Scope {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Clauses(clause.OrderBy{
 			Expression: clause.Expr{
-				SQL: "embedding <=> ?",
+				SQL: field + " <=> ?",
 				Vars: []any{
 					pgvector.NewVector(vec),
 				},

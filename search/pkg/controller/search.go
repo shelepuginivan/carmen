@@ -22,6 +22,7 @@ func NewSearch(srv *service.SearchService) *SearchController {
 // @router /search/semantic [get]
 // @tags search
 // @param q query string true "Search query" minlength(1)
+// @param workspace query string true "Workspace ID"
 // @param limit query int false "Search result limit" minimum(1) default(5)
 // @produce json
 // @success 200 {array} dto.ChunkMetadata
@@ -34,7 +35,7 @@ func (dc *SearchController) SemanticSearch(c *gin.Context) {
 		return
 	}
 
-	chunks, err := dc.srv.SemanticSearch(c.Request.Context(), req.Query, req.Limit)
+	chunks, err := dc.srv.SemanticSearch(c.Request.Context(), req.Workspace, req.Query, req.Limit)
 	if err != nil {
 		respondWithError(c, http.StatusInternalServerError, err)
 		return

@@ -17,7 +17,12 @@ func NewSearch(cr *repository.ChunksRepository, ssa *adapter.SemanticSearchAdapt
 	return &SearchService{cr, ssa}
 }
 
-func (ss *SearchService) SemanticSearch(ctx context.Context, query string, limit int) ([]*model.Chunk, error) {
+func (ss *SearchService) SemanticSearch(
+	ctx context.Context,
+	workspaceID string,
+	query string,
+	limit int,
+) ([]*model.Chunk, error) {
 	resCh, err := ss.ssa.Query(ctx, query)
 	if err != nil {
 		return nil, err
@@ -25,5 +30,5 @@ func (ss *SearchService) SemanticSearch(ctx context.Context, query string, limit
 
 	res := <-resCh
 
-	return ss.cr.SemanticSearch(ctx, res.Embedding, limit)
+	return ss.cr.SemanticSearch(ctx, workspaceID, res.Embedding, limit)
 }
