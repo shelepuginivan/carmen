@@ -56,3 +56,24 @@ func (cr *ChunksRepository) SemanticSearch(
 
 	return chunks, err
 }
+
+func (cr *ChunksRepository) SimilaritySearch(
+	ctx context.Context,
+	workspaceID string,
+	query string,
+	limit int,
+) ([]*model.Chunk, error) {
+	var chunks []*model.Chunk
+
+	err := cr.db.
+		WithContext(ctx).
+		Scopes(SimilaritySearch("text", query)).
+		Limit(limit).
+		Select("chunks.id, chunks.document_id, chunks.text").
+		Joins("JOIN documents ON documents.id = chunks.document_id").
+		Where("documents.workspace_id = ?", workspaceID).
+		Find(&chunks).
+		Error
+
+	return chunks, err
+}
