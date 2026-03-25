@@ -8,13 +8,14 @@ import (
 
 // Chunk represents chunk of a document that is indexed for hybrid search.
 type Chunk struct {
-	gorm.Model `json:"-"`
+	gorm.Model
 
 	ID         string `gorm:"primaryKey"`
 	DocumentID string
 	Text       string
 	Language   string
 	Embedding  pgvector.Vector `gorm:"type:vector(1024)"`
+	FTSVector  string          `gorm:"type:tsvector"`
 }
 
 func (c *Chunk) BeforeCreate(tx *gorm.DB) (err error) {

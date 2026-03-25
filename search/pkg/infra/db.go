@@ -63,7 +63,13 @@ func NewDBConnection(cfg *config.Postgres) (*gorm.DB, error) {
 	}
 
 	if err := db.Exec(
-		"CREATE INDEX IF NOT EXISTS idx_text_trgm ON chunks USING GIN (text gin_trgm_ops)",
+		"CREATE INDEX IF NOT EXISTS idx_chunks_text_trgm ON chunks USING GIN (text gin_trgm_ops)",
+	).Error; err != nil {
+		return nil, err
+	}
+
+	if err := db.Exec(
+		"CREATE INDEX IF NOT EXISTS idx_chunks_fts ON chunks USING GIN (fts_vector)",
 	).Error; err != nil {
 		return nil, err
 	}
