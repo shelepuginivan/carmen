@@ -12,7 +12,7 @@ RUN go mod download
 
 COPY . .
 RUN ls
-RUN go tool swag init -o swagger -g ./pkg/controller/*
+RUN go tool swag init -o swagger -g doc.go -d ./pkg/controller,./pkg/dto
 RUN go build -o /app/search -trimpath -ldflags="-s -w" ./cmd/search
 
 
