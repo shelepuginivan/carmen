@@ -50,6 +50,27 @@ func (cr *ChunksRepository) Create(
 	return &chunk, nil
 }
 
+func (cr *ChunksRepository) FullTextSearch(
+	ctx context.Context,
+	workspaceID string,
+	query string,
+	limit int,
+) ([]*model.Chunk, error) {
+	var chunks []*model.Chunk
+
+	err := cr.db.
+		WithContext(ctx).
+		Scopes(FullTextSearch("fts_vector", query)).
+		Limit(limit).
+		Select("chunks.id, chunks.document_id, chunks.text").
+		Joins("JOIN documents ON documents.id = chunks.document_id").
+		Where("documents.workspace_id = ?", workspaceID).
+		Find(&chunks).
+		Error
+
+	return chunks, err
+}
+
 func (cr *ChunksRepository) SemanticSearch(
 	ctx context.Context,
 	workspaceID string,

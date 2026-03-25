@@ -21,6 +21,17 @@ func Paginate(page, limit int) Scope {
 	}
 }
 
+func FullTextSearch(field string, query string) Scope {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Clauses(clause.OrderBy{
+			Expression: clause.Expr{
+				SQL:  fmt.Sprintf("ts_rank(%s, websearch_to_query(language, ?)) DESC", field),
+				Vars: []any{query},
+			},
+		})
+	}
+}
+
 func VectorSearch(field string, vec []float32) Scope {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Clauses(clause.OrderBy{
