@@ -10,3 +10,4 @@ class ChunkReady(BaseModel):
     document_id: str
     text: str
     embedding: list[float]
+    language: str

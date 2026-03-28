@@ -8,3 +8,4 @@ class SearchRequest(BaseModel):
 
 class SearchResponse(BaseModel):
     embedding: list[float]
+    language: str
