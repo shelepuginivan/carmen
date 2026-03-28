@@ -34,7 +34,13 @@ func (cc *ChunkAdapter) Handle(ctx context.Context) {
 			break
 		}
 
-		if _, err = cc.cr.Create(ctx, chunk.DocumentID, chunk.Text, chunk.Embedding); err != nil {
+		if _, err = cc.cr.Create(
+			ctx,
+			chunk.DocumentID,
+			chunk.Text,
+			chunk.Embedding,
+			chunk.Language,
+		); err != nil {
 			log.Println(err)
 		}
 	}
