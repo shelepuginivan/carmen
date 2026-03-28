@@ -30,7 +30,7 @@ COPY --from=build --chown="$USER:$GROUP" /app .
 
 # Prepare sentence transformer model.
 ARG SENTENCE_TRANSFORMERS_HOME=/opt/sentence-transformers
-ARG SENTENCE_TRANSFORMERS_MODEL=""
+ARG SENTENCE_TRANSFORMERS_MODELS=""
 
 RUN mkdir -p "$SENTENCE_TRANSFORMERS_HOME" && \
     chown "$USER:$GROUP" "$SENTENCE_TRANSFORMERS_HOME"

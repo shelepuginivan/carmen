@@ -1,11 +1,16 @@
-import os
-
+from pydantic_settings import BaseSettings
 from sentence_transformers import SentenceTransformer
 
 
-model_name = os.getenv("SENTENCE_TRANSFORMERS_MODEL", "")
+class Config(BaseSettings):
+    sentence_transformers_home: str
+    sentence_transformers_models: list[str]
 
-if model_name != "":
+
+config = Config()  # type: ignore
+
+
+for model in config.sentence_transformers_models:
     # NOTE: sentence_transformers uses SENTENCE_TRANSFORMERS_HOME environment
     #       variable for cache, which is defined in Containerfile.
-    SentenceTransformer(model_name)
+    SentenceTransformer(model)

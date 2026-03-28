@@ -102,16 +102,20 @@ services:
       args:
         # Should match environment variables below.
         SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
-        SENTENCE_TRANSFORMERS_MODEL: sentence-transformers/static-retrieval-mrl-en-v1
+        SENTENCE_TRANSFORMERS_MODELS: |
+          [
+            "sentence-transformers/static-retrieval-mrl-en-v1"
+          ]
     container_name: embedding
     environment:
+      CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
+      CARMEN_EMBEDDING_FALLBACK_LANGUAGE: english
+      CARMEN_EMBEDDING_MODEL__ENGLISH: sentence-transformers/static-retrieval-mrl-en-v1
       CARMEN_EMBEDDING_KAFKA_URI: kafka-broker:9092
       CARMEN_EMBEDDING_KAFKA_CONSUMER_GROUP: embedding-consumer-group
       CARMEN_EMBEDDING_KAFKA_TOPIC_CHUNKS_QUEUE: chunks.queue
       CARMEN_EMBEDDING_KAFKA_TOPIC_CHUNKS_READY: chunks.ready
       CARMEN_EMBEDDING_KAFKA_TOPIC_SEARCH_REQUESTS: search.requests
-      CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
-      CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_MODEL: sentence-transformers/static-retrieval-mrl-en-v1
     restart: unless-stopped
     depends_on:
       kafka-init:
