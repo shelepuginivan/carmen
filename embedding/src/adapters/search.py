@@ -1,19 +1,15 @@
 from typing import Any
 
 from kafka import KafkaConsumer, KafkaProducer
-from sentence_transformers import SentenceTransformer
 
 from models.config import Config
 from models.search import SearchRequest, SearchResponse
+from service.embedding import EmbeddingService
 
 
 class SearchAdapter:
-    def __init__(self, config: Config) -> None:
-        self.__transformer = SentenceTransformer(
-            config.sentence_transformers_model,
-            cache_folder=config.sentence_transformers_home,
-            local_files_only=config.sentence_transformers_home is not None,
-        )
+    def __init__(self, config: Config, service: EmbeddingService) -> None:
+        self.__service = service
         self.__consumer = KafkaConsumer(
             config.kafka_topic_search_requests,
             bootstrap_servers=config.kafka_uri,
@@ -33,8 +29,13 @@ class SearchAdapter:
     def handle(self) -> None:
         for raw_msg in self.__consumer:
             message = self.__decode_message(raw_msg)
-            embedding = self.__transformer.encode(message.query).tolist()
-            result = SearchResponse(embedding=embedding)
+            r = self.__service.generate_embedding(message.query)
+
+            result = SearchResponse(
+                embedding=r.embedding.tolist(),
+                language=r.language.name.lower(),
+            )
+
             self.__producer.send(message.response_topic, result, key=raw_msg.key)
 
     def __decode_message(self, message: Any) -> SearchRequest:

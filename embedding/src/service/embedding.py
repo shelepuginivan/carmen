@@ -25,8 +25,11 @@ class EmbeddingService:
             except ValueError:
                 logging.warning(f"skipping unknown language '{lang}'")
                 continue
-
-            self.__models[l] = SentenceTransformer(model)
+            self.__models[l] = SentenceTransformer(
+                model,
+                cache_folder=cfg.sentence_transformers_home,
+                local_files_only=cfg.sentence_transformers_home is not None,
+            )
 
         self.__detector = (
             LanguageDetectorBuilder.from_languages(*self.__models.keys())
@@ -38,6 +41,5 @@ class EmbeddingService:
         lang = self.__detector.detect_language_of(text) or self.__fallback
         if lang is None:
             raise RuntimeError("cannot detect language")
-
         embedding = self.__models[lang].encode(text)
         return EmbeddingResult(lang, embedding)

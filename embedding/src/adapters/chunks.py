@@ -1,20 +1,16 @@
 from typing import Any
 
 from kafka import KafkaConsumer, KafkaProducer
-from sentence_transformers import SentenceTransformer
 
 from models.config import Config
 from models.chunks import ChunkEnqueued, ChunkReady
+from service.embedding import EmbeddingService
 
 
 class ChunkAdapter:
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: Config, service: EmbeddingService) -> None:
         self.__config = config
-        self.__transformer = SentenceTransformer(
-            config.sentence_transformers_model,
-            cache_folder=config.sentence_transformers_home,
-            local_files_only=config.sentence_transformers_home is not None,
-        )
+        self.__service = service
         self.__consumer = KafkaConsumer(
             config.kafka_topic_chunks_queue,
             bootstrap_servers=config.kafka_uri,
@@ -33,12 +29,13 @@ class ChunkAdapter:
 
     def handle(self) -> None:
         for message in map(self.__decode_message, self.__consumer):
-            embedding = self.__transformer.encode(message.text).tolist()
+            r = self.__service.generate_embedding(message.text)
 
             result = ChunkReady(
                 document_id=message.document_id,
                 text=message.text,
-                embedding=embedding,
+                embedding=r.embedding.tolist(),
+                language=r.language.name.lower(),
             )
 
             self.__producer.send(self.__config.kafka_topic_chunks_ready, result)

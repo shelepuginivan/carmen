@@ -5,16 +5,19 @@ from multiprocessing import Process
 from adapters.chunks import ChunkAdapter
 from adapters.search import SearchAdapter
 from models.config import Config
+from service.embedding import EmbeddingService
 
 
-def run_chunk_adapter(config):
-    adapter = ChunkAdapter(config)
+def run_chunk_adapter(config: Config) -> None:
+    service = EmbeddingService(config.sentence_transformers)
+    adapter = ChunkAdapter(config, service)
     logging.info("Starting chunk adapter...")
     adapter.handle()
 
 
-def run_search_adapter(config):
-    adapter = SearchAdapter(config)
+def run_search_adapter(config: Config) -> None:
+    service = EmbeddingService(config.sentence_transformers)
+    adapter = SearchAdapter(config, service)
     logging.info("Starting search adapter...")
     adapter.handle()
 
