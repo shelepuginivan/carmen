@@ -1,26 +1,12 @@
 from lingua import Language
-from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-
-class EmbeddingConfig(BaseModel):
-    sentence_transformers_home: str | None = None
-    model: dict[str, str]
-    fallback_language: str | None = None
-
-    def get_fallback_language(self) -> Language | None:
-        if self.fallback_language is None:
-            return None
-        try:
-            return Language.from_str(self.fallback_language)
-        except ValueError:
-            return None
 
 
 class Config(BaseSettings):
     sentence_transformers_home: str | None = None
-    sentence_transformers_model: str
-    sentence_transformers: EmbeddingConfig
+    model: dict[str, str]
+    fallback_language: str | None = None
+
     kafka_uri: str
     kafka_consumer_group: str = "embedding-consumer-group"
     kafka_topic_chunks_queue: str = "chunks.queue"
@@ -31,3 +17,11 @@ class Config(BaseSettings):
         env_nested_delimiter="__",
         env_prefix="CARMEN_EMBEDDING_",
     )
+
+    def get_fallback_language(self) -> Language | None:
+        if self.fallback_language is None:
+            return None
+        try:
+            return Language.from_str(self.fallback_language)
+        except ValueError:
+            return None

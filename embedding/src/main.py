@@ -9,14 +9,14 @@ from service.embedding import EmbeddingService
 
 
 def run_chunk_adapter(config: Config) -> None:
-    service = EmbeddingService(config.sentence_transformers)
+    service = EmbeddingService(config)
     adapter = ChunkAdapter(config, service)
     logging.info("Starting chunk adapter...")
     adapter.handle()
 
 
 def run_search_adapter(config: Config) -> None:
-    service = EmbeddingService(config.sentence_transformers)
+    service = EmbeddingService(config)
     adapter = SearchAdapter(config, service)
     logging.info("Starting search adapter...")
     adapter.handle()
