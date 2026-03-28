@@ -5,7 +5,7 @@ from lingua import Language, LanguageDetectorBuilder
 from sentence_transformers import SentenceTransformer
 from torch import Tensor
 
-from models.config import SentenceTransformersConfig
+from models.config import EmbeddingConfig
 
 
 @dataclass
@@ -15,10 +15,11 @@ class EmbeddingResult:
 
 
 class EmbeddingService:
-    def __init__(self, cfg: SentenceTransformersConfig) -> None:
+    def __init__(self, cfg: EmbeddingConfig) -> None:
         self.__models: dict[Language, SentenceTransformer] = {}
+        self.__fallback = cfg.get_fallback_language()
 
-        for lang, model in cfg.sentence_transformers_model.items():
+        for lang, model in cfg.model.items():
             try:
                 l = Language.from_str(lang)
             except ValueError:
@@ -34,10 +35,9 @@ class EmbeddingService:
         )
 
     def generate_embedding(self, text: str) -> EmbeddingResult:
-        lang = self.__detector.detect_language_of(text)
+        lang = self.__detector.detect_language_of(text) or self.__fallback
         if lang is None:
             raise RuntimeError("cannot detect language")
 
         embedding = self.__models[lang].encode(text)
-
         return EmbeddingResult(lang, embedding)
