@@ -9,7 +9,7 @@ services:
       RUSTFS_VOLUMES: /data/rustfs
     env_file:
       # Contains RUSTFS_ACCESS_KEY and RUSTFS_SECRET_KEY
-      - .env.s3
+      - env/.env.s3
     restart: unless-stopped
     ports:
       - 9000:9000
@@ -24,7 +24,7 @@ services:
       POSTGRES_DB: carmen
     env_file:
       # Contains POSTGRES_USER and POSTGRES_PASSWORD
-      - .env.postgres
+      - env/.env.postgres
     restart: unless-stopped
     ports:
       - 5432:5432
@@ -139,7 +139,7 @@ services:
     env_file:
       # Contains CARMEN_EXTRACTOR_S3_ACCESS_KEY and
       # CARMEN_EXTRACTOR_S3_SECRET_KEY 
-      - .env.extractor
+      - env/.env.extractor
     restart: unless-stopped
     depends_on:
       kafka-init:
@@ -173,7 +173,7 @@ services:
       #   - CARMEN_SEARCH_POSTGRES_PASSWORD
       #   - CARMEN_SEARCH_S3_ACCESS_KEY
       #   - CARMEN_SEARCH_S3_SECRET_KEY
-      - .env.search
+      - env/.env.search
     ports:
       - 5124:5124
     restart: unless-stopped
