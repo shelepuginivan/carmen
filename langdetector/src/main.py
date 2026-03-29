@@ -6,11 +6,14 @@ from config import Config, get_config
 from detector import get_language_detector
 
 
-app = FastAPI()
+app = FastAPI(
+    docs_url=None,
+    redoc_url=None,
+)
 
 
 @app.post("/detect", response_class=PlainTextResponse)
-def detect_language(
+async def detect_language(
     text: str = Body(media_type="text/plain"),
     config: Config = Depends(get_config),
     detector: LanguageDetector = Depends(get_language_detector),
