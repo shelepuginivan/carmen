@@ -149,6 +149,14 @@ services:
       s3:
         condition: service_started
 
+  langdetector:
+    build:
+      context: ./langdetector
+    container_name: langdetector
+    restart: unless-stopped
+    ports:
+      - 8000:8000
+
   search:
     build:
       context: ./search
