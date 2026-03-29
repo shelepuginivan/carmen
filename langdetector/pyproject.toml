@@ -9,5 +9,6 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi[standard]>=0.135.2",
+    "lingua-language-detector>=2.2.0",
     "pydantic-settings>=2.13.1",
 ]
