@@ -154,6 +154,11 @@ services:
       context: ./langdetector
     container_name: langdetector
     restart: unless-stopped
+    environment:
+      CARMEN_LANGDETECTOR_LANGUAGES: '["en"]'
+      CARMEN_LANGDETECTOR_FALLBACK_LANGUAGE: en
+      CARMEN_LANGDETECTOR_LOW_ACCURACY: false
+      CARMEN_LANGDETECTOR_PRELOAD: true
     ports:
       - 8000:8000
 
