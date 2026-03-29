@@ -5,7 +5,7 @@ from config import Config, get_config
 
 
 def get_language_detector(config: Config = Depends(get_config)) -> LanguageDetector:
-    builder = LanguageDetectorBuilder()
+    builder = LanguageDetectorBuilder.from_languages(*config.get_languages())
 
     if config.preload:
         builder = builder.with_preloaded_language_models()
@@ -13,4 +13,4 @@ def get_language_detector(config: Config = Depends(get_config)) -> LanguageDetec
     if config.low_accuracy:
         builder = builder.with_low_accuracy_mode()
 
-    return builder.from_languages(*config.get_languages()).build()
+    return builder.build()
