@@ -1,0 +1,9 @@
+[project]
+name = "langdetector"
+version = "0.1.0"
+description = "Carmen - Language detection microservice"
+authors = [
+  { name = "Ivan Shelepugin", email = "shelepuginivanm@gmail.com" },
+]
+readme = "README.md"
+requires-python = ">=3.12"
