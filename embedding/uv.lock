@@ -91,6 +91,7 @@ name = "embedding"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "httpx" },
     { name = "kafka-python" },
     { name = "lingua" },
     { name = "lingua-language-detector" },
@@ -101,6 +102,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "kafka-python", specifier = ">=2.3.0" },
     { name = "lingua", specifier = ">=4.16.2" },
     { name = "lingua-language-detector", specifier = ">=2.2.0" },
