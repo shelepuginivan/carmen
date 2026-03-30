@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 import httpx
 from sentence_transformers import SentenceTransformer
-from torch import Tensor
 
 from models.config import Config
 
@@ -10,7 +9,7 @@ from models.config import Config
 @dataclass
 class EmbeddingResult:
     language: str
-    embedding: Tensor
+    embedding: list[float]
 
 
 class EmbeddingService:
@@ -31,5 +30,5 @@ class EmbeddingService:
             raise RuntimeError("cannot detect language")
 
         lang = res.text
-        embedding = self.__models[lang].encode(text)
+        embedding = self.__models[lang].encode(text).tolist()
         return EmbeddingResult(lang, embedding)

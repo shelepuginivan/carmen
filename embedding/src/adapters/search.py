@@ -32,7 +32,7 @@ class SearchAdapter:
             r = self.__service.generate_embedding(message.query)
 
             result = SearchResponse(
-                embedding=r.embedding.tolist(),
+                embedding=r.embedding,
                 language=r.language,
             )
 

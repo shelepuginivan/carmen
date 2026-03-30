@@ -34,7 +34,7 @@ class ChunkAdapter:
             result = ChunkReady(
                 document_id=message.document_id,
                 text=message.text,
-                embedding=r.embedding.tolist(),
+                embedding=r.embedding,
                 language=r.language,
             )
 
