@@ -10,8 +10,6 @@ requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.28.1",
     "kafka-python>=2.3.0",
-    "lingua>=4.16.2",
-    "lingua-language-detector>=2.2.0",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.13.1",
     "sentence-transformers>=5.2.3",
