@@ -21,12 +21,12 @@ func Paginate(page, limit int) Scope {
 	}
 }
 
-func FullTextSearch(field string, query string) Scope {
+func FullTextSearch(field string, query, language string) Scope {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Clauses(clause.OrderBy{
 			Expression: clause.Expr{
-				SQL:  fmt.Sprintf("ts_rank(%s, websearch_to_query(language, ?)) DESC", field),
-				Vars: []any{query},
+				SQL:  fmt.Sprintf("ts_rank(%s, websearch_to_query(?, ?)) DESC", field),
+				Vars: []any{language, query},
 			},
 		})
 	}

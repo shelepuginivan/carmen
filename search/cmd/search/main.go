@@ -55,8 +55,9 @@ func main() {
 	documents.DELETE("/:id", documentController.DeleteDocument)
 
 	chunksRepo := repository.NewChunk(db)
+	langdetector := service.NewLangdetector(cfg.LangdetectorURL)
 	searchAdapter := adapter.NewSemanticSearch(cfg.Kafka)
-	searchService := service.NewSearch(chunksRepo, searchAdapter)
+	searchService := service.NewSearch(chunksRepo, searchAdapter, langdetector)
 	searchController := controller.NewSearch(searchService)
 
 	search := srv.Group("/search")

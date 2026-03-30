@@ -11,10 +11,15 @@ import (
 type SearchService struct {
 	cr  *repository.ChunksRepository
 	ssa *adapter.SemanticSearchAdapter
+	lds *LangdetectorService
 }
 
-func NewSearch(cr *repository.ChunksRepository, ssa *adapter.SemanticSearchAdapter) *SearchService {
-	return &SearchService{cr, ssa}
+func NewSearch(
+	cr *repository.ChunksRepository,
+	ssa *adapter.SemanticSearchAdapter,
+	lds *LangdetectorService,
+) *SearchService {
+	return &SearchService{cr, ssa, lds}
 }
 
 func (ss *SearchService) FullTextSearch(
@@ -23,7 +28,12 @@ func (ss *SearchService) FullTextSearch(
 	query string,
 	limit int,
 ) ([]*model.Chunk, error) {
-	return ss.cr.FullTextSearch(ctx, workspaceID, query, limit)
+	lang, err := ss.lds.DetectLanguage(query)
+	if err != nil {
+		return nil, err
+	}
+
+	return ss.cr.FullTextSearch(ctx, workspaceID, query, lang, limit)
 }
 
 func (ss *SearchService) SemanticSearch(

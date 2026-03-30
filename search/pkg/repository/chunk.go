@@ -42,13 +42,14 @@ func (cr *ChunksRepository) FullTextSearch(
 	ctx context.Context,
 	workspaceID string,
 	query string,
+	queryLang string,
 	limit int,
 ) ([]*model.Chunk, error) {
 	var chunks []*model.Chunk
 
 	err := cr.db.
 		WithContext(ctx).
-		Scopes(FullTextSearch("fts_vector", query)).
+		Scopes(FullTextSearch("fts_vector", query, queryLang)).
 		Limit(limit).
 		Select("chunks.id, chunks.document_id, chunks.text").
 		Joins("JOIN documents ON documents.id = chunks.document_id").

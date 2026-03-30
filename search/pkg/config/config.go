@@ -50,6 +50,8 @@ type Config struct {
 	Postgres *Postgres
 	S3       *S3
 	Kafka    *Kafka
+
+	LangdetectorURL string
 }
 
 // Load loads configuration from env variables.
@@ -83,5 +85,7 @@ func Load() *Config {
 			TopicSearchRequests:  requiredEnvStr("KAFKA_TOPIC_SEARCH_REQUESTS"),
 			TopicSearchResponses: requiredEnvStr("KAFKA_TOPIC_SEARCH_RESPONSES"),
 		},
+
+		LangdetectorURL: requiredEnvStr("LANGDETECTOR_URL"),
 	}
 }
