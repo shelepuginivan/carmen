@@ -25,7 +25,7 @@ class EmbeddingService:
             )
 
     def generate_embedding(self, text: str) -> EmbeddingResult:
-        res = httpx.post(self.__langdector)
+        res = httpx.post(self.__langdector, content=text)
         if res.status_code != 200:
             raise RuntimeError("cannot detect language")
 
