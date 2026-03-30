@@ -35,7 +35,7 @@ class ChunkAdapter:
                 document_id=message.document_id,
                 text=message.text,
                 embedding=r.embedding.tolist(),
-                language=r.language.name.lower(),
+                language=r.language,
             )
 
             self.__producer.send(self.__config.kafka_topic_chunks_ready, result)

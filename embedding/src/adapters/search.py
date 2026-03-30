@@ -33,7 +33,7 @@ class SearchAdapter:
 
             result = SearchResponse(
                 embedding=r.embedding.tolist(),
-                language=r.language.name.lower(),
+                language=r.language,
             )
 
             self.__producer.send(message.response_topic, result, key=raw_msg.key)
