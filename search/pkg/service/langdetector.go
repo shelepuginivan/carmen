@@ -33,6 +33,7 @@ func (lds *LangdetectorService) DetectLanguage(text string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("cannot detect language")
