@@ -32,7 +32,7 @@ func NewSemanticSearch(cfg *config.Kafka) *SemanticSearchAdapter {
 		AllowAutoTopicCreation: true,
 	}
 
-	ch := make(map[string]chan<- *dto.SemanticSearchResponse, 1)
+	ch := make(map[string]chan<- *dto.SemanticSearchResponse)
 
 	return &SemanticSearchAdapter{
 		r:  r,
@@ -59,7 +59,7 @@ func (ssa *SemanticSearchAdapter) Query(ctx context.Context, query string) (<-ch
 		Value: payload,
 	}
 
-	res := make(chan *dto.SemanticSearchResponse)
+	res := make(chan *dto.SemanticSearchResponse, 1)
 
 	ssa.mu.Lock()
 	ssa.ch[key] = res
