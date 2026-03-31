@@ -15,7 +15,8 @@ type Chunk struct {
 	Text       string
 	Language   string
 	Embedding  pgvector.Vector `gorm:"type:vector(1024)"`
-	FTSVector  string          `gorm:"type:tsvector"`
+	FTSVector  string          `gorm:"->;type:tsvector GENERATED ALWAYS AS (to_tsvector(coalesce(language, 'english'), text)) STORED"`
+	Relevance  float64         `gorm:"->"`
 }
 
 func (c *Chunk) BeforeCreate(tx *gorm.DB) (err error) {
