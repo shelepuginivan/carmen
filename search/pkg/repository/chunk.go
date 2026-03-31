@@ -44,6 +44,7 @@ func (cr *ChunksRepository) FullTextSearch(
 	query string,
 	queryLang string,
 	limit int,
+	threshold float64,
 ) ([]*model.Chunk, error) {
 	var chunks []*model.Chunk
 
@@ -57,6 +58,7 @@ func (cr *ChunksRepository) FullTextSearch(
 		).
 		Joins("JOIN documents ON documents.id = chunks.document_id").
 		Where("documents.workspace_id = ?", workspaceID).
+		//Where("relevance >= ?", threshold).
 		Order("relevance DESC").
 		Find(&chunks).
 		Error
@@ -69,6 +71,7 @@ func (cr *ChunksRepository) SemanticSearch(
 	workspaceID string,
 	vec []float32,
 	limit int,
+	threshold float64,
 ) ([]*model.Chunk, error) {
 	var chunks []*model.Chunk
 
@@ -81,6 +84,7 @@ func (cr *ChunksRepository) SemanticSearch(
 		).
 		Joins("JOIN documents ON documents.id = chunks.document_id").
 		Where("documents.workspace_id = ?", workspaceID).
+		//Where("relevance >= ?", threshold).
 		Order("relevance DESC").
 		Find(&chunks).
 		Error
@@ -93,6 +97,7 @@ func (cr *ChunksRepository) SimilaritySearch(
 	workspaceID string,
 	query string,
 	limit int,
+	threshold float64,
 ) ([]*model.Chunk, error) {
 	var chunks []*model.Chunk
 
@@ -105,6 +110,7 @@ func (cr *ChunksRepository) SimilaritySearch(
 		).
 		Joins("JOIN documents ON documents.id = chunks.document_id").
 		Where("documents.workspace_id = ?", workspaceID).
+		//Where("relevance >= ?", threshold).
 		Order("relevance DESC").
 		Find(&chunks).
 		Error

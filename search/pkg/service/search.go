@@ -27,13 +27,14 @@ func (ss *SearchService) FullTextSearch(
 	workspaceID string,
 	query string,
 	limit int,
+	threshold float64,
 ) ([]*model.Chunk, error) {
 	lang, err := ss.lds.DetectLanguage(query)
 	if err != nil {
 		return nil, err
 	}
 
-	return ss.cr.FullTextSearch(ctx, workspaceID, query, lang, limit)
+	return ss.cr.FullTextSearch(ctx, workspaceID, query, lang, limit, threshold)
 }
 
 func (ss *SearchService) SemanticSearch(
@@ -41,6 +42,7 @@ func (ss *SearchService) SemanticSearch(
 	workspaceID string,
 	query string,
 	limit int,
+	threshold float64,
 ) ([]*model.Chunk, error) {
 	resCh, err := ss.ssa.Query(ctx, query)
 	if err != nil {
@@ -49,7 +51,7 @@ func (ss *SearchService) SemanticSearch(
 
 	res := <-resCh
 
-	return ss.cr.SemanticSearch(ctx, workspaceID, res.Embedding, limit)
+	return ss.cr.SemanticSearch(ctx, workspaceID, res.Embedding, limit, threshold)
 }
 
 func (ss *SearchService) SimilaritySearch(
@@ -57,6 +59,7 @@ func (ss *SearchService) SimilaritySearch(
 	workspaceID string,
 	query string,
 	limit int,
+	threshold float64,
 ) ([]*model.Chunk, error) {
-	return ss.cr.SimilaritySearch(ctx, workspaceID, query, limit)
+	return ss.cr.SimilaritySearch(ctx, workspaceID, query, limit, threshold)
 }

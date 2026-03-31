@@ -24,6 +24,7 @@ func NewSearch(srv *service.SearchService) *SearchController {
 // @param q query string true "Search query" minlength(1)
 // @param workspace query string true "Workspace ID"
 // @param limit query int false "Search result limit" minimum(1) default(5)
+// @param threshold query number false "Search result relevance threshold" default(0.0)
 // @produce json
 // @success 200 {array} dto.SearchResponse
 // @failure 400
@@ -35,7 +36,13 @@ func (dc *SearchController) FullTextSearch(c *gin.Context) {
 		return
 	}
 
-	chunks, err := dc.srv.FullTextSearch(c.Request.Context(), req.Workspace, req.Query, req.Limit)
+	chunks, err := dc.srv.FullTextSearch(
+		c.Request.Context(),
+		req.Workspace,
+		req.Query,
+		req.Limit,
+		req.Threshold,
+	)
 	if err != nil {
 		respondWithError(c, http.StatusInternalServerError, err)
 		return
@@ -63,6 +70,7 @@ func (dc *SearchController) FullTextSearch(c *gin.Context) {
 // @param q query string true "Search query" minlength(1)
 // @param workspace query string true "Workspace ID"
 // @param limit query int false "Search result limit" minimum(1) default(5)
+// @param threshold query number false "Search result relevance threshold" default(0.0)
 // @produce json
 // @success 200 {array} dto.SearchResponse
 // @failure 400
@@ -74,7 +82,13 @@ func (dc *SearchController) SemanticSearch(c *gin.Context) {
 		return
 	}
 
-	chunks, err := dc.srv.SemanticSearch(c.Request.Context(), req.Workspace, req.Query, req.Limit)
+	chunks, err := dc.srv.SemanticSearch(
+		c.Request.Context(),
+		req.Workspace,
+		req.Query,
+		req.Limit,
+		req.Threshold,
+	)
 	if err != nil {
 		respondWithError(c, http.StatusInternalServerError, err)
 		return
@@ -102,6 +116,7 @@ func (dc *SearchController) SemanticSearch(c *gin.Context) {
 // @param q query string true "Search query" minlength(1)
 // @param workspace query string true "Workspace ID"
 // @param limit query int false "Search result limit" minimum(1) default(5)
+// @param threshold query number false "Search result relevance threshold" default(0.0)
 // @produce json
 // @success 200 {array} dto.SearchResponse
 // @failure 400
@@ -113,7 +128,13 @@ func (dc *SearchController) SimilaritySearch(c *gin.Context) {
 		return
 	}
 
-	chunks, err := dc.srv.SimilaritySearch(c.Request.Context(), req.Workspace, req.Query, req.Limit)
+	chunks, err := dc.srv.SimilaritySearch(
+		c.Request.Context(),
+		req.Workspace,
+		req.Query,
+		req.Limit,
+		req.Threshold,
+	)
 	if err != nil {
 		respondWithError(c, http.StatusInternalServerError, err)
 		return
