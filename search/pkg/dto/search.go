@@ -10,3 +10,10 @@ type SearchRequest struct {
 	Query     string `form:"q" binding:"required,min=1"`
 	Limit     int    `form:"limit,default=5" binding:"min=1"`
 }
+
+type SearchResponse struct {
+	ID         string  `json:"id"`
+	DocumentID string  `json:"document_id"`
+	Text       string  `json:"text"`
+	Relevance  float64 `json:"relevance"`
+}

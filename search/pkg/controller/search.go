@@ -25,7 +25,7 @@ func NewSearch(srv *service.SearchService) *SearchController {
 // @param workspace query string true "Workspace ID"
 // @param limit query int false "Search result limit" minimum(1) default(5)
 // @produce json
-// @success 200 {array} dto.ChunkMetadata
+// @success 200 {array} dto.SearchResponse
 // @failure 400
 // @failure 500
 func (dc *SearchController) FullTextSearch(c *gin.Context) {
@@ -41,13 +41,14 @@ func (dc *SearchController) FullTextSearch(c *gin.Context) {
 		return
 	}
 
-	result := make([]*dto.ChunkMetadata, len(chunks))
+	result := make([]*dto.SearchResponse, len(chunks))
 
 	for i, c := range chunks {
-		result[i] = &dto.ChunkMetadata{
+		result[i] = &dto.SearchResponse{
 			ID:         c.ID,
 			DocumentID: c.DocumentID,
 			Text:       c.Text,
+			Relevance:  c.Relevance,
 		}
 	}
 
@@ -63,7 +64,7 @@ func (dc *SearchController) FullTextSearch(c *gin.Context) {
 // @param workspace query string true "Workspace ID"
 // @param limit query int false "Search result limit" minimum(1) default(5)
 // @produce json
-// @success 200 {array} dto.ChunkMetadata
+// @success 200 {array} dto.SearchResponse
 // @failure 400
 // @failure 500
 func (dc *SearchController) SemanticSearch(c *gin.Context) {
@@ -79,13 +80,14 @@ func (dc *SearchController) SemanticSearch(c *gin.Context) {
 		return
 	}
 
-	result := make([]*dto.ChunkMetadata, len(chunks))
+	result := make([]*dto.SearchResponse, len(chunks))
 
 	for i, c := range chunks {
-		result[i] = &dto.ChunkMetadata{
+		result[i] = &dto.SearchResponse{
 			ID:         c.ID,
 			DocumentID: c.DocumentID,
 			Text:       c.Text,
+			Relevance:  c.Relevance,
 		}
 	}
 
@@ -101,7 +103,7 @@ func (dc *SearchController) SemanticSearch(c *gin.Context) {
 // @param workspace query string true "Workspace ID"
 // @param limit query int false "Search result limit" minimum(1) default(5)
 // @produce json
-// @success 200 {array} dto.ChunkMetadata
+// @success 200 {array} dto.SearchResponse
 // @failure 400
 // @failure 500
 func (dc *SearchController) SimilaritySearch(c *gin.Context) {
@@ -117,13 +119,14 @@ func (dc *SearchController) SimilaritySearch(c *gin.Context) {
 		return
 	}
 
-	result := make([]*dto.ChunkMetadata, len(chunks))
+	result := make([]*dto.SearchResponse, len(chunks))
 
 	for i, c := range chunks {
-		result[i] = &dto.ChunkMetadata{
+		result[i] = &dto.SearchResponse{
 			ID:         c.ID,
 			DocumentID: c.DocumentID,
 			Text:       c.Text,
+			Relevance:  c.Relevance,
 		}
 	}
 
