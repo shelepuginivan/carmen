@@ -74,11 +74,14 @@ func (cr *ChunksRepository) SemanticSearch(
 
 	err := cr.db.
 		WithContext(ctx).
-		Scopes(VectorSearch("embedding", vec)).
 		Limit(limit).
-		Select("chunks.id, chunks.document_id, chunks.text").
+		Select(
+			"chunks.id, chunks.document_id, chunks.text, 1 - (chunks.embedding <=> ?) AS relevance",
+			pgvector.NewVector(vec),
+		).
 		Joins("JOIN documents ON documents.id = chunks.document_id").
 		Where("documents.workspace_id = ?", workspaceID).
+		Order("relevance DESC").
 		Find(&chunks).
 		Error
 
