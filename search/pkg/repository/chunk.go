@@ -49,11 +49,15 @@ func (cr *ChunksRepository) FullTextSearch(
 
 	err := cr.db.
 		WithContext(ctx).
-		Scopes(FullTextSearch("fts_vector", query, queryLang)).
 		Limit(limit).
-		Select("chunks.id, chunks.document_id, chunks.text").
+		Select(
+			"chunks.id, chunks.document_id, chunks.text, chunks.fts_vector, ts_rank(chunks.fts_vector, websearch_to_tsquery(?, ?)) AS relevance",
+			queryLang,
+			query,
+		).
 		Joins("JOIN documents ON documents.id = chunks.document_id").
 		Where("documents.workspace_id = ?", workspaceID).
+		Order("relevance DESC").
 		Find(&chunks).
 		Error
 
