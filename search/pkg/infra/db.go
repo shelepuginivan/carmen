@@ -74,5 +74,11 @@ func NewDBConnection(cfg *config.Postgres) (*gorm.DB, error) {
 		return nil, err
 	}
 
+	if err := db.Exec(
+		"CREATE INDEX IF NOT EXISTS chunks_embedding_hnsw ON chunks USING hnsw (embedding vector_cosine_ops)",
+	).Error; err != nil {
+		return nil, err
+	}
+
 	return db, nil
 }
