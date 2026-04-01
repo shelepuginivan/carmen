@@ -48,18 +48,22 @@ func (cr *ChunksRepository) FullTextSearch(
 ) ([]*model.Chunk, error) {
 	var chunks []*model.Chunk
 
-	err := cr.db.
-		WithContext(ctx).
-		Limit(limit).
+	subQuery := cr.db.
+		Table("chunks").
 		Select(
 			"chunks.id, chunks.document_id, chunks.text, chunks.fts_vector, ts_rank(chunks.fts_vector, websearch_to_tsquery(?, ?)) AS relevance",
 			queryLang,
 			query,
 		).
 		Joins("JOIN documents ON documents.id = chunks.document_id").
-		Where("documents.workspace_id = ?", workspaceID).
-		//Where("relevance >= ?", threshold).
+		Where("documents.workspace_id = ?", workspaceID)
+
+	err := cr.db.
+		WithContext(ctx).
+		Table("(?) AS sub", subQuery).
+		Where("relevance >= ?", threshold).
 		Order("relevance DESC").
+		Limit(limit).
 		Find(&chunks).
 		Error
 
@@ -75,17 +79,21 @@ func (cr *ChunksRepository) SemanticSearch(
 ) ([]*model.Chunk, error) {
 	var chunks []*model.Chunk
 
-	err := cr.db.
-		WithContext(ctx).
-		Limit(limit).
+	subQuery := cr.db.
+		Table("chunks").
 		Select(
 			"chunks.id, chunks.document_id, chunks.text, 1 - (chunks.embedding <=> ?) AS relevance",
 			pgvector.NewVector(vec),
 		).
 		Joins("JOIN documents ON documents.id = chunks.document_id").
-		Where("documents.workspace_id = ?", workspaceID).
-		//Where("relevance >= ?", threshold).
+		Where("documents.workspace_id = ?", workspaceID)
+
+	err := cr.db.
+		WithContext(ctx).
+		Table("(?) AS sub", subQuery).
+		Where("relevance >= ?", threshold).
 		Order("relevance DESC").
+		Limit(limit).
 		Find(&chunks).
 		Error
 
@@ -101,17 +109,21 @@ func (cr *ChunksRepository) SimilaritySearch(
 ) ([]*model.Chunk, error) {
 	var chunks []*model.Chunk
 
-	err := cr.db.
-		WithContext(ctx).
-		Limit(limit).
+	subQuery := cr.db.
+		Table("chunks").
 		Select(
 			"chunks.id, chunks.document_id, chunks.text, word_similarity(?, chunks.text) AS relevance",
 			query,
 		).
 		Joins("JOIN documents ON documents.id = chunks.document_id").
-		Where("documents.workspace_id = ?", workspaceID).
-		//Where("relevance >= ?", threshold).
+		Where("documents.workspace_id = ?", workspaceID)
+
+	err := cr.db.
+		WithContext(ctx).
+		Table("(?) AS sub", subQuery).
+		Where("relevance >= ?", threshold).
 		Order("relevance DESC").
+		Limit(limit).
 		Find(&chunks).
 		Error
 
