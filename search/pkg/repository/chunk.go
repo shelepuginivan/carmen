@@ -46,8 +46,6 @@ func (cr *ChunksRepository) FullTextSearch(
 	limit int,
 	threshold float64,
 ) ([]*model.Chunk, error) {
-	var chunks []*model.Chunk
-
 	subQuery := cr.db.
 		Table("chunks").
 		Select(
@@ -58,16 +56,7 @@ func (cr *ChunksRepository) FullTextSearch(
 		Joins("JOIN documents ON documents.id = chunks.document_id").
 		Where("documents.workspace_id = ?", workspaceID)
 
-	err := cr.db.
-		WithContext(ctx).
-		Table("(?) AS sub", subQuery).
-		Where("relevance >= ?", threshold).
-		Order("relevance DESC").
-		Limit(limit).
-		Find(&chunks).
-		Error
-
-	return chunks, err
+	return cr.selectChunks(ctx, subQuery, limit, threshold)
 }
 
 func (cr *ChunksRepository) SemanticSearch(
@@ -77,8 +66,6 @@ func (cr *ChunksRepository) SemanticSearch(
 	limit int,
 	threshold float64,
 ) ([]*model.Chunk, error) {
-	var chunks []*model.Chunk
-
 	subQuery := cr.db.
 		Table("chunks").
 		Select(
@@ -88,16 +75,7 @@ func (cr *ChunksRepository) SemanticSearch(
 		Joins("JOIN documents ON documents.id = chunks.document_id").
 		Where("documents.workspace_id = ?", workspaceID)
 
-	err := cr.db.
-		WithContext(ctx).
-		Table("(?) AS sub", subQuery).
-		Where("relevance >= ?", threshold).
-		Order("relevance DESC").
-		Limit(limit).
-		Find(&chunks).
-		Error
-
-	return chunks, err
+	return cr.selectChunks(ctx, subQuery, limit, threshold)
 }
 
 func (cr *ChunksRepository) SimilaritySearch(
@@ -107,8 +85,6 @@ func (cr *ChunksRepository) SimilaritySearch(
 	limit int,
 	threshold float64,
 ) ([]*model.Chunk, error) {
-	var chunks []*model.Chunk
-
 	subQuery := cr.db.
 		Table("chunks").
 		Select(
@@ -117,6 +93,17 @@ func (cr *ChunksRepository) SimilaritySearch(
 		).
 		Joins("JOIN documents ON documents.id = chunks.document_id").
 		Where("documents.workspace_id = ?", workspaceID)
+
+	return cr.selectChunks(ctx, subQuery, limit, threshold)
+}
+
+func (cr *ChunksRepository) selectChunks(
+	ctx context.Context,
+	subQuery *gorm.DB,
+	limit int,
+	threshold float64,
+) ([]*model.Chunk, error) {
+	var chunks []*model.Chunk
 
 	err := cr.db.
 		WithContext(ctx).
