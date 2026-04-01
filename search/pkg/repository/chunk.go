@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"slices"
 
 	"github.com/pgvector/pgvector-go"
 	"github.com/shelepuginivan/carmen/search/pkg/model"
@@ -69,6 +70,37 @@ func (cr *ChunksRepository) SimilaritySearch(
 	return cr.selectChunks(ctx, cr.subquerySimilarity(workspaceID, query), limit, threshold)
 }
 
+func (cr *ChunksRepository) FullTextSearchDocuments(
+	ctx context.Context,
+	workspaceID string,
+	query string,
+	queryLang string,
+	limit int,
+	threshold float64,
+) ([]string, error) {
+	return cr.selectDocuments(ctx, cr.subqueryFullText(workspaceID, query, queryLang), limit, threshold)
+}
+
+func (cr *ChunksRepository) SemanticSearchDocuments(
+	ctx context.Context,
+	workspaceID string,
+	vec []float32,
+	limit int,
+	threshold float64,
+) ([]string, error) {
+	return cr.selectDocuments(ctx, cr.subquerySemantic(workspaceID, vec), limit, threshold)
+}
+
+func (cr *ChunksRepository) SimilaritySearchDocuments(
+	ctx context.Context,
+	workspaceID string,
+	query string,
+	limit int,
+	threshold float64,
+) ([]string, error) {
+	return cr.selectDocuments(ctx, cr.subquerySimilarity(workspaceID, query), limit, threshold)
+}
+
 func (cr *ChunksRepository) selectChunks(
 	ctx context.Context,
 	subQuery *gorm.DB,
@@ -87,6 +119,27 @@ func (cr *ChunksRepository) selectChunks(
 		Error
 
 	return chunks, err
+}
+
+func (cr *ChunksRepository) selectDocuments(
+	ctx context.Context,
+	subQuery *gorm.DB,
+	limit int,
+	threshold float64,
+) ([]string, error) {
+	var documentIDs []string
+
+	err := cr.db.
+		WithContext(ctx).
+		Table("(?) AS sub", subQuery).
+		Where("relevance >= ?", threshold).
+		Order("relevance DESC").
+		Limit(limit).
+		Pluck("document_id", &documentIDs).
+		Error
+
+	// FIXME: select unique values in SQL query instead.
+	return slices.Compact(documentIDs), err
 }
 
 func (cr *ChunksRepository) subqueryFullText(workspaceID, query, queryLang string) *gorm.DB {

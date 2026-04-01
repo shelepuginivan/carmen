@@ -63,3 +63,45 @@ func (ss *SearchService) SimilaritySearch(
 ) ([]*model.Chunk, error) {
 	return ss.cr.SimilaritySearch(ctx, workspaceID, query, limit, threshold)
 }
+
+func (ss *SearchService) FullTextSearchDocuments(
+	ctx context.Context,
+	workspaceID string,
+	query string,
+	limit int,
+	threshold float64,
+) ([]string, error) {
+	lang, err := ss.lds.DetectLanguage(query)
+	if err != nil {
+		return nil, err
+	}
+
+	return ss.cr.FullTextSearchDocuments(ctx, workspaceID, query, lang, limit, threshold)
+}
+
+func (ss *SearchService) SemanticSearchDocuments(
+	ctx context.Context,
+	workspaceID string,
+	query string,
+	limit int,
+	threshold float64,
+) ([]string, error) {
+	resCh, err := ss.ssa.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	res := <-resCh
+
+	return ss.cr.SemanticSearchDocuments(ctx, workspaceID, res.Embedding, limit, threshold)
+}
+
+func (ss *SearchService) SimilaritySearchDocuments(
+	ctx context.Context,
+	workspaceID string,
+	query string,
+	limit int,
+	threshold float64,
+) ([]string, error) {
+	return ss.cr.SimilaritySearchDocuments(ctx, workspaceID, query, limit, threshold)
+}
