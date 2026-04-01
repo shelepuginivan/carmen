@@ -6,11 +6,9 @@ import (
 )
 
 type Document struct {
-	gorm.Model `json:"-"`
-
-	ID          string `gorm:"primaryKey" json:"id,omitempty"`
-	WorkspaceID string
-	Filename    string `json:"filename,omitempty"`
+	ID          string `gorm:"primaryKey"`
+	WorkspaceID string `gorm:"index"`
+	Filename    string
 
 	Chunks []Chunk `gorm:"constraint:OnDelete:CASCADE"`
 }

@@ -7,13 +7,11 @@ import (
 
 // Workspace represents a collection of related documents.
 type Workspace struct {
-	gorm.Model `json:"-"`
+	ID          string `gorm:"primaryKey"`
+	Name        string `gorm:"uniqueIndex"`
+	Description string
 
-	ID          string `gorm:"primaryKey" json:"id,omitempty"`
-	Name        string `gorm:"uniqueIndex" json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-
-	Documents []Document `gorm:"constraint:OnDelete:CASCADE" json:"documents,omitempty"`
+	Documents []Document `gorm:"constraint:OnDelete:CASCADE"`
 }
 
 func (w *Workspace) BeforeCreate(tx *gorm.DB) (err error) {
