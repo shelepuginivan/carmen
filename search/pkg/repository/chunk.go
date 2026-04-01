@@ -46,17 +46,7 @@ func (cr *ChunksRepository) FullTextSearch(
 	limit int,
 	threshold float64,
 ) ([]*model.Chunk, error) {
-	subQuery := cr.db.
-		Table("chunks").
-		Select(
-			"chunks.id, chunks.document_id, chunks.text, chunks.fts_vector, ts_rank(chunks.fts_vector, websearch_to_tsquery(?, ?)) AS relevance",
-			queryLang,
-			query,
-		).
-		Joins("JOIN documents ON documents.id = chunks.document_id").
-		Where("documents.workspace_id = ?", workspaceID)
-
-	return cr.selectChunks(ctx, subQuery, limit, threshold)
+	return cr.selectChunks(ctx, cr.subqueryFullText(workspaceID, query, queryLang), limit, threshold)
 }
 
 func (cr *ChunksRepository) SemanticSearch(
@@ -66,16 +56,7 @@ func (cr *ChunksRepository) SemanticSearch(
 	limit int,
 	threshold float64,
 ) ([]*model.Chunk, error) {
-	subQuery := cr.db.
-		Table("chunks").
-		Select(
-			"chunks.id, chunks.document_id, chunks.text, 1 - (chunks.embedding <=> ?) AS relevance",
-			pgvector.NewVector(vec),
-		).
-		Joins("JOIN documents ON documents.id = chunks.document_id").
-		Where("documents.workspace_id = ?", workspaceID)
-
-	return cr.selectChunks(ctx, subQuery, limit, threshold)
+	return cr.selectChunks(ctx, cr.subquerySemantic(workspaceID, vec), limit, threshold)
 }
 
 func (cr *ChunksRepository) SimilaritySearch(
@@ -85,16 +66,7 @@ func (cr *ChunksRepository) SimilaritySearch(
 	limit int,
 	threshold float64,
 ) ([]*model.Chunk, error) {
-	subQuery := cr.db.
-		Table("chunks").
-		Select(
-			"chunks.id, chunks.document_id, chunks.text, word_similarity(?, chunks.text) AS relevance",
-			query,
-		).
-		Joins("JOIN documents ON documents.id = chunks.document_id").
-		Where("documents.workspace_id = ?", workspaceID)
-
-	return cr.selectChunks(ctx, subQuery, limit, threshold)
+	return cr.selectChunks(ctx, cr.subquerySimilarity(workspaceID, query), limit, threshold)
 }
 
 func (cr *ChunksRepository) selectChunks(
@@ -115,4 +87,38 @@ func (cr *ChunksRepository) selectChunks(
 		Error
 
 	return chunks, err
+}
+
+func (cr *ChunksRepository) subqueryFullText(workspaceID, query, queryLang string) *gorm.DB {
+	return cr.db.
+		Table("chunks").
+		Select(
+			"chunks.id, chunks.document_id, chunks.text, chunks.fts_vector, ts_rank(chunks.fts_vector, websearch_to_tsquery(?, ?)) AS relevance",
+			queryLang,
+			query,
+		).
+		Joins("JOIN documents ON documents.id = chunks.document_id").
+		Where("documents.workspace_id = ?", workspaceID)
+}
+
+func (cr *ChunksRepository) subquerySemantic(workspaceID string, vec []float32) *gorm.DB {
+	return cr.db.
+		Table("chunks").
+		Select(
+			"chunks.id, chunks.document_id, chunks.text, 1 - (chunks.embedding <=> ?) AS relevance",
+			pgvector.NewVector(vec),
+		).
+		Joins("JOIN documents ON documents.id = chunks.document_id").
+		Where("documents.workspace_id = ?", workspaceID)
+}
+
+func (cr *ChunksRepository) subquerySimilarity(workspaceID, query string) *gorm.DB {
+	return cr.db.
+		Table("chunks").
+		Select(
+			"chunks.id, chunks.document_id, chunks.text, word_similarity(?, chunks.text) AS relevance",
+			query,
+		).
+		Joins("JOIN documents ON documents.id = chunks.document_id").
+		Where("documents.workspace_id = ?", workspaceID)
 }
