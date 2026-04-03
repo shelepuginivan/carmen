@@ -1,7 +1,6 @@
-from dataclasses import dataclass
-
 import httpx
 from sentence_transformers import SentenceTransformer
+from pydantic.dataclasses import dataclass
 
 from models.config import Config
 
@@ -32,3 +31,13 @@ class EmbeddingService:
         lang = res.text
         embedding = self.__models[lang].encode(text).tolist()
         return EmbeddingResult(lang, embedding)
+
+    async def generate_embedding_async(self, text: str) -> EmbeddingResult:
+        async with httpx.AsyncClient() as client:
+            res = await client.post(self.__langdector, content=text)
+            if res.status_code != 200:
+                raise RuntimeError("cannot detect language")
+
+            lang = res.text
+            embedding = self.__models[lang].encode(text).tolist()
+            return EmbeddingResult(lang, embedding)
