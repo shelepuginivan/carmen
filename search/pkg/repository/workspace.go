@@ -27,11 +27,8 @@ func (wr *WorkspaceRepository) CreateWorkspace(ctx context.Context, name string,
 	}
 
 	err := wr.db.WithContext(ctx).Create(&workspace).Error
-	if err != nil {
-		return nil, err
-	}
 
-	return &workspace, nil
+	return &workspace, wrapErr(err)
 }
 
 func (wr *WorkspaceRepository) GetWorkspace(ctx context.Context, identifier string) (*model.Workspace, error) {
@@ -44,20 +41,21 @@ func (wr *WorkspaceRepository) GetWorkspace(ctx context.Context, identifier stri
 		First(&workspace).
 		Error
 
-	return &workspace, err
+	return &workspace, wrapErr(err)
 }
 
 func (wr *WorkspaceRepository) ListWorkspaces(ctx context.Context, scopes ...Scope) ([]*model.Workspace, error) {
 	var workspaces []*model.Workspace
 
-	res := wr.db.
+	err := wr.db.
 		WithContext(ctx).
 		Scopes(scopes...).
 		Select("id", "name", "description").
 		Order("name").
-		Find(&workspaces)
+		Find(&workspaces).
+		Error
 
-	return workspaces, res.Error
+	return workspaces, wrapErr(err)
 }
 
 func (wr *WorkspaceRepository) DeleteWorkspace(ctx context.Context, identifier string) error {
@@ -73,16 +71,18 @@ func (wr *WorkspaceRepository) DeleteWorkspace(ctx context.Context, identifier s
 		First(&workspace).
 		Error
 	if err != nil {
-		return err
+		return wrapErr(err)
 	}
 
 	for _, document := range workspace.Documents {
-		wr.s3.DeleteDocument(ctx, document.Filename)
+		_ = wr.s3.DeleteDocument(ctx, document.Filename)
 	}
 
-	return wr.db.
+	err = wr.db.
 		WithContext(ctx).
 		Unscoped().
 		Delete(workspace).
 		Error
+
+	return wrapErr(err)
 }

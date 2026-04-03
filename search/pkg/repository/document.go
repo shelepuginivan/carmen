@@ -35,11 +35,11 @@ func (dr *DocumentRepository) CreateDocument(
 
 	err := dr.db.WithContext(ctx).Create(&document).Error
 	if err != nil {
-		return nil, err
+		return nil, wrapErr(err)
 	}
 
 	if err := dr.s3.PutDocument(ctx, filename, body); err != nil {
-		return nil, err
+		return nil, wrapErr(err)
 	}
 
 	return &document, nil
@@ -58,11 +58,7 @@ func (dr *DocumentRepository) GetDocumentMetadata(
 		First(&document).
 		Error
 
-	if err != nil {
-		return nil, err
-	}
-
-	return &document, nil
+	return &document, wrapErr(err)
 }
 
 func (dr *DocumentRepository) GetDocumentContents(
@@ -78,7 +74,7 @@ func (dr *DocumentRepository) GetDocumentContents(
 		First(&document).
 		Error
 	if err != nil {
-		return nil, err
+		return nil, wrapErr(err)
 	}
 
 	return dr.s3.GetDocument(ctx, document.Filename)
@@ -99,7 +95,7 @@ func (dr *DocumentRepository) ListDocumentsInWorkspace(
 		Find(&documents).
 		Error
 	if err != nil {
-		return nil, err
+		return nil, wrapErr(err)
 	}
 
 	return documents, nil
@@ -115,7 +111,7 @@ func (dr *DocumentRepository) DeleteDocument(ctx context.Context, documentID str
 		Delete(&document).
 		Error
 	if err != nil {
-		return err
+		return wrapErr(err)
 	}
 
 	return dr.s3.DeleteDocument(ctx, document.Filename)

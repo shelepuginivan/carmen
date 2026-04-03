@@ -33,7 +33,7 @@ func (cr *ChunksRepository) Create(
 
 	err := cr.db.WithContext(ctx).Create(&chunk).Error
 	if err != nil {
-		return nil, err
+		return nil, wrapErr(err)
 	}
 
 	return &chunk, nil
@@ -118,7 +118,7 @@ func (cr *ChunksRepository) selectChunks(
 		Find(&chunks).
 		Error
 
-	return chunks, err
+	return chunks, wrapErr(err)
 }
 
 func (cr *ChunksRepository) selectDocuments(
@@ -137,9 +137,12 @@ func (cr *ChunksRepository) selectDocuments(
 		Limit(limit).
 		Pluck("document_id", &documentIDs).
 		Error
+	if err != nil {
+		return nil, wrapErr(err)
+	}
 
 	// FIXME: select unique values in SQL query instead.
-	return slices.Compact(documentIDs), err
+	return slices.Compact(documentIDs), nil
 }
 
 func (cr *ChunksRepository) subqueryFullText(workspaceID, query, queryLang string) *gorm.DB {
