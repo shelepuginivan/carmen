@@ -1,8 +1,11 @@
+from typing import Literal
 from pydantic import HttpUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Config(BaseSettings):
+    mode: Literal["chunks", "search"]
+
     sentence_transformers_home: str | None = None
     model: dict[str, str]
     langdetector_url: HttpUrl
