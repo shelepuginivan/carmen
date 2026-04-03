@@ -32,7 +32,7 @@ func NewSearch(srv *service.SearchService) *SearchController {
 func (dc *SearchController) FullTextSearch(c *gin.Context) {
 	var req dto.SearchRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		respondWithError(c, http.StatusBadRequest, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -44,7 +44,7 @@ func (dc *SearchController) FullTextSearch(c *gin.Context) {
 		req.Threshold,
 	)
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -78,7 +78,7 @@ func (dc *SearchController) FullTextSearch(c *gin.Context) {
 func (dc *SearchController) SemanticSearch(c *gin.Context) {
 	var req dto.SearchRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		respondWithError(c, http.StatusBadRequest, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -90,7 +90,7 @@ func (dc *SearchController) SemanticSearch(c *gin.Context) {
 		req.Threshold,
 	)
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -124,7 +124,7 @@ func (dc *SearchController) SemanticSearch(c *gin.Context) {
 func (dc *SearchController) SimilaritySearch(c *gin.Context) {
 	var req dto.SearchRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		respondWithError(c, http.StatusBadRequest, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -136,7 +136,7 @@ func (dc *SearchController) SimilaritySearch(c *gin.Context) {
 		req.Threshold,
 	)
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -170,7 +170,7 @@ func (dc *SearchController) SimilaritySearch(c *gin.Context) {
 func (dc *SearchController) FullTextSearchDocuments(c *gin.Context) {
 	var req dto.SearchRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		respondWithError(c, http.StatusBadRequest, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -182,7 +182,7 @@ func (dc *SearchController) FullTextSearchDocuments(c *gin.Context) {
 		req.Threshold,
 	)
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -205,7 +205,7 @@ func (dc *SearchController) FullTextSearchDocuments(c *gin.Context) {
 func (dc *SearchController) SemanticSearchDocuments(c *gin.Context) {
 	var req dto.SearchRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		respondWithError(c, http.StatusBadRequest, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -217,7 +217,7 @@ func (dc *SearchController) SemanticSearchDocuments(c *gin.Context) {
 		req.Threshold,
 	)
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -240,7 +240,7 @@ func (dc *SearchController) SemanticSearchDocuments(c *gin.Context) {
 func (dc *SearchController) SimilaritySearchDocuments(c *gin.Context) {
 	var req dto.SearchRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		respondWithError(c, http.StatusBadRequest, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -252,7 +252,7 @@ func (dc *SearchController) SimilaritySearchDocuments(c *gin.Context) {
 		req.Threshold,
 	)
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err)
+		respondWithError(c, err)
 		return
 	}
 

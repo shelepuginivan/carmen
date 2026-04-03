@@ -35,7 +35,7 @@ func (wc *WorkspaceController) CreateWorkspace(c *gin.Context) {
 
 	workspace, err := wc.srv.CreateWorkspace(c.Request.Context(), params.Name, params.Description)
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -81,7 +81,7 @@ func (wc *WorkspaceController) GetWorkspace(c *gin.Context) {
 func (wc *WorkspaceController) GetWorkspaceDocuments(c *gin.Context) {
 	documents, err := wc.srv.GetWorkspaceDocuments(c.Request.Context(), c.Param("id-or-name"))
 	if err != nil {
-		respondWithError(c, http.StatusNotFound, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -111,7 +111,7 @@ func (wc *WorkspaceController) GetWorkspaceDocuments(c *gin.Context) {
 func (wc *WorkspaceController) PaginateWorkspaceDocuments(c *gin.Context) {
 	pagination, err := paginate(c)
 	if err != nil {
-		respondWithError(c, http.StatusBadRequest, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -122,7 +122,7 @@ func (wc *WorkspaceController) PaginateWorkspaceDocuments(c *gin.Context) {
 		pagination.Limit,
 	)
 	if err != nil {
-		respondWithError(c, http.StatusNotFound, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -149,7 +149,7 @@ func (wc *WorkspaceController) PaginateWorkspaceDocuments(c *gin.Context) {
 func (wc *WorkspaceController) ListWorkspaces(c *gin.Context) {
 	workspaces, err := wc.srv.ListWorkspaces(c.Request.Context())
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -180,7 +180,7 @@ func (wc *WorkspaceController) ListWorkspaces(c *gin.Context) {
 func (wc *WorkspaceController) PaginateWorkspaces(c *gin.Context) {
 	pagination, err := paginate(c)
 	if err != nil {
-		respondWithError(c, http.StatusBadRequest, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -190,7 +190,7 @@ func (wc *WorkspaceController) PaginateWorkspaces(c *gin.Context) {
 		pagination.Limit,
 	)
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -219,7 +219,7 @@ func (wc *WorkspaceController) PaginateWorkspaces(c *gin.Context) {
 func (wc *WorkspaceController) DeleteWorkspace(c *gin.Context) {
 	err := wc.srv.DeleteWorkspace(c.Request.Context(), c.Param("id-or-name"))
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -241,7 +241,7 @@ func (wc *WorkspaceController) DeleteWorkspace(c *gin.Context) {
 func (wc *WorkspaceController) UploadDocument(c *gin.Context) {
 	var upload dto.DocumentUpload
 	if err := c.ShouldBind(&upload); err != nil {
-		respondWithError(c, http.StatusBadRequest, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -249,14 +249,14 @@ func (wc *WorkspaceController) UploadDocument(c *gin.Context) {
 	filename := upload.File.Filename
 	file, err := upload.File.Open()
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err)
+		respondWithError(c, err)
 		return
 	}
 	defer file.Close()
 
 	document, err := wc.srv.UploadDocumentToWorkspace(c.Request.Context(), workspace, filename, file)
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err)
+		respondWithError(c, err)
 		return
 	}
 

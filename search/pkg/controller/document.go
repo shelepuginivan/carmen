@@ -30,7 +30,7 @@ func NewDocument(srv *service.DocumentService) *DocumentController {
 func (dc *DocumentController) GetDocumentMetadata(c *gin.Context) {
 	doc, err := dc.srv.GetDocumentMetadata(c.Request.Context(), c.Param("id"))
 	if err != nil {
-		respondWithError(c, http.StatusNotFound, err)
+		respondWithError(c, err)
 		return
 	}
 
@@ -52,13 +52,13 @@ func (dc *DocumentController) GetDocumentMetadata(c *gin.Context) {
 func (dc *DocumentController) GetDocumentContents(c *gin.Context) {
 	doc, err := dc.srv.GetDocumentMetadata(c.Request.Context(), c.Param("id"))
 	if err != nil {
-		respondWithError(c, http.StatusNotFound, err)
+		respondWithError(c, err)
 		return
 	}
 
 	content, err := dc.srv.GetDocumentContents(c.Request.Context(), doc.ID)
 	if err != nil {
-		respondWithError(c, http.StatusNotFound, err)
+		respondWithError(c, err)
 		return
 	}
 	defer content.Close()
@@ -86,7 +86,7 @@ func (dc *DocumentController) GetDocumentContents(c *gin.Context) {
 func (dc *DocumentController) DeleteDocument(c *gin.Context) {
 	err := dc.srv.DeleteDocument(c.Request.Context(), c.Param("id"))
 	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err)
+		respondWithError(c, err)
 		return
 	}
 

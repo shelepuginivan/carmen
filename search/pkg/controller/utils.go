@@ -1,10 +1,36 @@
 package controller
 
-import "github.com/gin-gonic/gin"
+import (
+	"errors"
+	"net/http"
+	"time"
 
-func respondWithError(c *gin.Context, status int, err error) {
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/shelepuginivan/carmen/search/pkg/apperror"
+)
+
+func respondWithError(c *gin.Context, err error) {
+	var (
+		status    = http.StatusInternalServerError
+		timestamp = time.Now()
+		detail    = err.Error()
+	)
+
+	switch {
+	case errors.Is(err, &validator.ValidationErrors{}):
+		status = http.StatusBadRequest
+	case errors.Is(err, apperror.ErrNotFound):
+		status = http.StatusNotFound
+	case errors.Is(err, apperror.ErrInternal):
+		status = http.StatusInternalServerError
+	default:
+		status = http.StatusInternalServerError
+		detail = "unknown error"
+	}
+
 	c.JSON(status, gin.H{
-		"ok":     false,
-		"detail": err.Error(),
+		"detail":    detail,
+		"timestamp": timestamp,
 	})
 }
