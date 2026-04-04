@@ -3,23 +3,24 @@ package service
 import (
 	"context"
 
-	"github.com/shelepuginivan/carmen/search/pkg/adapter"
+	"github.com/shelepuginivan/carmen/search/pkg/apperror"
+	"github.com/shelepuginivan/carmen/search/pkg/client"
 	"github.com/shelepuginivan/carmen/search/pkg/model"
 	"github.com/shelepuginivan/carmen/search/pkg/repository"
 )
 
 type SearchService struct {
 	cr  *repository.ChunksRepository
-	ssa *adapter.SemanticSearchAdapter
+	ec  *client.EmbeddingClient
 	lds *LangdetectorService
 }
 
 func NewSearch(
 	cr *repository.ChunksRepository,
-	ssa *adapter.SemanticSearchAdapter,
+	ec *client.EmbeddingClient,
 	lds *LangdetectorService,
 ) *SearchService {
-	return &SearchService{cr, ssa, lds}
+	return &SearchService{cr, ec, lds}
 }
 
 func (ss *SearchService) FullTextSearch(
@@ -44,12 +45,10 @@ func (ss *SearchService) SemanticSearch(
 	limit int,
 	threshold float64,
 ) ([]*model.Chunk, error) {
-	resCh, err := ss.ssa.Query(ctx, query)
+	res, err := ss.ec.GenerateEmbedding(query)
 	if err != nil {
-		return nil, err
+		return nil, apperror.ErrInternal
 	}
-
-	res := <-resCh
 
 	return ss.cr.SemanticSearch(ctx, workspaceID, res.Embedding, limit, threshold)
 }
@@ -86,12 +85,10 @@ func (ss *SearchService) SemanticSearchDocuments(
 	limit int,
 	threshold float64,
 ) ([]string, error) {
-	resCh, err := ss.ssa.Query(ctx, query)
+	res, err := ss.ec.GenerateEmbedding(query)
 	if err != nil {
-		return nil, err
+		return nil, apperror.ErrInternal
 	}
-
-	res := <-resCh
 
 	return ss.cr.SemanticSearchDocuments(ctx, workspaceID, res.Embedding, limit, threshold)
 }
