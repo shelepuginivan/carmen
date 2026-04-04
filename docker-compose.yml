@@ -1,7 +1,6 @@
 services:
   s3:
     image: rustfs/rustfs:latest
-    container_name: s3
     environment:
       RUSTFS_ADDRESS: :9000
       RUSTFS_CONSOLE_ADDRESS: :9001
@@ -19,7 +18,6 @@ services:
 
   postgres:
     image: pgvector/pgvector:pg18-trixie
-    container_name: postgres
     environment:
       POSTGRES_DB: carmen
     env_file:
@@ -33,7 +31,6 @@ services:
 
   kafka-controller:
     image: apache/kafka:latest
-    container_name: kafka-controller
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: controller
@@ -49,7 +46,6 @@ services:
 
   kafka-broker:
     image: apache/kafka:latest
-    container_name: kafka-broker
     environment:
       KAFKA_NODE_ID: 2
       KAFKA_PROCESS_ROLES: broker
@@ -77,7 +73,6 @@ services:
 
   kafka-init:
     image: apache/kafka:latest
-    container_name: kafka-init
     depends_on:
       - kafka-controller
       - kafka-broker
@@ -92,12 +87,11 @@ services:
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic chunks.ready
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic documents.queue
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic documents.ready
-      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic search.requests
-      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic search.responses
       "
 
-  embedding:
+  embedding-chunks:
     build:
+      image: localhost/carmen-embedding:latest
       context: ./embedding
       args:
         # Should match environment variables below.
@@ -106,8 +100,8 @@ services:
           [
             "sentence-transformers/static-retrieval-mrl-en-v1"
           ]
-    container_name: embedding
     environment:
+      CARMEN_EMBEDDING_WORKING_MODE: chunks
       CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
       CARMEN_EMBEDDING_MODEL__ENGLISH: sentence-transformers/static-retrieval-mrl-en-v1
       CARMEN_EMBEDDING_LANGDETECTOR_URL: http://langdetector:8000/detect
@@ -115,7 +109,6 @@ services:
       CARMEN_EMBEDDING_KAFKA_CONSUMER_GROUP: embedding-consumer-group
       CARMEN_EMBEDDING_KAFKA_TOPIC_CHUNKS_QUEUE: chunks.queue
       CARMEN_EMBEDDING_KAFKA_TOPIC_CHUNKS_READY: chunks.ready
-      CARMEN_EMBEDDING_KAFKA_TOPIC_SEARCH_REQUESTS: search.requests
     restart: unless-stopped
     depends_on:
       kafka-init:
@@ -125,10 +118,32 @@ services:
       langdetector:
         condition: service_started
 
+  embedding-search:
+    build:
+      image: localhost/carmen-embedding:latest
+      context: ./embedding
+      args:
+        # Should match environment variables below.
+        SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
+        SENTENCE_TRANSFORMERS_MODELS: |
+          [
+            "sentence-transformers/static-retrieval-mrl-en-v1"
+          ]
+    environment:
+      CARMEN_EMBEDDING_WORKING_MODE: search
+      CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
+      CARMEN_EMBEDDING_MODEL__ENGLISH: sentence-transformers/static-retrieval-mrl-en-v1
+      CARMEN_EMBEDDING_LANGDETECTOR_URL: http://langdetector:8000/detect
+    restart: unless-stopped
+    depends_on:
+      langdetector:
+        condition: service_started
+    ports:
+      - 8000:8000
+
   extractor:
     build:
       context: ./extractor
-    container_name: extractor
     environment:
       CARMEN_EXTRACTOR_LOG: warn,extractor=info
       CARMEN_EXTRACTOR_S3_ENDPOINT: http://s3:9000
@@ -154,20 +169,16 @@ services:
   langdetector:
     build:
       context: ./langdetector
-    container_name: langdetector
     restart: unless-stopped
     environment:
       CARMEN_LANGDETECTOR_LANGUAGES: '["en"]'
       CARMEN_LANGDETECTOR_FALLBACK_LANGUAGE: en
       CARMEN_LANGDETECTOR_LOW_ACCURACY: false
       CARMEN_LANGDETECTOR_PRELOAD: true
-    ports:
-      - 8000:8000
 
   search:
     build:
       context: ./search
-    container_name: search
     environment:
       CARMEN_SEARCH_SERVER_ADDR: :5124
       CARMEN_SEARCH_POSTGRES_DB: carmen
