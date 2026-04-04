@@ -1,0 +1,19 @@
+import boto3
+
+from .config import Config
+
+
+class DocumentsBucket:
+    def __init__(self, config: Config) -> None:
+        self.__bucket = config.s3_bucket
+        self.__client = boto3.client(
+            "s3",
+            endpoint_url=config.s3_enpoint,
+            aws_access_key_id=config.s3_access_key,
+            aws_secret_access_key=config.s3_secret_key,
+            region_name=config.s3_region,
+        )
+
+    def get_object(self, key: str) -> bytes:
+        res = self.__client.get_object(Bucket=self.__bucket, Key=key)
+        return res["Body"].read()
