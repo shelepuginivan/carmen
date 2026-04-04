@@ -193,7 +193,8 @@ services:
       CARMEN_SEARCH_KAFKA_TOPIC_CHUNKS_READY: chunks.ready
       CARMEN_SEARCH_KAFKA_TOPIC_SEARCH_REQUESTS: search.requests
       CARMEN_SEARCH_KAFKA_TOPIC_SEARCH_RESPONSES: search.responses
-      CARMEN_SEARCH_LANGDETECTOR_URL: http://langdetector:8000/detect
+      CARMEN_SEARCH_SERVICE_EMBEDDING_URL: http://embedding-search:8000/generate
+      CARMEN_SEARCH_SERVICE_LANGDETECTOR_URL: http://langdetector:8000/detect
     env_file:
       # Contains the following env variables:
       #   - CARMEN_SEARCH_POSTGRES_USER
