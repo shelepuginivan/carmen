@@ -1,4 +1,4 @@
-from pydantic import HttpUrl
+from pydantic import BaseModel, HttpUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,3 +14,14 @@ class Config(BaseSettings):
     kafka_topic_chunks_queue: str
 
     model_config = SettingsConfigDict(env_prefix="CARMEN_EXTRACTOR_")
+
+
+class Document(BaseModel):
+    document_id: str
+    object_key: str
+    mimetype: str
+
+
+class Chunk(BaseModel):
+    document_id: str
+    text: str

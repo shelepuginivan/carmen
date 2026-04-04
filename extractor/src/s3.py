@@ -1,6 +1,6 @@
 import boto3
 
-from .config import Config
+from .models import Config
 
 
 class DocumentsBucket:
