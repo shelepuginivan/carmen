@@ -1,7 +1,7 @@
+from common.embedding import EmbeddingService
 from fastapi import Depends, FastAPI, Body
 
 from .depends import get_service
-from service.embedding import EmbeddingService
 
 
 app = FastAPI(docs_url=None, redoc_url=None)

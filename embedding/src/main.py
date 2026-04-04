@@ -1,7 +1,10 @@
-def main() -> None:
-    config = Config()  # type: ignore
+import os
 
-    match config.mode:
+
+def main() -> None:
+    mode = os.getenv("CARMEN_EMBEDDING_WORKING_MODE")
+
+    match mode:
         case "chunks":
             from chunks.main import main
 
@@ -10,6 +13,8 @@ def main() -> None:
             from search.main import main
 
             main()
+        case _:
+            raise RuntimeError(f"unknown working mode: {mode}")
 
 
 if __name__ == "__main__":

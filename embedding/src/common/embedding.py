@@ -1,8 +1,7 @@
 import httpx
-from sentence_transformers import SentenceTransformer
+from common.config import Config
 from pydantic.dataclasses import dataclass
-
-from models.config import Config
+from sentence_transformers import SentenceTransformer
 
 
 @dataclass

@@ -1,7 +1,6 @@
+from common.config import Config
+from common.embedding import EmbeddingService
 from fastapi import Depends
-
-from models.config import Config
-from service.embedding import EmbeddingService
 
 
 def get_config() -> Config:

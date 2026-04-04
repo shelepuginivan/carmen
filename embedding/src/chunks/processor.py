@@ -1,14 +1,13 @@
 from typing import Any
 
+from common.embedding import EmbeddingService
 from kafka import KafkaConsumer, KafkaProducer
 
-from models.config import Config
-from models.chunks import ChunkEnqueued, ChunkReady
-from service.embedding import EmbeddingService
+from .models import ChunkEnqueued, ChunkReady, ProcessorConfig
 
 
 class ChunkProcessor:
-    def __init__(self, config: Config, service: EmbeddingService) -> None:
+    def __init__(self, config: ProcessorConfig, service: EmbeddingService) -> None:
         self.__config = config
         self.__service = service
         self.__consumer = KafkaConsumer(
