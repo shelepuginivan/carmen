@@ -1,0 +1,16 @@
+from pydantic import HttpUrl
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Config(BaseSettings):
+    s3_enpoint: HttpUrl
+    s3_region: str
+    s3_bucket: str
+    s3_access_key: str
+    s3_secret_key: str
+    kafka_uri: str
+    kafka_consumer_group: str
+    kafka_topic_documents_queue: str
+    kafka_topic_chunks_queue: str
+
+    model_config = SettingsConfigDict(env_prefix="CARMEN_EXTRACTOR_")
