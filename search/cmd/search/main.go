@@ -56,9 +56,9 @@ func main() {
 	documents.DELETE("/:id", documentController.DeleteDocument)
 
 	chunksRepo := repository.NewChunk(db)
-	langdetector := service.NewLangdetector(cfg.Service.Langdetector)
+	langdetectorClient := client.NewLangdetector(cfg.Service.Langdetector)
 	embeddingClient := client.NewEmbedding(cfg.Service.Embedding)
-	searchService := service.NewSearch(chunksRepo, embeddingClient, langdetector)
+	searchService := service.NewSearch(chunksRepo, embeddingClient, langdetectorClient)
 	searchController := controller.NewSearch(searchService)
 
 	search := srv.Group("/search")

@@ -1,4 +1,4 @@
-package service
+package client
 
 import (
 	"bytes"
@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-type LangdetectorService struct {
+type LangdetectorClient struct {
 	client *http.Client
 	url    string
 }
 
-func NewLangdetector(url string) *LangdetectorService {
+func NewLangdetector(url string) *LangdetectorClient {
 	transport := &http.Transport{
 		MaxIdleConns:        10,
 		MaxIdleConnsPerHost: 10,
@@ -25,23 +25,23 @@ func NewLangdetector(url string) *LangdetectorService {
 		Timeout:   30 * time.Second,
 	}
 
-	return &LangdetectorService{client, url}
+	return &LangdetectorClient{client, url}
 }
 
-func (lds *LangdetectorService) DetectLanguage(text string) (string, error) {
+func (lds *LangdetectorClient) DetectLanguage(text string) (string, error) {
 	res, err := lds.client.Post(lds.url, "text/plain", bytes.NewBufferString(text))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("langdetect: %w", err)
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("cannot detect language")
+		return "", fmt.Errorf("langdetect: cannot detect language reliably")
 	}
 
 	lang, err := io.ReadAll(res.Body)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("langdetect: %w", err)
 	}
 
 	return string(lang), nil

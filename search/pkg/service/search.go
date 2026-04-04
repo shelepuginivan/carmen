@@ -10,17 +10,17 @@ import (
 )
 
 type SearchService struct {
-	cr  *repository.ChunksRepository
-	ec  *client.EmbeddingClient
-	lds *LangdetectorService
+	cr *repository.ChunksRepository
+	ec *client.EmbeddingClient
+	lc *client.LangdetectorClient
 }
 
 func NewSearch(
 	cr *repository.ChunksRepository,
 	ec *client.EmbeddingClient,
-	lds *LangdetectorService,
+	lc *client.LangdetectorClient,
 ) *SearchService {
-	return &SearchService{cr, ec, lds}
+	return &SearchService{cr, ec, lc}
 }
 
 func (ss *SearchService) FullTextSearch(
@@ -30,7 +30,7 @@ func (ss *SearchService) FullTextSearch(
 	limit int,
 	threshold float64,
 ) ([]*model.Chunk, error) {
-	lang, err := ss.lds.DetectLanguage(query)
+	lang, err := ss.lc.DetectLanguage(query)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (ss *SearchService) FullTextSearchDocuments(
 	limit int,
 	threshold float64,
 ) ([]string, error) {
-	lang, err := ss.lds.DetectLanguage(query)
+	lang, err := ss.lc.DetectLanguage(query)
 	if err != nil {
 		return nil, err
 	}

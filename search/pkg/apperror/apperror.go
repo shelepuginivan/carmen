@@ -5,5 +5,5 @@ import "errors"
 
 var (
 	ErrNotFound = errors.New("resource not found")
-	ErrInternal = errors.New("operation failed")
+	ErrInternal = errors.New("internal operation failed")
 )
