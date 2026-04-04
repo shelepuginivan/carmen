@@ -1,6 +1,6 @@
 import boto3
 
-from .models import Config
+from models import Config
 
 
 class DocumentsBucket:
@@ -8,7 +8,7 @@ class DocumentsBucket:
         self.__bucket = config.s3_bucket
         self.__client = boto3.client(
             "s3",
-            endpoint_url=config.s3_enpoint,
+            endpoint_url=config.s3_endpoint,
             aws_access_key_id=config.s3_access_key,
             aws_secret_access_key=config.s3_secret_key,
             region_name=config.s3_region,

@@ -4,8 +4,8 @@ from typing import Any
 from kafka import KafkaConsumer, KafkaProducer
 from langchain_text_splitters import MarkdownTextSplitter
 
-from .models import Chunk, Config, Document
-from .s3 import DocumentsBucket
+from models import Chunk, Config, Document
+from s3 import DocumentsBucket
 
 
 class DocumentProcessor:
@@ -34,6 +34,7 @@ class DocumentProcessor:
 
     def handle(self) -> None:
         for message in map(self.__decode_message, self.__consumer):
+            print(message)
             try:
                 self.__handle_msg(message)
             except Exception as err:

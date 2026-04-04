@@ -1,9 +1,9 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Config(BaseSettings):
-    s3_enpoint: HttpUrl
+    s3_endpoint: str
     s3_region: str
     s3_bucket: str
     s3_access_key: str
