@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/shelepuginivan/carmen/search/pkg/adapter"
+	"github.com/shelepuginivan/carmen/search/pkg/client"
 	"github.com/shelepuginivan/carmen/search/pkg/config"
 	"github.com/shelepuginivan/carmen/search/pkg/controller"
 	"github.com/shelepuginivan/carmen/search/pkg/infra"
@@ -55,9 +56,9 @@ func main() {
 	documents.DELETE("/:id", documentController.DeleteDocument)
 
 	chunksRepo := repository.NewChunk(db)
-	langdetector := service.NewLangdetector(cfg.LangdetectorURL)
-	searchAdapter := adapter.NewSemanticSearch(cfg.Kafka)
-	searchService := service.NewSearch(chunksRepo, searchAdapter, langdetector)
+	langdetector := service.NewLangdetector(cfg.Service.Langdetector)
+	embeddingClient := client.NewEmbedding(cfg.Service.Embedding)
+	searchService := service.NewSearch(chunksRepo, embeddingClient, langdetector)
 	searchController := controller.NewSearch(searchService)
 
 	search := srv.Group("/search")
@@ -74,11 +75,6 @@ func main() {
 		chunksAdapter.Handle(context.Background())
 	}()
 	defer chunksAdapter.Close()
-
-	go func() {
-		searchAdapter.Handle(context.Background())
-	}()
-	defer searchAdapter.Close()
 
 	srv.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 

@@ -24,12 +24,15 @@ type S3 struct {
 }
 
 type Kafka struct {
-	URI                  string
-	ConsumerGroup        string
-	TopicDocumentsQueue  string
-	TopicChunksReady     string
-	TopicSearchRequests  string
-	TopicSearchResponses string
+	URI                 string
+	ConsumerGroup       string
+	TopicDocumentsQueue string
+	TopicChunksReady    string
+}
+
+type Service struct {
+	Embedding    string
+	Langdetector string
 }
 
 // DSN returns DSN for PostgreSQL database connection.
@@ -50,8 +53,7 @@ type Config struct {
 	Postgres *Postgres
 	S3       *S3
 	Kafka    *Kafka
-
-	LangdetectorURL string
+	Service  *Service
 }
 
 // Load loads configuration from env variables.
@@ -78,14 +80,15 @@ func Load() *Config {
 		},
 
 		Kafka: &Kafka{
-			URI:                  requiredEnvStr("KAFKA_URI"),
-			ConsumerGroup:        requiredEnvStr("KAFKA_CONSUMER_GROUP"),
-			TopicDocumentsQueue:  requiredEnvStr("KAFKA_TOPIC_DOCUMENTS_QUEUE"),
-			TopicChunksReady:     requiredEnvStr("KAFKA_TOPIC_CHUNKS_READY"),
-			TopicSearchRequests:  requiredEnvStr("KAFKA_TOPIC_SEARCH_REQUESTS"),
-			TopicSearchResponses: requiredEnvStr("KAFKA_TOPIC_SEARCH_RESPONSES"),
+			URI:                 requiredEnvStr("KAFKA_URI"),
+			ConsumerGroup:       requiredEnvStr("KAFKA_CONSUMER_GROUP"),
+			TopicDocumentsQueue: requiredEnvStr("KAFKA_TOPIC_DOCUMENTS_QUEUE"),
+			TopicChunksReady:    requiredEnvStr("KAFKA_TOPIC_CHUNKS_READY"),
 		},
 
-		LangdetectorURL: requiredEnvStr("LANGDETECTOR_URL"),
+		Service: &Service{
+			Embedding:    requiredEnvStr("SERVICE_EMBEDDING_URL"),
+			Langdetector: requiredEnvStr("SERVICE_LANGDETECTOR_URL"),
+		},
 	}
 }
