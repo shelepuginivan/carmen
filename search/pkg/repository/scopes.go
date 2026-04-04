@@ -1,10 +1,6 @@
 package repository
 
-import (
-	"github.com/pgvector/pgvector-go"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
-)
+import "gorm.io/gorm"
 
 type Scope = func(db *gorm.DB) *gorm.DB
 
@@ -16,18 +12,5 @@ func Paginate(page, limit int) Scope {
 
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Offset(offset).Limit(limit)
-	}
-}
-
-func VectorSearch(field string, vec []float32) Scope {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Clauses(clause.OrderBy{
-			Expression: clause.Expr{
-				SQL: field + " <=> ?",
-				Vars: []any{
-					pgvector.NewVector(vec),
-				},
-			},
-		})
 	}
 }
