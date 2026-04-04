@@ -50,6 +50,18 @@ func (cr *ChunksRepository) FullTextSearch(
 	return cr.selectChunks(ctx, cr.subqueryFullText(workspaceID, query, queryLang), limit, threshold)
 }
 
+func (cr *ChunksRepository) HybridSearch(
+	ctx context.Context,
+	workspaceID string,
+	query string,
+	queryLang string,
+	vec []float32,
+	limit int,
+	threshold float64,
+) ([]*model.Chunk, error) {
+	return cr.selectChunks(ctx, cr.subqueryHybrid(workspaceID, query, queryLang, vec), limit, threshold)
+}
+
 func (cr *ChunksRepository) SemanticSearch(
 	ctx context.Context,
 	workspaceID string,
@@ -79,6 +91,18 @@ func (cr *ChunksRepository) FullTextSearchDocuments(
 	threshold float64,
 ) ([]string, error) {
 	return cr.selectDocuments(ctx, cr.subqueryFullText(workspaceID, query, queryLang), limit, threshold)
+}
+
+func (cr *ChunksRepository) HybridSearchDocuments(
+	ctx context.Context,
+	workspaceID string,
+	query string,
+	queryLang string,
+	vec []float32,
+	limit int,
+	threshold float64,
+) ([]string, error) {
+	return cr.selectDocuments(ctx, cr.subqueryHybrid(workspaceID, query, queryLang, vec), limit, threshold)
 }
 
 func (cr *ChunksRepository) SemanticSearchDocuments(
@@ -161,7 +185,7 @@ func (cr *ChunksRepository) subquerySemantic(workspaceID string, vec []float32) 
 	return cr.db.
 		Table("chunks").
 		Select(
-			"chunks.id, chunks.document_id, chunks.text, 1 - (chunks.embedding <=> ?) AS relevance",
+			"chunks.id, chunks.document_id, chunks.text, 1 - (chunks.embedding <=> ?) as relevance",
 			pgvector.NewVector(vec),
 		).
 		Joins("JOIN documents ON documents.id = chunks.document_id").
@@ -174,6 +198,20 @@ func (cr *ChunksRepository) subquerySimilarity(workspaceID, query string) *gorm.
 		Select(
 			"chunks.id, chunks.document_id, chunks.text, word_similarity(?, chunks.text) AS relevance",
 			query,
+		).
+		Joins("JOIN documents ON documents.id = chunks.document_id").
+		Where("documents.workspace_id = ?", workspaceID)
+}
+
+func (cr *ChunksRepository) subqueryHybrid(workspaceID, query, queryLang string, vec []float32) *gorm.DB {
+	return cr.db.
+		Table("chunks").
+		Select(
+			"chunks.id, chunks.document_id, chunks.text, chunks.fts_vector, "+
+				"(0.4 * ts_rank(chunks.fts_vector, websearch_to_tsquery(?, ?)) + 0.6 * (1 - (chunks.embedding <=> ?))) as relevance",
+			queryLang,
+			query,
+			pgvector.NewVector(vec),
 		).
 		Joins("JOIN documents ON documents.id = chunks.document_id").
 		Where("documents.workspace_id = ?", workspaceID)

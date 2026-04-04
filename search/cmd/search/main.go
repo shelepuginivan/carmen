@@ -63,11 +63,13 @@ func main() {
 
 	search := srv.Group("/search")
 	search.GET("/fulltext", searchController.FullTextSearch)
+	search.GET("/hybrid", searchController.HybridSearch)
 	search.GET("/semantic", searchController.SemanticSearch)
 	search.GET("/similarity", searchController.SimilaritySearch)
 	search.GET("/fulltext/docs", searchController.FullTextSearchDocuments)
 	search.GET("/semantic/docs", searchController.SemanticSearchDocuments)
 	search.GET("/similarity/docs", searchController.SimilaritySearchDocuments)
+	search.GET("/hybrid/docs", searchController.HybridSearchDocuments)
 
 	chunksAdapter := adapter.NewChunk(cfg.Kafka, chunksRepo)
 

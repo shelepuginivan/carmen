@@ -38,6 +38,21 @@ func (ss *SearchService) FullTextSearch(
 	return ss.cr.FullTextSearch(ctx, workspaceID, query, lang, limit, threshold)
 }
 
+func (ss *SearchService) HybridSearch(
+	ctx context.Context,
+	workspaceID string,
+	query string,
+	limit int,
+	threshold float64,
+) ([]*model.Chunk, error) {
+	res, err := ss.ec.GenerateEmbedding(query)
+	if err != nil {
+		return nil, apperror.ErrInternal
+	}
+
+	return ss.cr.HybridSearch(ctx, workspaceID, query, res.Language, res.Embedding, limit, threshold)
+}
+
 func (ss *SearchService) SemanticSearch(
 	ctx context.Context,
 	workspaceID string,
@@ -76,6 +91,21 @@ func (ss *SearchService) FullTextSearchDocuments(
 	}
 
 	return ss.cr.FullTextSearchDocuments(ctx, workspaceID, query, lang, limit, threshold)
+}
+
+func (ss *SearchService) HybridSearchDocuments(
+	ctx context.Context,
+	workspaceID string,
+	query string,
+	limit int,
+	threshold float64,
+) ([]string, error) {
+	res, err := ss.ec.GenerateEmbedding(query)
+	if err != nil {
+		return nil, apperror.ErrInternal
+	}
+
+	return ss.cr.HybridSearchDocuments(ctx, workspaceID, query, res.Language, res.Embedding, limit, threshold)
 }
 
 func (ss *SearchService) SemanticSearchDocuments(

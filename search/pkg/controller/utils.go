@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -16,6 +17,8 @@ func respondWithError(c *gin.Context, err error) {
 		timestamp = time.Now()
 		detail    = err.Error()
 	)
+
+	log.Println(err)
 
 	switch {
 	case errors.Is(err, &validator.ValidationErrors{}):

@@ -41,6 +41,10 @@ func (lds *EmbeddingClient) GenerateEmbedding(query string) (*EmbeddingResponse,
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("embedding: cannot generate")
+	}
+
 	payload, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("embedding: %w", err)
