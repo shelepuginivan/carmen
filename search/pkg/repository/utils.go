@@ -8,6 +8,10 @@ import (
 )
 
 func wrapErr(err error) error {
+	if err == nil {
+		return nil
+	}
+
 	switch {
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		return apperror.ErrNotFound
