@@ -3,7 +3,9 @@ package infra
 import (
 	"context"
 	"io"
+	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/shelepuginivan/carmen/search/pkg/config"
@@ -21,6 +23,19 @@ func NewS3(cfg *config.S3) *S3 {
 		BaseEndpoint: &cfg.Endpoint,
 		UsePathStyle: true,
 	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	_, err := client.HeadBucket(ctx, &s3.HeadBucketInput{
+		Bucket: aws.String(cfg.Bucket),
+	})
+
+	if err != nil {
+		_, _ = client.CreateBucket(ctx, &s3.CreateBucketInput{
+			Bucket: aws.String(cfg.Bucket),
+		})
+	}
 
 	return &S3{
 		client: client,
