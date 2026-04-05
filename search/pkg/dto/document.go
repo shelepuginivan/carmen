@@ -10,3 +10,12 @@ type DocumentMetadata struct {
 type DocumentUpload struct {
 	File *multipart.FileHeader `form:"file" binding:"required"`
 }
+
+type DocumentUploadMany struct {
+	Files []*multipart.FileHeader `form:"files" binding:"required"`
+}
+
+type DocumentUploadManyResult struct {
+	Ok     bool     `json:"ok"`
+	Failed []string `json:"failed,omitempty"`
+}

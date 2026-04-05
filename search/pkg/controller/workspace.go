@@ -265,3 +265,46 @@ func (wc *WorkspaceController) UploadDocument(c *gin.Context) {
 		Filename: document.Filename,
 	})
 }
+
+// UploadManyDocuments godoc
+//
+// @summary Upload multiple documents to workspace
+// @router /workspace/{id-or-name}/documents [post]
+// @tags workspace
+// @param id-or-name path string true "ID or name of the workspace"
+// @param files formData []file true "Uploaded documents"
+// @accept multipart/form-data
+// @produce json
+// @success 202 {object} dto.DocumentUploadManyResult
+// @failure 400
+// @failure 500
+func (wc *WorkspaceController) UploadManyDocuments(c *gin.Context) {
+	var upload dto.DocumentUploadMany
+	if err := c.ShouldBind(&upload); err != nil {
+		respondWithError(c, err)
+		return
+	}
+
+	workspace := c.Param("id-or-name")
+	var failed []string
+
+	for _, file := range upload.Files {
+		filename := file.Filename
+		file, err := file.Open()
+		if err != nil {
+			failed = append(failed, filename)
+			continue
+		}
+		defer file.Close()
+
+		_, err = wc.srv.UploadDocumentToWorkspace(c.Request.Context(), workspace, filename, file)
+		if err != nil {
+			failed = append(failed, filename)
+		}
+	}
+
+	c.JSON(http.StatusAccepted, dto.DocumentUploadManyResult{
+		Ok:     len(failed) == 0,
+		Failed: failed,
+	})
+}
