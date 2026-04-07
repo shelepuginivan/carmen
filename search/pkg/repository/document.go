@@ -7,7 +7,6 @@ import (
 	"github.com/shelepuginivan/carmen/search/pkg/infra"
 	"github.com/shelepuginivan/carmen/search/pkg/model"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type DocumentRepository struct {
@@ -38,7 +37,7 @@ func (dr *DocumentRepository) CreateDocument(
 		return nil, wrapErr(err)
 	}
 
-	if err := dr.s3.PutDocument(ctx, filename, body); err != nil {
+	if err := dr.s3.PutDocument(ctx, document.ID, body); err != nil {
 		return nil, wrapErr(err)
 	}
 
@@ -65,19 +64,7 @@ func (dr *DocumentRepository) GetDocumentContents(
 	ctx context.Context,
 	documentID string,
 ) (io.ReadCloser, error) {
-	var document model.Document
-
-	err := dr.db.
-		WithContext(ctx).
-		Select("filename").
-		Where("id = ?", documentID).
-		First(&document).
-		Error
-	if err != nil {
-		return nil, wrapErr(err)
-	}
-
-	return dr.s3.GetDocument(ctx, document.Filename)
+	return dr.s3.GetDocument(ctx, documentID)
 }
 
 func (dr *DocumentRepository) ListDocumentsInWorkspace(
@@ -106,7 +93,6 @@ func (dr *DocumentRepository) DeleteDocument(ctx context.Context, documentID str
 
 	err := dr.db.
 		WithContext(ctx).
-		Clauses(clause.Returning{Columns: []clause.Column{{Name: "filename"}}}).
 		Where("id = ?", documentID).
 		Delete(&document).
 		Error
@@ -114,5 +100,5 @@ func (dr *DocumentRepository) DeleteDocument(ctx context.Context, documentID str
 		return wrapErr(err)
 	}
 
-	return dr.s3.DeleteDocument(ctx, document.Filename)
+	return dr.s3.DeleteDocument(ctx, documentID)
 }

@@ -103,7 +103,7 @@ func (ws *WorkspaceService) UploadDocumentToWorkspace(
 	}
 	content.Seek(0, io.SeekStart)
 
-	err = ws.ep.EnqueueDocumentForExtraction(ctx, document.ID, document.Filename, mime.String())
+	err = ws.ep.EnqueueDocumentForExtraction(ctx, document.ID, mime.String())
 	if err != nil {
 		return nil, err
 	}

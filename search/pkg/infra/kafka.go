@@ -25,13 +25,11 @@ func NewExtractorProducer(cfg *config.Kafka) *ExtractorProducer {
 
 func (ep *ExtractorProducer) EnqueueDocumentForExtraction(
 	ctx context.Context,
-	id string,
-	filename string,
+	documentID string,
 	mimetype string,
 ) error {
 	payload := map[string]string{
-		"document_id": id,
-		"object_key":  filename,
+		"document_id": documentID,
 		"mimetype":    mimetype,
 	}
 

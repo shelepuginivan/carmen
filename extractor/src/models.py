@@ -18,7 +18,6 @@ class Config(BaseSettings):
 
 class Document(BaseModel):
     document_id: str
-    object_key: str
     mimetype: str
 
 

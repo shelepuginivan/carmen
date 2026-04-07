@@ -41,7 +41,7 @@ class DocumentProcessor:
                 logging.error(err)
 
     def __handle_msg(self, doc: Document) -> None:
-        content = self.__bucket.get_object(doc.object_key).decode("utf-8")
+        content = self.__bucket.get_object(doc.document_id).decode("utf-8")
 
         for chunk_text in self.__splitter.split_text(content):
             chunk = Chunk(document_id=doc.document_id, text=chunk_text)
