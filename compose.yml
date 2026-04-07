@@ -1,7 +1,7 @@
 services:
-  s3:
+  rustfs:
     image: rustfs/rustfs:latest
-    container_name: carmen-s3
+    container_name: carmen-rustfs
     environment:
       RUSTFS_ADDRESS: :9000
       RUSTFS_CONSOLE_ADDRESS: :9001
@@ -9,13 +9,13 @@ services:
       RUSTFS_VOLUMES: /data/rustfs
     env_file:
       # Contains RUSTFS_ACCESS_KEY and RUSTFS_SECRET_KEY
-      - env/.env.s3
+      - env/.env.rustfs
     restart: unless-stopped
     ports:
       - 9000:9000
       - 9001:9001
     volumes:
-      - s3_data:/data/rustfs
+      - rustfs_data:/data/rustfs
 
   postgres:
     image: pgvector/pgvector:pg18-trixie
@@ -153,7 +153,7 @@ services:
     build:
       context: ./extractor
     environment:
-      CARMEN_EXTRACTOR_S3_ENDPOINT: http://s3:9000
+      CARMEN_EXTRACTOR_S3_ENDPOINT: http://rustfs:9000
       CARMEN_EXTRACTOR_S3_REGION: eu-central-1
       CARMEN_EXTRACTOR_S3_BUCKET: carmen-documents
       CARMEN_EXTRACTOR_KAFKA_URI: kafka-broker:9092
@@ -170,7 +170,7 @@ services:
         condition: service_completed_successfully
       kafka-broker:
         condition: service_healthy
-      s3:
+      rustfs:
         condition: service_started
 
   langdetector:
@@ -194,7 +194,7 @@ services:
       CARMEN_SEARCH_POSTGRES_HOST: postgres
       CARMEN_SEARCH_POSTGRES_PORT: 5432
       CARMEN_SEARCH_S3_REGION: eu-central-1
-      CARMEN_SEARCH_S3_ENDPOINT: http://s3:9000
+      CARMEN_SEARCH_S3_ENDPOINT: http://rustfs:9000
       CARMEN_SEARCH_S3_BUCKET: carmen-documents
       CARMEN_SEARCH_KAFKA_URI: kafka-broker:9092
       CARMEN_SEARCH_KAFKA_CONSUMER_GROUP: search-consumer-group
@@ -221,7 +221,7 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_started
-      s3:
+      rustfs:
         condition: service_started
       langdetector:
         condition: service_started
@@ -229,5 +229,5 @@ services:
 volumes:
   kafka-controller-data:
   kafka-broker-data:
-  s3_data:
+  rustfs_data:
   pg_data:
