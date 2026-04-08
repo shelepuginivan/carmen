@@ -5,8 +5,8 @@ from models import Config
 
 class DocumentsBucket:
     def __init__(self, config: Config) -> None:
-        self.__bucket = config.s3_bucket
-        self.__client = boto3.client(
+        self._bucket = config.s3_bucket
+        self._client = boto3.client(
             "s3",
             endpoint_url=config.s3_endpoint,
             aws_access_key_id=config.s3_access_key,
@@ -15,5 +15,5 @@ class DocumentsBucket:
         )
 
     def get_object(self, key: str) -> bytes:
-        res = self.__client.get_object(Bucket=self.__bucket, Key=key)
+        res = self._client.get_object(Bucket=self._bucket, Key=key)
         return res["Body"].read()

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,7 +17,7 @@ class Config(BaseSettings):
 
 
 class Document(BaseModel):
-    document_id: str
+    id: str = Field(alias="document_id")
     mimetype: str
 
 

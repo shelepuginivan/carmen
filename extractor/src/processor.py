@@ -1,7 +1,6 @@
 import logging
-from typing import Any
 
-from kafka import KafkaConsumer, KafkaProducer
+from confluent_kafka import Consumer, Producer
 from langchain_text_splitters import MarkdownTextSplitter
 
 from models import Chunk, Config, Document
@@ -10,45 +9,58 @@ from s3 import DocumentsBucket
 
 class DocumentProcessor:
     def __init__(self, bucket: DocumentsBucket, config: Config) -> None:
-        self.__bucket = bucket
-        self.__topic_chunks_queue = config.kafka_topic_chunks_queue
-        self.__consumer = KafkaConsumer(
-            config.kafka_topic_documents_queue,
-            bootstrap_servers=config.kafka_uri,
-            group_id=config.kafka_consumer_group,
-            auto_offset_reset="earliest",
-            enable_auto_commit=True,
-        )
-        self.__producer = KafkaProducer(
-            bootstrap_servers=config.kafka_uri,
-            value_serializer=self.__encode_result,
-        )
-        self.__splitter = MarkdownTextSplitter(
+        self._running = True
+        self._bucket = bucket
+        self._topic_chunks_queue = config.kafka_topic_chunks_queue
+        self._splitter = MarkdownTextSplitter(
             chunk_size=500,
             chunk_overlap=100,
         )
+        self._producer = Producer({"bootstrap.servers": config.kafka_uri})
+        self._consumer = Consumer(
+            {
+                "bootstrap.servers": config.kafka_uri,
+                "group.id": config.kafka_consumer_group,
+                "enable.auto.commit": True,
+                "auto.offset.reset": "earliest",
+            }
+        )
+        self._consumer.subscribe([config.kafka_topic_documents_queue])
 
-    def __del__(self) -> None:
-        self.__consumer.close()
-        self.__producer.close()
+    def close(self, *_) -> None:
+        logging.info("shutting down...")
+        self._running = False
 
-    def handle(self) -> None:
-        for message in map(self.__decode_message, self.__consumer):
-            print(message)
-            try:
-                self.__handle_msg(message)
-            except Exception as err:
-                logging.error(err)
+    def listen(self) -> None:
+        logging.info("listening for incoming messages...")
 
-    def __handle_msg(self, doc: Document) -> None:
-        content = self.__bucket.get_object(doc.document_id).decode("utf-8")
+        while self._running:
+            msg = self._consumer.poll(1.0)
+            if msg is None:
+                continue
+            err = msg.error()
+            if err is not None:
+                logging.error(f"consumer error: {err}")
 
-        for chunk_text in self.__splitter.split_text(content):
-            chunk = Chunk(document_id=doc.document_id, text=chunk_text)
-            self.__producer.send(self.__topic_chunks_queue, chunk)
+            self._handle_msg(msg.value())
 
-    def __decode_message(self, message: Any) -> Document:
-        return Document.model_validate_json(message.value)
+        self._producer.flush()
+        self._consumer.close()
 
-    def __encode_result(self, chunk: Chunk) -> bytes:
-        return chunk.model_dump_json().encode("utf-8")
+    def _handle_msg(self, msg: bytes | None) -> None:
+        if msg is None:
+            return
+
+        document = Document.model_validate_json(msg)
+        logging.info(f"processing document {document.id}...")
+        content = self._bucket.get_object(document.id).decode("utf-8")
+
+        for chunk_text in self._splitter.split_text(content):
+            chunk = Chunk(document_id=document.id, text=chunk_text)
+
+            self._producer.produce(
+                topic=self._topic_chunks_queue,
+                value=chunk.model_dump_json().encode("utf-8"),
+            )
+
+        logging.info(f"finished processing document {document.id}")
