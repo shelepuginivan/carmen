@@ -9,7 +9,7 @@ class Config(BaseSettings):
     s3_access_key: str
     s3_secret_key: str
     kafka_uri: str
-    kafka_consumer_group: str
+    kafka_consumer_group: str = "extractor"
     kafka_topic_documents_queue: str
     kafka_topic_chunks_queue: str
 
