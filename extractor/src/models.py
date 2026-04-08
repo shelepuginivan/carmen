@@ -23,4 +23,5 @@ class Document(BaseModel):
 
 class Chunk(BaseModel):
     document_id: str
+    index: int
     text: str

@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class ChunkEnqueued(BaseModel):
     document_id: str
+    index: int
     text: str
 
 

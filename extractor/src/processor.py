@@ -55,8 +55,12 @@ class DocumentProcessor:
         logging.info(f"processing document {document.id}...")
         content = self._bucket.get_object(document.id).decode("utf-8")
 
-        for chunk_text in self._splitter.split_text(content):
-            chunk = Chunk(document_id=document.id, text=chunk_text)
+        for i, chunk_text in enumerate(self._splitter.split_text(content)):
+            chunk = Chunk(
+                document_id=document.id,
+                index=i + 1,
+                text=chunk_text,
+            )
 
             self._producer.produce(
                 topic=self._topic_chunks_queue,

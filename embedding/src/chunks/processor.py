@@ -48,6 +48,10 @@ class ChunkProcessor:
 
         chunk = ChunkEnqueued.model_validate_json(msg)
 
+        logging.info(
+            f"processing chunk #{chunk.index} of document {chunk.document_id}..."
+        )
+
         r = self._service.generate_embedding(chunk.text)
 
         result = ChunkReady(
@@ -61,3 +65,5 @@ class ChunkProcessor:
             topic=self._topic_chunks_ready,
             value=result.model_dump_json().encode("utf-8"),
         )
+
+        logging.info(f"finished processing chunk #{chunk.index}")
