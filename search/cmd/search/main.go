@@ -20,6 +20,7 @@ import (
 
 func main() {
 	cfg := config.Load()
+	gin.SetMode(gin.ReleaseMode)
 
 	s3 := infra.NewS3(cfg.S3)
 	db, err := infra.NewDBConnection(cfg.Postgres)
