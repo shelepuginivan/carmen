@@ -1,4 +1,17 @@
 services:
+  nginx-gateway:
+    image: nginx:alpine
+    container_name: carmen-nginx-gateway
+    restart: unless-stopped
+    ports:
+      - 5124:80    # search API
+      - 9001:9001  # RustFS console
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - search
+      - rustfs
+
   rustfs:
     image: rustfs/rustfs:latest
     container_name: carmen-rustfs
@@ -11,8 +24,6 @@ services:
       # Contains RUSTFS_ACCESS_KEY and RUSTFS_SECRET_KEY
       - env/.env.rustfs
     restart: unless-stopped
-    ports:
-      - 9001:9001
     volumes:
       - rustfs_data:/data/rustfs
 
@@ -186,7 +197,7 @@ services:
     build:
       context: ./search
     environment:
-      CARMEN_SEARCH_SERVER_ADDR: :5124
+      CARMEN_SEARCH_SERVER_ADDR: :8000
       CARMEN_SEARCH_POSTGRES_DB: carmen
       CARMEN_SEARCH_POSTGRES_HOST: postgres
       CARMEN_SEARCH_POSTGRES_PORT: 5432
@@ -208,8 +219,6 @@ services:
       #   - CARMEN_SEARCH_S3_ACCESS_KEY
       #   - CARMEN_SEARCH_S3_SECRET_KEY
       - env/.env.search
-    ports:
-      - 5124:5124
     restart: unless-stopped
     depends_on:
       kafka-broker:
