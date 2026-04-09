@@ -103,9 +103,9 @@ services:
       "
 
   embedding-chunks:
+    image: localhost/carmen_embedding:latest
     container_name: carmen-embedding-chunks
     build:
-      image: localhost/carmen-embedding:latest
       context: ./embedding
       args:
         # Should match environment variables below.
@@ -134,17 +134,8 @@ services:
         condition: service_started
 
   embedding-search:
+    image: localhost/carmen_embedding:latest
     container_name: carmen-embedding-search
-    build:
-      image: localhost/carmen-embedding:latest
-      context: ./embedding
-      args:
-        # Should match environment variables below.
-        SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
-        SENTENCE_TRANSFORMERS_MODELS: |
-          [
-            "sentence-transformers/static-similarity-mrl-multilingual-v1"
-          ]
     environment:
       CARMEN_EMBEDDING_WORKING_MODE: search
       CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
