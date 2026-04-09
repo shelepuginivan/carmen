@@ -9,17 +9,17 @@ storage.
 
 ## Environment variables
 
-| Variable                                       | Description                   | Required                | Default     | Example              |
-| ---------------------------------------------- | ----------------------------- | ----------------------- | ----------- | -------------------- |
-| `CARMEN_EXTRACTOR_S3_ENDPOINT`                 | Object storage endpoint       | Yes                     | -           | `http://rustfs:9000` |
-| `CARMEN_EXTRACTOR_S3_REGION`                   | Object storage region         | Yes                     | -           | `eu-central-1`       |
-| `CARMEN_EXTRACTOR_S3_BUCKET`                   | Object storage bucket         | Yes                     | -           | `carmen-documents`   |
-| `CARMEN_EXTRACTOR_S3_ACCESS_KEY`               | Object storage access key     | Yes                     | -           | `838296...4e56b0`    |
-| `CARMEN_EXTRACTOR_S3_SECRET_KEY`               | Object storage secret key     | Yes                     | -           | `4756d4...b42529`    |
-| `CARMEN_EXTRACTOR_KAFKA_URI`                   | URI of the Kafka broker       | Yes                     | -           | `kafka:9092`         |
-| `CARMEN_EXTRACTOR_KAFKA_CONSUMER_GROUP`        | Kafka consumer group          | For service replication | `extractor` | `my-consumer-group`  |
-| `CARMEN_EXTRACTOR_KAFKA_TOPIC_DOCUMENTS_QUEUE` | Documents queue topic (input) | Yes                     | -           | `documents.queue`    |
-| `CARMEN_EXTRACTOR_KAFKA_TOPIC_CHUNKS_QUEUE`    | Chunks queue topic (output)   | Yes                     | -           | `chunks.queue`       |
+| Variable                                       | Description                   | Required                | Default           | Example              |
+| ---------------------------------------------- | ----------------------------- | ----------------------- | ----------------- | -------------------- |
+| `CARMEN_EXTRACTOR_S3_ENDPOINT`                 | Object storage endpoint       | Yes                     | -                 | `http://rustfs:9000` |
+| `CARMEN_EXTRACTOR_S3_REGION`                   | Object storage region         | Yes                     | -                 | `eu-central-1`       |
+| `CARMEN_EXTRACTOR_S3_BUCKET`                   | Object storage bucket         | Yes                     | -                 | `carmen-documents`   |
+| `CARMEN_EXTRACTOR_S3_ACCESS_KEY`               | Object storage access key     | Yes                     | -                 | `838296...4e56b0`    |
+| `CARMEN_EXTRACTOR_S3_SECRET_KEY`               | Object storage secret key     | Yes                     | -                 | `4756d4...b42529`    |
+| `CARMEN_EXTRACTOR_KAFKA_URI`                   | URI of the Kafka broker       | Yes                     | -                 | `kafka:9092`         |
+| `CARMEN_EXTRACTOR_KAFKA_CONSUMER_GROUP`        | Kafka consumer group          | For service replication | `extractor`       | -                    |
+| `CARMEN_EXTRACTOR_KAFKA_TOPIC_DOCUMENTS_QUEUE` | Documents queue topic (input) | Yes                     | `documents.queue` | -                    |
+| `CARMEN_EXTRACTOR_KAFKA_TOPIC_CHUNKS_QUEUE`    | Chunks queue topic (output)   | Yes                     | `chunks.queue`    | -                    |
 
 
 ## Example Docker Compose setup

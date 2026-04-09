@@ -10,8 +10,8 @@ class Config(BaseSettings):
     s3_secret_key: str
     kafka_uri: str
     kafka_consumer_group: str = "extractor"
-    kafka_topic_documents_queue: str
-    kafka_topic_chunks_queue: str
+    kafka_topic_documents_queue: str = "documents.queue"
+    kafka_topic_chunks_queue: str = "chunks.queue"
 
     model_config = SettingsConfigDict(env_prefix="CARMEN_EXTRACTOR_")
 
