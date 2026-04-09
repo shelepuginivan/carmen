@@ -13,7 +13,7 @@ class EmbeddingResult:
 class EmbeddingService:
     def __init__(self, config: Config) -> None:
         self.__models: dict[str, SentenceTransformer] = {}
-        self.__langdector = str(config.langdetector_url)
+        self.__langdector = httpx.URL(str(config.langdetector_url)).join("/detect")
 
         for lang, model in config.model.items():
             self.__models[lang] = SentenceTransformer(

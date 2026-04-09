@@ -119,7 +119,7 @@ services:
       CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
       CARMEN_EMBEDDING_MODEL__ENGLISH: sentence-transformers/static-similarity-mrl-multilingual-v1
       CARMEN_EMBEDDING_MODEL__RUSSIAN: sentence-transformers/static-similarity-mrl-multilingual-v1
-      CARMEN_EMBEDDING_LANGDETECTOR_URL: http://langdetector:8000/detect
+      CARMEN_EMBEDDING_LANGDETECTOR_URL: http://langdetector:8000
       CARMEN_EMBEDDING_KAFKA_URI: kafka-broker:9092
       CARMEN_EMBEDDING_KAFKA_CONSUMER_GROUP: embedding-consumer-group
       CARMEN_EMBEDDING_KAFKA_TOPIC_CHUNKS_QUEUE: chunks.queue
@@ -150,7 +150,7 @@ services:
       CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
       CARMEN_EMBEDDING_MODEL__ENGLISH: sentence-transformers/static-similarity-mrl-multilingual-v1
       CARMEN_EMBEDDING_MODEL__RUSSIAN: sentence-transformers/static-similarity-mrl-multilingual-v1
-      CARMEN_EMBEDDING_LANGDETECTOR_URL: http://langdetector:8000/detect
+      CARMEN_EMBEDDING_LANGDETECTOR_URL: http://langdetector:8000
     restart: unless-stopped
     depends_on:
       langdetector:
