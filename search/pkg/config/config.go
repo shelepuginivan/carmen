@@ -60,7 +60,7 @@ type Config struct {
 func Load() *Config {
 	return &Config{
 		Server: &Server{
-			Addr: requiredEnvStr("SERVER_ADDR"),
+			Addr: defaultEnvStr("SERVER_ADDR", ":8000"),
 		},
 
 		Postgres: &Postgres{
@@ -81,9 +81,9 @@ func Load() *Config {
 
 		Kafka: &Kafka{
 			URI:                 requiredEnvStr("KAFKA_URI"),
-			ConsumerGroup:       requiredEnvStr("KAFKA_CONSUMER_GROUP"),
-			TopicDocumentsQueue: requiredEnvStr("KAFKA_TOPIC_DOCUMENTS_QUEUE"),
-			TopicChunksReady:    requiredEnvStr("KAFKA_TOPIC_CHUNKS_READY"),
+			ConsumerGroup:       defaultEnvStr("KAFKA_CONSUMER_GROUP", "search"),
+			TopicDocumentsQueue: defaultEnvStr("KAFKA_TOPIC_DOCUMENTS_QUEUE", "documents.queue"),
+			TopicChunksReady:    defaultEnvStr("KAFKA_TOPIC_CHUNKS_READY", "chunks.ready"),
 		},
 
 		Service: &Service{
