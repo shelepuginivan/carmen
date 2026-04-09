@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -19,7 +20,7 @@ type EmbeddingClient struct {
 	url    string
 }
 
-func NewEmbedding(url string) *EmbeddingClient {
+func NewEmbedding(u string) *EmbeddingClient {
 	transport := &http.Transport{
 		MaxIdleConns:        10,
 		MaxIdleConnsPerHost: 10,
@@ -31,7 +32,9 @@ func NewEmbedding(url string) *EmbeddingClient {
 		Timeout:   30 * time.Second,
 	}
 
-	return &EmbeddingClient{client, url}
+	u, _ = url.JoinPath(u, "embedding")
+
+	return &EmbeddingClient{client, u}
 }
 
 func (lds *EmbeddingClient) GenerateEmbedding(query string) (*EmbeddingResponse, error) {

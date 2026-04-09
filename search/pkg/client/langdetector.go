@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -13,7 +14,7 @@ type LangdetectorClient struct {
 	url    string
 }
 
-func NewLangdetector(url string) *LangdetectorClient {
+func NewLangdetector(u string) *LangdetectorClient {
 	transport := &http.Transport{
 		MaxIdleConns:        10,
 		MaxIdleConnsPerHost: 10,
@@ -25,7 +26,9 @@ func NewLangdetector(url string) *LangdetectorClient {
 		Timeout:   30 * time.Second,
 	}
 
-	return &LangdetectorClient{client, url}
+	u, _ = url.JoinPath(u, "embedding")
+
+	return &LangdetectorClient{client, u}
 }
 
 func (lds *LangdetectorClient) DetectLanguage(text string) (string, error) {
