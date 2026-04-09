@@ -199,8 +199,6 @@ services:
       CARMEN_SEARCH_KAFKA_CONSUMER_GROUP: search-consumer-group
       CARMEN_SEARCH_KAFKA_TOPIC_DOCUMENTS_QUEUE: documents.queue
       CARMEN_SEARCH_KAFKA_TOPIC_CHUNKS_READY: chunks.ready
-      CARMEN_SEARCH_KAFKA_TOPIC_SEARCH_REQUESTS: search.requests
-      CARMEN_SEARCH_KAFKA_TOPIC_SEARCH_RESPONSES: search.responses
       CARMEN_SEARCH_SERVICE_EMBEDDING_URL: http://embedding-search:8000
       CARMEN_SEARCH_SERVICE_LANGDETECTOR_URL: http://langdetector:8000
     env_file:
@@ -221,6 +219,8 @@ services:
       rustfs:
         condition: service_started
       langdetector:
+        condition: service_started
+      embedding-search:
         condition: service_started
 
 volumes:
