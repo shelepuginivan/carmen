@@ -26,7 +26,7 @@ func NewLangdetector(u string) *LangdetectorClient {
 		Timeout:   30 * time.Second,
 	}
 
-	u, _ = url.JoinPath(u, "embedding")
+	u, _ = url.JoinPath(u, "detect")
 
 	return &LangdetectorClient{client, u}
 }
