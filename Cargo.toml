@@ -6,3 +6,9 @@ members = ["carmen-indexer"]
 authors = ["Ivan Shelepugin <shelepuginivanm@gmail.com>"]
 version = "0.1.0"
 edition = "2024"
+
+[workspace.dependencies]
+anyhow = "1.0"
+fastembed = "5"
+sqlx = { version = "0.8", features = ["runtime-tokio", "postgres"] }
+tokio = { version = "1", features = ["full"] }
