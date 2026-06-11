@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg18-trixie
+    container_name: carmen-postgres
+    env_file:
+      - env/.env.postgres
+    restart: unless-stopped
+    volumes:
+      - pg_data:/var/lib/postgresql
+
+  indexer:
+    image: localhost/carmen-indexer:latest
+    container_name: carmen-indexer
+    env_file:
+      - env/.env.indexer
+    restart: unless-stopped
+
+
+volumes:
+  pg_data:
