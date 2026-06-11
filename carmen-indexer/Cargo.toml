@@ -6,6 +6,8 @@ edition.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+env_logger.workspace = true
 fastembed.workspace = true
+log.workspace = true
 sqlx.workspace = true
 tokio.workspace = true

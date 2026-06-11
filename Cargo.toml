@@ -9,6 +9,8 @@ edition = "2024"
 
 [workspace.dependencies]
 anyhow = "1.0"
+env_logger = "0.11"
 fastembed = "5"
+log = "0.4"
 sqlx = { version = "0.8", features = ["runtime-tokio", "postgres"] }
 tokio = { version = "1", features = ["full"] }

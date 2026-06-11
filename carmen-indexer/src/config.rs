@@ -6,7 +6,7 @@ pub struct Config {
 
 impl Config {
     pub fn load_env() -> anyhow::Result<Self> {
-        let postgres_url = env::var("POSTGRES_URL")?;
+        let postgres_url = env::var("CARMEN_INDEXER_POSTGRES_URL")?;
 
         Ok(Self { postgres_url })
     }
