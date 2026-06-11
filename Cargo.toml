@@ -1,0 +1,8 @@
+[workspace]
+resolver = "3"
+members = ["carmen-indexer"]
+
+[workspace.package]
+authors = ["Ivan Shelepugin <shelepuginivanm@gmail.com>"]
+version = "0.1.0"
+edition = "2024"
