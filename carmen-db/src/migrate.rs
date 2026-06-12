@@ -17,5 +17,7 @@ async fn main() -> anyhow::Result<()> {
     sqlx::migrate!("./migrations").run(&pool).await?;
     info!("Successfully applied migrations");
 
+    pool.close().await;
+
     Ok(())
 }
