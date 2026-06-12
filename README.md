@@ -6,31 +6,19 @@ semantic, and hybrid search.
 It is currently in the early stages of development. Pretty much everything is
 subject to change.
 
+You are probably looking for the PoC implementation, which is tagged as
+[`0.1.0-poc`](https://github.com/shelepuginivan/carmen/tree/v0.1.0-poc).
+
 
 ## Setup
 
-### Docker Compose
+### Building images
 
-Use the provided [`compose.yml`](./compose.yml) file or create your own setup.
-
-1.  Copy `env/.env.*.example` files to the respective `env/.env.*` files
-    (e.g. `env/.env.postgres.example` to `env/.env.postgres`) and adjust the
-    environment variables.
-
-2.  Start the containers:
-    ```sh
-    docker compose up -d
-    ```
-
-OpenAPI web interface is available at http://localhost:5124/swagger/index.html.
-RustFS web console can be accessed at http://localhost:9001/.
-
-See documentation of individual services for details on how to configure them:
-- [embedding](./embedding/README.md)
-- [extractor](./extractor/README.md)
-- [langdetector](./langdetector/README.md)
-- [search](./search/README.md)
-
+```sh
+podman build --target carmen-indexer -t localhost/carmen-indexer:latest .
+podman build --target carmen-migrations -t localhost/carmen-migrations:latest .
+podman build --target carmen-search -t localhost/carmen-search:latest .
+```
 
 ## License
 
