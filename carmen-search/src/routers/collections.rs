@@ -13,7 +13,20 @@ pub fn router() -> Router<PgPool> {
     Router::new().route("/tasks/retry-failed", patch(tasks_retry_failed))
 }
 
-async fn tasks_retry_failed(db: State<PgPool>) -> Result<impl IntoResponse> {
+/// Retry failed collection indexing tasks
+#[utoipa::path(
+    patch,
+    path = "/api/v1/collections/tasks/retry-failed",
+    responses(
+        (
+            status = 202,
+            description = "Tasks rescheduled successfully",
+            body = Vec<collections::CollectionTaskMetaOut>,
+        ),
+        (status = 500, description = "Internal server error occurred")
+    ),
+)]
+pub async fn tasks_retry_failed(db: State<PgPool>) -> Result<impl IntoResponse> {
     let retried_tasks = collections::retry_failed_tasks(&db).await?;
 
     Ok((StatusCode::ACCEPTED, Json(retried_tasks)))

@@ -1,10 +1,12 @@
 use carmen_db::collections::{CollectionTask, CollectionTaskMeta};
 use serde::Serialize;
 use sqlx::PgPool;
+use utoipa::ToSchema;
 
 use super::error::Result;
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
+#[schema(title = "CollectionTaskMeta")]
 pub struct CollectionTaskMetaOut {
     pub id: String,
     pub collection_id: String,

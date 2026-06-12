@@ -2,11 +2,18 @@ use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
+use utoipa::ToSchema;
 
 use crate::service;
 
 pub struct Error {
     pub status: StatusCode,
+    pub detail: String,
+}
+
+/// API error with detail message
+#[derive(Serialize, ToSchema)]
+pub struct ErrorWithDetail {
     pub detail: String,
 }
 
@@ -30,18 +37,10 @@ impl From<service::Error> for Error {
 
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
-        #[derive(Serialize)]
-        struct Detail {
-            detail: String,
-        }
-
-        (
-            self.status,
-            Json(Detail {
-                detail: self.detail,
-            }),
-        )
-            .into_response()
+        let detail = ErrorWithDetail {
+            detail: self.detail,
+        };
+        (self.status, Json(detail)).into_response()
     }
 }
 

@@ -14,5 +14,7 @@ serde_json.workspace = true
 sqlx.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
+utoipa = "5"
+utoipa-swagger-ui = { version = "9", features = ["axum"] }
 
 carmen-db.workspace = true
