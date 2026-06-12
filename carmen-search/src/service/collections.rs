@@ -2,6 +2,8 @@ use carmen_db::collections::{CollectionTask, CollectionTaskMeta};
 use serde::Serialize;
 use sqlx::PgPool;
 
+use super::error::Result;
+
 #[derive(Serialize)]
 pub struct CollectionTaskMetaOut {
     pub id: String,
@@ -17,8 +19,7 @@ impl From<CollectionTaskMeta> for CollectionTaskMetaOut {
     }
 }
 
-// FIXME: create proper error types
-pub async fn retry_failed_tasks(db: &PgPool) -> anyhow::Result<Vec<CollectionTaskMetaOut>> {
+pub async fn retry_failed_tasks(db: &PgPool) -> Result<Vec<CollectionTaskMetaOut>> {
     Ok(CollectionTask::retry_failed(db)
         .await?
         .into_iter()

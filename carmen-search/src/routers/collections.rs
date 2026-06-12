@@ -5,15 +5,16 @@ use axum::routing::patch;
 use axum::{Json, Router};
 use sqlx::PgPool;
 
-use crate::service;
+use crate::service::collections;
+
+use super::error::Result;
 
 pub fn router() -> Router<PgPool> {
     Router::new().route("/tasks/retry-failed", patch(tasks_retry_failed))
 }
 
-async fn tasks_retry_failed(db: State<PgPool>) -> impl IntoResponse {
-    // FIXME: handle errors properly
-    let retried_tasks = service::collections::retry_failed_tasks(&db).await.unwrap();
+async fn tasks_retry_failed(db: State<PgPool>) -> Result<impl IntoResponse> {
+    let retried_tasks = collections::retry_failed_tasks(&db).await?;
 
-    (StatusCode::ACCEPTED, Json(retried_tasks))
+    Ok((StatusCode::ACCEPTED, Json(retried_tasks)))
 }
