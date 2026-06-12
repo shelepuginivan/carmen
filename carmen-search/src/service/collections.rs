@@ -2,21 +2,22 @@ use carmen_db::collections::{CollectionTask, CollectionTaskMeta};
 use serde::Serialize;
 use sqlx::PgPool;
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 use super::error::Result;
 
 #[derive(Serialize, ToSchema)]
 #[schema(title = "CollectionTaskMeta")]
 pub struct CollectionTaskMetaOut {
-    pub id: String,
-    pub collection_id: String,
+    pub id: Uuid,
+    pub collection_id: Uuid,
 }
 
 impl From<CollectionTaskMeta> for CollectionTaskMetaOut {
     fn from(value: CollectionTaskMeta) -> Self {
         Self {
-            id: value.id.to_string(),
-            collection_id: value.collection_id.to_string(),
+            id: value.id,
+            collection_id: value.collection_id,
         }
     }
 }
