@@ -1,0 +1,32 @@
+FROM lukemathwalker/cargo-chef:latest-rust-1.94.1-trixie AS chef
+WORKDIR /build
+
+
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+
+FROM chef AS builder 
+COPY --from=planner /build/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+COPY . .
+RUN cargo build --release
+
+
+FROM debian:trixie-slim as carmen-indexer
+WORKDIR /app
+COPY --from=builder /build/target/release/carmen-indexer .
+ENTRYPOINT ["/app/carmen-indexer"]
+
+
+FROM debian:trixie-slim as carmen-migrations
+WORKDIR /app
+COPY --from=builder /build/target/release/carmen-migrate .
+ENTRYPOINT ["/app/carmen-migrate"]
+
+
+FROM debian:trixie-slim as carmen-search
+WORKDIR /app
+COPY --from=builder /build/target/release/carmen-search .
+ENTRYPOINT ["/app/carmen-search"]
