@@ -1,6 +1,9 @@
 [workspace]
 resolver = "3"
-members = ["carmen-indexer"]
+members = [
+    "carmen-indexer",
+    "carmen-migrations",
+]
 
 [workspace.package]
 authors = ["Ivan Shelepugin <shelepuginivanm@gmail.com>"]

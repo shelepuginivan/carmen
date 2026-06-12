@@ -8,12 +8,22 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql
 
+  migrations:
+    image: localhost/carmen-migrations:latest
+    container_name: carmen-migrations
+    env_file:
+      - env/.env.migrations
+    restart: unless-stopped
+
   indexer:
     image: localhost/carmen-indexer:latest
     container_name: carmen-indexer
     env_file:
       - env/.env.indexer
     restart: unless-stopped
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
 
 
 volumes:

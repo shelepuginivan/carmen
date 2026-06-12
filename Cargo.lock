@@ -307,6 +307,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "carmen-migrations"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "env_logger",
+ "log",
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
 name = "castaway"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
