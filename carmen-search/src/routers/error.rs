@@ -21,9 +21,9 @@ impl From<service::Error> for Error {
     fn from(err: service::Error) -> Self {
         let status = match err {
             service::Error::Conflict(_) => StatusCode::CONFLICT,
-            service::Error::NotFound(_) => StatusCode::NOT_FOUND,
+            service::Error::NotFound(_) | service::Error::EntityNotFound => StatusCode::NOT_FOUND,
 
-            service::Error::Sqlx(_) | service::Error::Anyhow(_) => {
+            service::Error::DatabaseError | service::Error::Anyhow(_) => {
                 StatusCode::INTERNAL_SERVER_ERROR
             }
         };

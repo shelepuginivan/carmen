@@ -33,6 +33,20 @@ pub struct CollectionTaskMeta {
 }
 
 impl CollectionTask {
+    pub async fn retry(
+        executor: impl PgExecutor<'_>,
+        id: Uuid,
+    ) -> sqlx::Result<CollectionTaskMeta> {
+        sqlx::query(
+            "UPDATE collection_tasks SET status = $1 WHERE id = $2 RETURNING id, collection_id",
+        )
+        .bind(CollectionTaskStatus::Pending)
+        .bind(id)
+        .fetch_one(executor)
+        .await
+        .and_then(|r| CollectionTaskMeta::from_row(&r))
+    }
+
     pub async fn retry_failed(
         executor: impl PgExecutor<'_>,
     ) -> sqlx::Result<Vec<CollectionTaskMeta>> {
