@@ -6,11 +6,23 @@ pub enum Error {
     #[error("{0}")]
     NotFound(String),
 
+    #[error("entity not found")]
+    EntityNotFound,
+
     #[error("an internal database error occurred")]
-    Sqlx(#[from] sqlx::Error),
+    DatabaseError,
 
     #[error("an internal server error occurred")]
     Anyhow(#[from] anyhow::Error),
+}
+
+impl From<sqlx::Error> for Error {
+    fn from(err: sqlx::Error) -> Self {
+        match err {
+            sqlx::Error::RowNotFound => Self::EntityNotFound,
+            _ => Self::DatabaseError,
+        }
+    }
 }
 
 pub type Result<T, E = Error> = ::std::result::Result<T, E>;
