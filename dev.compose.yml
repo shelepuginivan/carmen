@@ -25,6 +25,18 @@ services:
       migrations:
         condition: service_completed_successfully
 
+  search:
+    image: localhost/carmen-search:latest
+    container_name: carmen-search
+    env_file:
+      - env/.env.search
+    ports:
+      - 5124:5124
+    restart: unless-stopped
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
 
 volumes:
   pg_data:

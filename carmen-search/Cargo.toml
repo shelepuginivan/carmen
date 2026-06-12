@@ -1,0 +1,15 @@
+[package]
+name = "carmen-search"
+authors.workspace = true
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+axum.workspace = true
+env_logger.workspace = true
+log.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
