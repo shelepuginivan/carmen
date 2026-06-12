@@ -12,8 +12,8 @@ ENTRYPOINT ["/app/carmen-indexer"]
 
 FROM debian:trixie-slim as carmen-migrations
 WORKDIR /app
-COPY --from=builder /build/target/release/carmen-migrations .
-ENTRYPOINT ["/app/carmen-migrations"]
+COPY --from=builder /build/target/release/carmen-migrate .
+ENTRYPOINT ["/app/carmen-migrate"]
 
 
 FROM debian:trixie-slim as carmen-search

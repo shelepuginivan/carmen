@@ -1,5 +1,5 @@
 [package]
-name = "carmen-migrations"
+name = "carmen-db"
 authors.workspace = true
 version.workspace = true
 edition.workspace = true
@@ -10,3 +10,7 @@ env_logger.workspace = true
 log.workspace = true
 sqlx.workspace = true
 tokio.workspace = true
+
+[[bin]]
+name = "carmen-migrate"
+path = "src/migrate.rs"

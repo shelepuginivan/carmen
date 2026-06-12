@@ -1,8 +1,8 @@
 [workspace]
 resolver = "3"
 members = [
+    "carmen-db",
     "carmen-indexer",
-    "carmen-migrations",
     "carmen-search",
 ]
 
