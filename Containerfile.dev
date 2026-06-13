@@ -14,6 +14,12 @@ COPY . .
 RUN cargo build --release
 
 
+FROM debian:trixie-slim as carmen-extractor
+WORKDIR /app
+COPY --from=builder /build/target/release/carmen-extractor .
+ENTRYPOINT ["/app/carmen-extractor"]
+
+
 FROM debian:trixie-slim as carmen-indexer
 WORKDIR /app
 COPY --from=builder /build/target/release/carmen-indexer .

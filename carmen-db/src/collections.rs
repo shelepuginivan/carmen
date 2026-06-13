@@ -2,6 +2,8 @@ use sqlx::types::Uuid;
 use sqlx::types::chrono::{DateTime, Utc};
 use sqlx::{FromRow, PgExecutor};
 
+pub const COLLECTION_EXTRACTION_CHAN: &str = "carmen_collection_extraction";
+
 #[derive(sqlx::Type)]
 #[sqlx(type_name = "collection_extraction_status", rename_all = "lowercase")]
 pub enum CollectionExtractionStatus {
@@ -70,13 +72,23 @@ impl Collection {
     }
 
     pub async fn schedule_extraction(
-        executor: impl PgExecutor<'_>,
+        executor: impl PgExecutor<'_> + Copy,
         id: Uuid,
     ) -> sqlx::Result<CollectionExtraction> {
-        sqlx::query("INSERT INTO collection_extractions (collection_id) VALUES ($1) RETURNING *")
-            .bind(id)
-            .fetch_one(executor)
-            .await
-            .and_then(|r| CollectionExtraction::from_row(&r))
+        let extraction = sqlx::query(
+            "INSERT INTO collection_extractions (collection_id) VALUES ($1) RETURNING *",
+        )
+        .bind(id)
+        .fetch_one(executor)
+        .await
+        .and_then(|r| CollectionExtraction::from_row(&r))?;
+
+        sqlx::query("SELECT pg_notify($1, $2)")
+            .bind(COLLECTION_EXTRACTION_CHAN)
+            .bind(extraction.id.to_string())
+            .execute(executor)
+            .await?;
+
+        Ok(extraction)
     }
 }

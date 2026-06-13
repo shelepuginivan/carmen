@@ -15,6 +15,16 @@ services:
       - env/.env.migrations
     restart: unless-stopped
 
+  extractor:
+    image: localhost/carmen-extractor:latest
+    container_name: carmen-extractor
+    env_file:
+      - env/.env.extractor
+    restart: unless-stopped
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
   indexer:
     image: localhost/carmen-indexer:latest
     container_name: carmen-indexer

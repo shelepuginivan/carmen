@@ -370,6 +370,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "carmen-extractor"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "carmen-db",
+ "env_logger",
+ "log",
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
 name = "carmen-indexer"
 version = "0.1.0"
 dependencies = [

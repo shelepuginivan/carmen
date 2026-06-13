@@ -3,5 +3,6 @@
 !Cargo.lock
 !Cargo.toml
 !carmen-db
+!carmen-extractor
 !carmen-indexer
 !carmen-search
