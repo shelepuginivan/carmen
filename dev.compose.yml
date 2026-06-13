@@ -14,6 +14,8 @@ services:
     env_file:
       - env/.env.migrations
     restart: unless-stopped
+    depends_on:
+      - postgres
 
   extractor:
     image: localhost/carmen-extractor:latest
@@ -22,6 +24,8 @@ services:
       - env/.env.extractor
     restart: unless-stopped
     depends_on:
+      postgres:
+        condition: service_started
       migrations:
         condition: service_completed_successfully
 
@@ -32,6 +36,8 @@ services:
       - env/.env.indexer
     restart: unless-stopped
     depends_on:
+      postgres:
+        condition: service_started
       migrations:
         condition: service_completed_successfully
 
@@ -44,6 +50,8 @@ services:
       - 5124:5124
     restart: unless-stopped
     depends_on:
+      postgres:
+        condition: service_started
       migrations:
         condition: service_completed_successfully
 
