@@ -5,7 +5,7 @@ use sqlx::types::chrono::{DateTime, Utc};
 pub const COLLECTION_EXTRACTION_CHAN: &str = "carmen_collection_extraction";
 
 #[derive(sqlx::Type)]
-#[sqlx(type_name = "collection_extraction_status", rename_all = "lowercase")]
+#[sqlx(type_name = "collection_extraction_status", rename_all = "snake_case")]
 pub enum CollectionExtractionStatus {
     Pending,
     InProgress,
@@ -84,5 +84,38 @@ impl Collection {
             .await?;
 
         Ok(extraction)
+    }
+}
+
+impl CollectionExtraction {
+    pub async fn claim(pool: &PgPool, id: Uuid) -> sqlx::Result<Option<Self>> {
+        let mut tx = pool.begin().await?;
+
+        let extraction = sqlx::query_as::<_, Self>(
+            r#"
+            SELECT * FROM collection_extractions
+            WHERE id = $1 AND status = $2
+            FOR UPDATE SKIP LOCKED
+            "#,
+        )
+        .bind(id)
+        .bind(CollectionExtractionStatus::Pending)
+        .fetch_optional(&mut *tx)
+        .await?;
+
+        if let Some(claimed) = extraction {
+            sqlx::query("UPDATE collection_extractions SET status = $1 WHERE id = $2")
+                .bind(CollectionExtractionStatus::InProgress)
+                .bind(id)
+                .execute(&mut *tx)
+                .await?;
+
+            tx.commit().await?;
+
+            Ok(Some(claimed))
+        } else {
+            tx.rollback().await?;
+            Ok(None)
+        }
     }
 }
