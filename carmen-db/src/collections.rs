@@ -1,6 +1,6 @@
+use sqlx::PgPool;
 use sqlx::types::Uuid;
 use sqlx::types::chrono::{DateTime, Utc};
-use sqlx::{FromRow, PgExecutor};
 
 pub const COLLECTION_EXTRACTION_CHAN: &str = "carmen_collection_extraction";
 
@@ -32,61 +32,55 @@ pub struct CollectionExtraction {
 
 impl Collection {
     pub async fn insert(
-        executor: impl PgExecutor<'_>,
+        pool: &PgPool,
         name: &str,
         description: Option<&str>,
         source: Option<&str>,
     ) -> sqlx::Result<Self> {
-        sqlx::query(
+        sqlx::query_as(
             "INSERT INTO collections (name, description, source) VALUES ($1, $2, $3) RETURNING *",
         )
         .bind(name)
         .bind(description)
         .bind(source)
-        .fetch_one(executor)
+        .fetch_one(pool)
         .await
-        .and_then(|r| Collection::from_row(&r))
     }
 
-    pub async fn get(executor: impl PgExecutor<'_>, id: Uuid) -> sqlx::Result<Self> {
-        sqlx::query("SELECT * FROM collections WHERE id = $1")
+    pub async fn get(pool: &PgPool, id: Uuid) -> sqlx::Result<Self> {
+        sqlx::query_as("SELECT * FROM collections WHERE id = $1")
             .bind(id)
-            .fetch_one(executor)
+            .fetch_one(pool)
             .await
-            .and_then(|r| Collection::from_row(&r))
     }
 
     pub async fn get_extractions(
-        executor: impl PgExecutor<'_>,
+        pool: &PgPool,
         id: Uuid,
     ) -> sqlx::Result<Vec<CollectionExtraction>> {
-        sqlx::query(
+        sqlx::query_as(
             "SELECT * FROM collection_extractions WHERE collection_id = $1 ORDER BY created_at DESC",
         )
         .bind(id)
-        .fetch_all(executor)
-        .await?
-        .into_iter()
-        .map(|r| CollectionExtraction::from_row(&r))
-        .collect()
+        .fetch_all(pool)
+        .await
     }
 
     pub async fn schedule_extraction(
-        executor: impl PgExecutor<'_> + Copy,
+        pool: &PgPool,
         id: Uuid,
     ) -> sqlx::Result<CollectionExtraction> {
-        let extraction = sqlx::query(
+        let extraction: CollectionExtraction = sqlx::query_as(
             "INSERT INTO collection_extractions (collection_id) VALUES ($1) RETURNING *",
         )
         .bind(id)
-        .fetch_one(executor)
-        .await
-        .and_then(|r| CollectionExtraction::from_row(&r))?;
+        .fetch_one(pool)
+        .await?;
 
         sqlx::query("SELECT pg_notify($1, $2)")
             .bind(COLLECTION_EXTRACTION_CHAN)
             .bind(extraction.id.to_string())
-            .execute(executor)
+            .execute(pool)
             .await?;
 
         Ok(extraction)
