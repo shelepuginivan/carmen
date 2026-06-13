@@ -19,7 +19,8 @@ pub struct Collection {
     pub id: Uuid,
     pub name: String,
     pub description: Option<String>,
-    pub source: Option<String>,
+    pub url: Option<String>,
+    pub source: String,
 }
 
 #[derive(sqlx::FromRow)]
@@ -35,13 +36,15 @@ impl Collection {
         pool: &PgPool,
         name: &str,
         description: Option<&str>,
+        url: Option<&str>,
         source: Option<&str>,
     ) -> sqlx::Result<Self> {
         sqlx::query_as(
-            "INSERT INTO collections (name, description, source) VALUES ($1, $2, $3) RETURNING *",
+            "INSERT INTO collections (name, description, url, source) VALUES ($1, $2, $3, $4) RETURNING *",
         )
         .bind(name)
         .bind(description)
+        .bind(url)
         .bind(source)
         .fetch_one(pool)
         .await

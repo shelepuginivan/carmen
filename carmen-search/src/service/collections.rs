@@ -12,6 +12,7 @@ use super::error::Result;
 pub struct CollectionIn {
     name: String,
     description: Option<String>,
+    url: Option<String>,
     source: Option<String>,
 }
 
@@ -21,7 +22,8 @@ pub struct CollectionOut {
     id: Uuid,
     name: String,
     description: Option<String>,
-    source: Option<String>,
+    url: Option<String>,
+    source: String,
 }
 
 impl From<Collection> for CollectionOut {
@@ -30,6 +32,7 @@ impl From<Collection> for CollectionOut {
             id: value.id,
             name: value.name,
             description: value.description,
+            url: value.url,
             source: value.source,
         }
     }
@@ -81,6 +84,7 @@ pub async fn create_collection(db: &PgPool, collection_in: CollectionIn) -> Resu
         db,
         collection_in.name.as_ref(),
         collection_in.description.as_deref(),
+        collection_in.url.as_deref(),
         collection_in.source.as_deref(),
     )
     .await?

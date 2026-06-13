@@ -10,7 +10,8 @@ CREATE TABLE collections (
     id             uuid PRIMARY KEY DEFAULT uuidv4(),
     name           varchar(32) UNIQUE NOT NULL,
     description    varchar(256),
-    source         varchar(128)
+    url            varchar(128),
+    source         varchar(32)
 );
 
 CREATE TABLE collection_extractions (
