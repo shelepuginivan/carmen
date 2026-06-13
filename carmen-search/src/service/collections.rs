@@ -1,4 +1,5 @@
-use carmen_db::collections::{CollectionTask, CollectionTaskMeta};
+use carmen_db::collections::{Collection, CollectionExtraction, CollectionExtractionStatus};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use utoipa::ToSchema;
@@ -6,39 +7,98 @@ use uuid::Uuid;
 
 use super::error::Result;
 
-#[derive(Serialize, ToSchema)]
-#[schema(title = "CollectionTaskMeta")]
-pub struct CollectionTaskMetaOut {
-    pub id: Uuid,
-    pub collection_id: Uuid,
+#[derive(Deserialize, ToSchema)]
+#[schema(title = "CollectionIn")]
+pub struct CollectionIn {
+    name: String,
+    description: Option<String>,
+    source: Option<String>,
 }
 
-impl From<CollectionTaskMeta> for CollectionTaskMetaOut {
-    fn from(value: CollectionTaskMeta) -> Self {
+#[derive(Serialize, ToSchema)]
+#[schema(title = "Collection")]
+pub struct CollectionOut {
+    id: Uuid,
+    name: String,
+    description: Option<String>,
+    source: Option<String>,
+}
+
+impl From<Collection> for CollectionOut {
+    fn from(value: Collection) -> Self {
         Self {
             id: value.id,
-            collection_id: value.collection_id,
+            name: value.name,
+            description: value.description,
+            source: value.source,
         }
     }
 }
 
-#[derive(Deserialize, ToSchema)]
-#[schema(title = "CollectionTaskRetry")]
-pub struct CollectionTaskRetryIn {
-    pub id: Uuid,
+#[derive(Serialize, ToSchema)]
+pub enum CollectionBuildStatusOut {
+    Pending,
+    InProgress,
+    Completed,
+    Failed,
+    Cancelled,
 }
 
-pub async fn retry(
-    db: &PgPool,
-    task_retry: CollectionTaskRetryIn,
-) -> Result<CollectionTaskMetaOut> {
-    Ok(CollectionTask::retry(db, task_retry.id).await?.into())
+impl From<CollectionExtractionStatus> for CollectionBuildStatusOut {
+    fn from(value: CollectionExtractionStatus) -> Self {
+        match value {
+            CollectionExtractionStatus::Pending => Self::Pending,
+            CollectionExtractionStatus::InProgress => Self::InProgress,
+            CollectionExtractionStatus::Completed => Self::Completed,
+            CollectionExtractionStatus::Failed => Self::Failed,
+            CollectionExtractionStatus::Cancelled => Self::Cancelled,
+        }
+    }
 }
 
-pub async fn retry_failed_tasks(db: &PgPool) -> Result<Vec<CollectionTaskMetaOut>> {
-    Ok(CollectionTask::retry_failed(db)
+#[derive(Serialize, ToSchema)]
+#[schema(title = "CollectionExtraction")]
+pub struct CollectionExtractionOut {
+    id: Uuid,
+    collection_id: Uuid,
+    status: CollectionBuildStatusOut,
+    created_at: DateTime<Utc>,
+}
+
+impl From<CollectionExtraction> for CollectionExtractionOut {
+    fn from(value: CollectionExtraction) -> Self {
+        Self {
+            id: value.id,
+            collection_id: value.collection_id,
+            status: value.status.into(),
+            created_at: value.created_at,
+        }
+    }
+}
+
+pub async fn create_collection(db: &PgPool, collection_in: CollectionIn) -> Result<CollectionOut> {
+    Ok(Collection::insert(
+        db,
+        collection_in.name.as_ref(),
+        collection_in.description.as_deref(),
+        collection_in.source.as_deref(),
+    )
+    .await?
+    .into())
+}
+
+pub async fn get_collection(db: &PgPool, id: Uuid) -> Result<CollectionOut> {
+    Ok(Collection::get(db, id).await?.into())
+}
+
+pub async fn get_extractions(db: &PgPool, id: Uuid) -> Result<Vec<CollectionExtractionOut>> {
+    Ok(Collection::get_extractions(db, id)
         .await?
         .into_iter()
-        .map(CollectionTaskMetaOut::from)
+        .map(CollectionExtractionOut::from)
         .collect())
+}
+
+pub async fn schedule_extraction(db: &PgPool, id: Uuid) -> Result<CollectionExtractionOut> {
+    Ok(Collection::schedule_extraction(db, id).await?.into())
 }

@@ -7,6 +7,7 @@ edition.workspace = true
 [dependencies]
 anyhow.workspace = true
 axum.workspace = true
+chrono.workspace = true
 env_logger.workspace = true
 log.workspace = true
 serde.workspace = true
@@ -14,7 +15,7 @@ serde_json.workspace = true
 sqlx.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
-utoipa = { version = "5", features = ["uuid"] }
+utoipa = { version = "5", features = ["chrono", "uuid"] }
 utoipa-swagger-ui = { version = "9", features = ["axum"] }
 uuid.workspace = true
 

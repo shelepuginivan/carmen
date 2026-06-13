@@ -2,10 +2,16 @@ use super::collections;
 
 #[derive(utoipa::OpenApi)]
 #[openapi(
-    paths(collections::tasks_retry, collections::tasks_retry_failed,),
+    paths(
+        collections::create,
+        collections::get_by_id,
+        collections::get_extractions,
+        collections::schedule_extraction,
+    ),
     components(schemas(
-        crate::service::collections::CollectionTaskRetryIn,
-        crate::service::collections::CollectionTaskMetaOut,
+        crate::service::collections::CollectionOut,
+        crate::service::collections::CollectionIn,
+        crate::service::collections::CollectionExtractionOut,
         super::error::ErrorWithDetail,
     ))
 )]
