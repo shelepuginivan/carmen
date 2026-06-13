@@ -1,12 +1,14 @@
-mod config;
-
-use carmen_db::collections::{COLLECTION_EXTRACTION_CHAN, Collection, CollectionExtraction};
+use carmen_db::collections::COLLECTION_EXTRACTION_CHAN;
 use log::{error, info};
 use sqlx::postgres::PgListener;
 use sqlx::{PgPool, types::Uuid};
 use tokio::signal::unix::{SignalKind, signal};
 
+mod config;
+mod task;
+
 use crate::config::Config;
+use crate::task::Task;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -37,11 +39,12 @@ async fn main() -> anyhow::Result<()> {
 
             notification = queue_listener.recv() => match notification {
                 Ok(notification) => {
-                    let payload = notification.payload().to_owned();
+                    let task_id: Uuid = notification.payload().parse()?;
                     let pool = pool.clone();
+                    let (task, _cancel_tx) = Task::new(pool, task_id);
 
                     tokio::spawn(async move {
-                        let _ = exec_task(&pool, &payload).await;
+                        let _ = task.start().await;
                     });
                 }
                 Err(err) => error!("{err}"),
@@ -50,24 +53,6 @@ async fn main() -> anyhow::Result<()> {
     }
 
     pool.clone().close().await;
-
-    Ok(())
-}
-
-async fn exec_task(pool: &PgPool, payload: &str) -> anyhow::Result<()> {
-    let task_id: Uuid = payload.parse()?;
-    info!("Received extraction task {task_id}");
-
-    let task = match CollectionExtraction::claim(pool, task_id).await? {
-        Some(claimed) => claimed,
-        None => {
-            info!("Task {task_id} is claimed by another extractor instance");
-            return Ok(());
-        }
-    };
-
-    let collection = Collection::get(pool, task.collection_id).await?;
-    info!("Starting extraction of collection {}", collection.id);
 
     Ok(())
 }

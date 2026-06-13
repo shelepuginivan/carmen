@@ -11,5 +11,6 @@ env_logger.workspace = true
 log.workspace = true
 sqlx.workspace = true
 tokio.workspace = true
+uuid.workspace = true
 
 carmen-db.workspace = true
