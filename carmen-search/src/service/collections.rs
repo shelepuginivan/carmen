@@ -2,6 +2,7 @@ use carmen_db::collections::{Collection, CollectionExtraction, CollectionExtract
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
+use url::Url;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -12,7 +13,7 @@ use super::error::Result;
 pub struct CollectionIn {
     name: String,
     description: Option<String>,
-    url: Option<String>,
+    url: Option<Url>,
     source: Option<String>,
 }
 
@@ -84,7 +85,7 @@ pub async fn create_collection(db: &PgPool, collection_in: CollectionIn) -> Resu
         db,
         collection_in.name.as_ref(),
         collection_in.description.as_deref(),
-        collection_in.url.as_deref(),
+        collection_in.url.as_ref().map(|u| u.as_str()),
         collection_in.source.as_deref(),
     )
     .await?
