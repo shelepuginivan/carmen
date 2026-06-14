@@ -1,8 +1,12 @@
 use carmen_db::collections::{Collection, CollectionExtraction};
 use log::{error, info, warn};
+use s3::Bucket;
 use sqlx::PgPool;
 use tempfile::TempDir;
-use tokio::sync::oneshot::{self, Receiver, Sender};
+use tokio::{
+    fs::File,
+    sync::oneshot::{self, Receiver, Sender},
+};
 use uuid::Uuid;
 
 use crate::extractors::{EXTRACTORS, Extractor};
@@ -10,15 +14,17 @@ use crate::extractors::{EXTRACTORS, Extractor};
 pub struct Task {
     id: Uuid,
     pool: PgPool,
+    bucket: Box<Bucket>,
     cancel_rx: Receiver<()>,
 }
 
 impl Task {
-    pub fn new(pool: PgPool, id: Uuid) -> (Self, Sender<()>) {
+    pub fn new(id: Uuid, pool: PgPool, bucket: Box<Bucket>) -> (Self, Sender<()>) {
         let (cancel_tx, cancel_rx) = oneshot::channel();
         let task = Self {
             id,
             pool,
+            bucket,
             cancel_rx,
         };
 
@@ -61,7 +67,25 @@ impl Task {
         };
 
         for doc in extracted {
-            println!("{} :: {}", doc.file_path.display(), doc.canonical_path)
+            let mut file = match File::open(doc.file_path).await {
+                Ok(f) => f,
+                Err(err) => {
+                    error!("Failed to upload file: {err}");
+                    continue;
+                }
+            };
+
+            let _status = match self
+                .bucket
+                .put_object_stream(&mut file, doc.canonical_path)
+                .await
+            {
+                Ok(s) => s,
+                Err(err) => {
+                    error!("Failed to upload file: {err}");
+                    continue;
+                }
+            };
         }
 
         Ok(())

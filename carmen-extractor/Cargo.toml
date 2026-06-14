@@ -12,6 +12,7 @@ enum_dispatch = "0.3"
 git2 = { version = "0.21.0", features = ["https"] }
 log.workspace = true
 sqlx.workspace = true
+rust-s3.workspace = true
 tempfile = "3"
 tokio.workspace = true
 uuid.workspace = true

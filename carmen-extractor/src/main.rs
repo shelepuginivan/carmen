@@ -1,5 +1,7 @@
 use carmen_db::collections::COLLECTION_EXTRACTION_CHAN;
 use log::{error, info};
+use s3::creds::Credentials;
+use s3::{Bucket, Region};
 use sqlx::postgres::PgListener;
 use sqlx::{PgPool, types::Uuid};
 use tokio::signal::unix::{SignalKind, signal};
@@ -26,6 +28,21 @@ async fn main() -> anyhow::Result<()> {
     queue_listener.listen(COLLECTION_EXTRACTION_CHAN).await?;
     info!("listening to PG channel '{COLLECTION_EXTRACTION_CHAN}'");
 
+    let region = Region::Custom {
+        region: config.s3_region,
+        endpoint: config.s3_endpoint,
+    };
+
+    let credentials = Credentials::new(
+        Some(&config.s3_access_key),
+        Some(&config.s3_secret_key),
+        None,
+        None,
+        None,
+    )?;
+
+    let bucket = Bucket::new(&config.s3_bucket, region, credentials)?.with_path_style();
+
     loop {
         tokio::select! {
             _ = signal_terminate.recv() => {
@@ -42,7 +59,8 @@ async fn main() -> anyhow::Result<()> {
                 Ok(notification) => {
                     let task_id: Uuid = notification.payload().parse()?;
                     let pool = pool.clone();
-                    let (task, _cancel_tx) = Task::new(pool, task_id);
+                    let bucket = bucket.clone();
+                    let (task, _cancel_tx) = Task::new(task_id, pool, bucket);
 
                     tokio::spawn(async move {
                         let _ = task.start().await;
