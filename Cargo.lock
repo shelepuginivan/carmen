@@ -380,6 +380,7 @@ dependencies = [
  "git2",
  "log",
  "sqlx",
+ "tempfile",
  "tokio",
  "uuid",
 ]
