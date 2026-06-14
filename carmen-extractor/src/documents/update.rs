@@ -18,27 +18,27 @@ impl DocumentUpdater {
         Self { pool, bucket }
     }
 
-    pub async fn update(&self, collection_id: Uuid, diff: DocumentDiff) -> anyhow::Result<()> {
-        for id in diff.removed {
-            self.remove_document(id).await?;
+    pub async fn update(&self, collection_id: Uuid, diff: &DocumentDiff) -> anyhow::Result<()> {
+        for id in diff.removed.iter() {
+            self.remove_document(*id).await?;
         }
 
-        for doc in diff.added {
-            self.add_document(collection_id, doc).await?;
+        for doc in diff.added.iter() {
+            self.add_document(collection_id, &doc).await?;
         }
 
-        for doc in diff.updated {
-            self.update_document(doc).await?;
+        for doc in diff.updated.iter() {
+            self.update_document(&doc).await?;
         }
 
         Ok(())
     }
 
-    async fn add_document(&self, collection_id: Uuid, doc: AddedDocument) -> anyhow::Result<()> {
+    async fn add_document(&self, collection_id: Uuid, doc: &AddedDocument) -> anyhow::Result<()> {
         let new_document =
             Document::insert(&self.pool, collection_id, &doc.canonical_path, doc.checksum).await?;
 
-        let mut file = File::open(doc.file_path).await?;
+        let mut file = File::open(&doc.file_path).await?;
 
         self.bucket
             .put_object_stream(
@@ -50,10 +50,10 @@ impl DocumentUpdater {
         Ok(())
     }
 
-    async fn update_document(&self, doc: UpdatedDocument) -> anyhow::Result<()> {
+    async fn update_document(&self, doc: &UpdatedDocument) -> anyhow::Result<()> {
         Document::update_checksum(&self.pool, doc.id, doc.checksum).await?;
 
-        let mut file = File::open(doc.file_path).await?;
+        let mut file = File::open(&doc.file_path).await?;
 
         self.bucket
             .put_object_stream(

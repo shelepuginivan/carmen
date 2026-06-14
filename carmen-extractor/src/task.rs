@@ -1,14 +1,13 @@
 use carmen_db::collections::{Collection, CollectionExtraction};
+use carmen_db::documents::Document;
 use log::{error, info, warn};
 use s3::Bucket;
 use sqlx::PgPool;
 use tempfile::TempDir;
-use tokio::{
-    fs::File,
-    sync::oneshot::{self, Receiver, Sender},
-};
+use tokio::sync::oneshot::{self, Receiver, Sender};
 use uuid::Uuid;
 
+use crate::documents::{DocumentDiff, DocumentUpdater};
 use crate::extractors::{EXTRACTORS, Extractor};
 
 pub struct Task {
@@ -31,7 +30,7 @@ impl Task {
         (task, cancel_tx)
     }
 
-    pub async fn start(&self) -> anyhow::Result<()> {
+    pub async fn start(self) -> anyhow::Result<()> {
         let extraction = match CollectionExtraction::claim(&self.pool, self.id).await? {
             Some(claimed) => claimed,
             None => return Ok(()),
@@ -66,27 +65,21 @@ impl Task {
             }
         };
 
-        for doc in extracted {
-            let mut file = match File::open(doc.file_path).await {
-                Ok(f) => f,
-                Err(err) => {
-                    error!("Failed to upload file: {err}");
-                    continue;
-                }
-            };
+        let documents = Document::get_for_collection(&self.pool, collection.id).await?;
 
-            let _status = match self
-                .bucket
-                .put_object_stream(&mut file, doc.canonical_path)
-                .await
-            {
-                Ok(s) => s,
-                Err(err) => {
-                    error!("Failed to upload file: {err}");
-                    continue;
-                }
-            };
-        }
+        let diff = DocumentDiff::compute(documents, extracted).await?;
+
+        DocumentUpdater::new(self.pool, self.bucket)
+            .update(collection.id, &diff)
+            .await?;
+
+        info!(
+            "Collection '{}': added {}, updated {}, removed {} documents",
+            collection.name,
+            diff.added.len(),
+            diff.updated.len(),
+            diff.removed.len()
+        );
 
         Ok(())
     }

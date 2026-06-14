@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use carmen_db::documents::Document;
 use sha2::{Digest, Sha256};
 use tokio::fs::File;
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncReadExt, BufReader};
 use uuid::Uuid;
 
 use crate::extractors::ExtractedDocument;
@@ -81,8 +81,20 @@ impl DocumentDiff {
 }
 
 async fn file_checksum(path: &Path) -> anyhow::Result<[u8; 32]> {
-    let mut file = File::open(path).await?;
-    let mut buffer = Vec::new();
-    file.read(&mut buffer).await?;
-    Ok(Sha256::digest(buffer).into())
+    let file = File::open(path).await?;
+    let mut reader = BufReader::new(file);
+    let mut hasher = Sha256::new();
+    let mut buffer = [0; 4096];
+
+    loop {
+        let bytes_read = reader.read(&mut buffer).await?;
+
+        if bytes_read == 0 {
+            break;
+        }
+
+        hasher.update(&buffer[..bytes_read]);
+    }
+
+    Ok(hasher.finalize().into())
 }
