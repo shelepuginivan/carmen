@@ -18,6 +18,16 @@ pub struct CollectionIn {
     source: Option<String>,
 }
 
+#[derive(Deserialize, ToSchema)]
+#[schema(title = "CollectionUpdate")]
+pub struct CollectionUpdate {
+    id: Uuid,
+    name: Option<String>,
+    description: Option<String>,
+    url: Option<Url>,
+    source: Option<String>,
+}
+
 #[derive(Serialize, ToSchema)]
 #[schema(title = "Collection")]
 pub struct CollectionOut {
@@ -93,6 +103,14 @@ pub async fn create_collection(db: &PgPool, collection_in: CollectionIn) -> Resu
     .into())
 }
 
+pub async fn get_all_collections(db: &PgPool) -> Result<Vec<CollectionOut>> {
+    Ok(Collection::get_all(db)
+        .await?
+        .into_iter()
+        .map(CollectionOut::from)
+        .collect())
+}
+
 pub async fn get_collection(db: &PgPool, id: Uuid) -> Result<CollectionOut> {
     Ok(Collection::get(db, id).await?.into())
 }
@@ -107,4 +125,22 @@ pub async fn get_extractions(db: &PgPool, id: Uuid) -> Result<Vec<CollectionExtr
 
 pub async fn schedule_extraction(db: &PgPool, id: Uuid) -> Result<CollectionExtractionOut> {
     Ok(Collection::schedule_extraction(db, id).await?.into())
+}
+
+pub async fn update_collection(db: &PgPool, update: CollectionUpdate) -> Result<CollectionOut> {
+    Ok(Collection::update(
+        db,
+        update.id,
+        update.name.as_deref(),
+        update.description.as_deref(),
+        update.url.as_ref().map(|u| u.as_str()),
+        update.source.as_deref(),
+    )
+    .await?
+    .into())
+}
+
+pub async fn delete_collection(db: &PgPool, id: Uuid) -> Result<CollectionOut> {
+    // TODO: delete documents from s3
+    Ok(Collection::delete(db, id).await?.into())
 }
