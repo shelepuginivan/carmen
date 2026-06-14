@@ -27,3 +27,10 @@ CREATE TABLE documents (
     canonical_path   varchar(256) NOT NULL,
     checksum         bytea NOT NULL
 );
+
+CREATE TABLE document_indexing (
+    id               uuid PRIMARY KEY DEFAULT uuidv4(),
+    document_id      uuid REFERENCES documents(id) ON DELETE CASCADE,
+    status           status NOT NULL DEFAULT 'pending',
+    created_at       timestamptz NOT NULL DEFAULT timezone('utc', now())
+);
