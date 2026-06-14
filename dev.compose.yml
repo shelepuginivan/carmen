@@ -8,6 +8,17 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql
 
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: carmen-rustfs
+    ports:
+      - 9001:9001  # Web console
+    env_file:
+      - env/.env.rustfs
+    restart: unless-stopped
+    volumes:
+      - rustfs_data:/data/rustfs
+
   migrations:
     image: localhost/carmen-migrations:latest
     container_name: carmen-migrations
@@ -26,6 +37,8 @@ services:
     depends_on:
       postgres:
         condition: service_started
+      rustfs:
+        condition: service_started
       migrations:
         condition: service_completed_successfully
 
@@ -37,6 +50,8 @@ services:
     restart: unless-stopped
     depends_on:
       postgres:
+        condition: service_started
+      rustfs:
         condition: service_started
       migrations:
         condition: service_completed_successfully
@@ -52,9 +67,12 @@ services:
     depends_on:
       postgres:
         condition: service_started
+      rustfs:
+        condition: service_started
       migrations:
         condition: service_completed_successfully
 
 
 volumes:
   pg_data:
+  rustfs_data:
