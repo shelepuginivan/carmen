@@ -5,6 +5,7 @@ use s3::Region;
 use s3::creds::Credentials;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
+use tokio::signal::unix::{SignalKind, signal};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -54,5 +55,28 @@ async fn main() -> anyhow::Result<()> {
     let listener = TcpListener::bind(&config.http_addr).await?;
     info!("Listening {}...", config.http_addr);
 
-    Ok(axum::serve(listener, app).await?)
+    Ok(axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await?)
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        signal(SignalKind::interrupt())
+            .expect("failed to install SIGINT handler")
+            .recv()
+            .await
+    };
+
+    let terminate = async {
+        signal(SignalKind::terminate())
+            .expect("failed to install SIGTERM handler")
+            .recv()
+            .await;
+    };
+
+    tokio::select! {
+        _ = ctrl_c => info!("Received SIGINT, shutting down..."),
+        _ = terminate => info!("Received SIGTERM, shutting down..."),
+    }
 }
