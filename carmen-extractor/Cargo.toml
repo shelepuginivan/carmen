@@ -8,6 +8,8 @@ license.workspace = true
 [dependencies]
 anyhow.workspace = true
 env_logger.workspace = true
+enum_dispatch = "0.3"
+git2 = { version = "0.21.0", features = ["https"] }
 log.workspace = true
 sqlx.workspace = true
 tokio.workspace = true
