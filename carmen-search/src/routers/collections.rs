@@ -3,14 +3,14 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{delete, get, patch, post};
 use axum::{Json, Router};
-use sqlx::PgPool;
 use uuid::Uuid;
 
+use crate::app::AppState;
 use crate::service::collections::{self};
 
 use super::error::{ErrorWithDetail, Result};
 
-pub fn router() -> Router<PgPool> {
+pub fn router() -> Router<AppState> {
     Router::new()
         .route("/", post(create))
         .route("/", get(get_all))
@@ -40,10 +40,10 @@ pub fn router() -> Router<PgPool> {
     ),
 )]
 pub async fn create(
-    db: State<PgPool>,
+    state: State<AppState>,
     Json(collection_in): Json<collections::CollectionIn>,
 ) -> Result<impl IntoResponse> {
-    let collection = collections::create_collection(&db, collection_in).await?;
+    let collection = collections::create_collection(&state.db, collection_in).await?;
     Ok((StatusCode::CREATED, Json(collection)))
 }
 
@@ -64,8 +64,8 @@ pub async fn create(
         )
     ),
 )]
-pub async fn get_all(db: State<PgPool>) -> Result<impl IntoResponse> {
-    let collections = collections::get_all_collections(&db).await?;
+pub async fn get_all(state: State<AppState>) -> Result<impl IntoResponse> {
+    let collections = collections::get_all_collections(&state.db).await?;
     Ok((StatusCode::OK, Json(collections)))
 }
 
@@ -94,8 +94,8 @@ pub async fn get_all(db: State<PgPool>) -> Result<impl IntoResponse> {
         )
     ),
 )]
-pub async fn get_by_id(db: State<PgPool>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
-    let collections = collections::get_collection(&db, id).await?;
+pub async fn get_by_id(state: State<AppState>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
+    let collections = collections::get_collection(&state.db, id).await?;
     Ok((StatusCode::OK, Json(collections)))
 }
 
@@ -123,10 +123,10 @@ pub async fn get_by_id(db: State<PgPool>, Path(id): Path<Uuid>) -> Result<impl I
     ),
 )]
 pub async fn update(
-    db: State<PgPool>,
+    state: State<AppState>,
     Json(collection_update): Json<collections::CollectionUpdate>,
 ) -> Result<impl IntoResponse> {
-    let collection = collections::update_collection(&db, collection_update).await?;
+    let collection = collections::update_collection(&state.db, collection_update).await?;
     Ok((StatusCode::OK, Json(collection)))
 }
 
@@ -156,10 +156,10 @@ pub async fn update(
     ),
 )]
 pub async fn delete_collection(
-    db: State<PgPool>,
+    state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
-    let extraction = collections::delete_collection(&db, id).await?;
+    let extraction = collections::delete_collection(&state.db, id).await?;
     Ok((StatusCode::OK, Json(extraction)))
 }
 
@@ -188,8 +188,11 @@ pub async fn delete_collection(
         )
     ),
 )]
-pub async fn get_extractions(db: State<PgPool>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
-    let extractions = collections::get_extractions(&db, id).await?;
+pub async fn get_extractions(
+    state: State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse> {
+    let extractions = collections::get_extractions(&state.db, id).await?;
     Ok((StatusCode::OK, Json(extractions)))
 }
 
@@ -214,9 +217,9 @@ pub async fn get_extractions(db: State<PgPool>, Path(id): Path<Uuid>) -> Result<
     ),
 )]
 pub async fn schedule_extraction(
-    db: State<PgPool>,
+    state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
-    let extraction = collections::schedule_extraction(&db, id).await?;
+    let extraction = collections::schedule_extraction(&state.db, id).await?;
     Ok((StatusCode::ACCEPTED, Json(extraction)))
 }

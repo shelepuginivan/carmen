@@ -1,14 +1,19 @@
 use axum::Router;
 use log::info;
+use s3::Bucket;
+use s3::Region;
+use s3::creds::Credentials;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
+mod app;
 mod config;
 mod routers;
 mod service;
 
+use crate::app::AppState;
 use crate::config::Config;
 use crate::routers::apidoc;
 use crate::routers::collections;
@@ -21,9 +26,25 @@ async fn main() -> anyhow::Result<()> {
     let pool = PgPool::connect(&config.postgres_url).await?;
     info!("Database connection established");
 
+    let region = Region::Custom {
+        region: config.s3_region,
+        endpoint: config.s3_endpoint,
+    };
+
+    let credentials = Credentials::new(
+        Some(&config.s3_access_key),
+        Some(&config.s3_secret_key),
+        None,
+        None,
+        None,
+    )?;
+
+    let bucket = Bucket::new(&config.s3_bucket, region, credentials)?.with_path_style();
+    let state = AppState::new(pool, bucket);
+
     let mut app = Router::new()
         .nest("/api/v1/collections", collections::router())
-        .with_state(pool); // TODO: wrap in AppState struct
+        .with_state(state);
 
     if let Some(docs_path) = config.docs_path {
         info!("API docs is available at {docs_path}");
