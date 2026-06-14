@@ -4,7 +4,7 @@ use sqlx::types::chrono::{DateTime, Utc};
 
 use crate::types::Status;
 
-const DOCUMENT_INDEXING_CHAN: &str = "carmen_document_indexing";
+pub const DOCUMENT_INDEXING_CHAN: &str = "carmen_document_indexing";
 
 #[derive(sqlx::FromRow)]
 pub struct Document {
@@ -66,10 +66,7 @@ impl Document {
             .await
     }
 
-    pub async fn get_indexing(
-        pool: &PgPool,
-        id: Uuid,
-    ) -> sqlx::Result<Vec<DocumentIndexing>> {
+    pub async fn get_indexing(pool: &PgPool, id: Uuid) -> sqlx::Result<Vec<DocumentIndexing>> {
         sqlx::query_as(
             "SELECT * FROM document_indexing WHERE document_id = $1 ORDER BY created_at DESC",
         )

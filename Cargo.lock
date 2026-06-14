@@ -454,9 +454,11 @@ name = "carmen-indexer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "carmen-db",
  "env_logger",
  "fastembed",
  "log",
+ "rust-s3",
  "sqlx",
  "tokio",
 ]
