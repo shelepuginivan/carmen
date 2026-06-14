@@ -17,12 +17,24 @@ RUN cargo build --release
 FROM debian:trixie-slim as carmen-extractor
 WORKDIR /app
 COPY --from=builder /build/target/release/carmen-extractor .
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/cache/* /var/lib/apt/lists/* /tmp/*
+
 ENTRYPOINT ["/app/carmen-extractor"]
 
 
 FROM debian:trixie-slim as carmen-indexer
 WORKDIR /app
 COPY --from=builder /build/target/release/carmen-indexer .
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/cache/* /var/lib/apt/lists/* /tmp/*
+
 ENTRYPOINT ["/app/carmen-indexer"]
 
 
