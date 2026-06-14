@@ -1,5 +1,5 @@
 use carmen_db::collections::{Collection, CollectionExtraction};
-use log::{info, warn};
+use log::{error, info, warn};
 use sqlx::PgPool;
 use tempfile::TempDir;
 use tokio::sync::oneshot::{self, Receiver, Sender};
@@ -40,14 +40,29 @@ impl Task {
 
         let tempdir = TempDir::with_prefix("carmen_extractor-")?;
 
-        if let Some(extractor) = EXTRACTORS.iter().find(|ex| ex.can_extract(&collection)) {
-            extractor.extract(&collection, tempdir.path()).await?;
-        } else {
-            warn!(
-                "Could not find extractor for collection '{}'",
-                collection.name
-            );
+        let extracted = match EXTRACTORS.iter().find(|ex| ex.can_extract(&collection)) {
+            Some(ex) => match ex.extract(&collection, tempdir.path()).await {
+                Ok(ex) => ex,
+                Err(err) => {
+                    error!(
+                        "Error occurred while extracting collection '{}': {}",
+                        collection.name, err
+                    );
+                    return Err(err);
+                }
+            },
+            None => {
+                warn!(
+                    "Could not find extractor for collection '{}'",
+                    collection.name
+                );
+                return Ok(());
+            }
         };
+
+        for doc in extracted {
+            println!("{} :: {}", doc.file_path.display(), doc.canonical_path)
+        }
 
         Ok(())
     }
