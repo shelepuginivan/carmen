@@ -2,17 +2,9 @@ use sqlx::PgPool;
 use sqlx::types::Uuid;
 use sqlx::types::chrono::{DateTime, Utc};
 
-pub const COLLECTION_EXTRACTION_CHAN: &str = "carmen_collection_extraction";
+use super::types::Status;
 
-#[derive(sqlx::Type)]
-#[sqlx(type_name = "collection_extraction_status", rename_all = "snake_case")]
-pub enum CollectionExtractionStatus {
-    Pending,
-    InProgress,
-    Completed,
-    Failed,
-    Cancelled,
-}
+pub const COLLECTION_EXTRACTION_CHAN: &str = "carmen_collection_extraction";
 
 #[derive(sqlx::FromRow)]
 pub struct Collection {
@@ -27,7 +19,7 @@ pub struct Collection {
 pub struct CollectionExtraction {
     pub id: Uuid,
     pub collection_id: Uuid,
-    pub status: CollectionExtractionStatus,
+    pub status: Status,
     pub created_at: DateTime<Utc>,
 }
 
@@ -102,13 +94,13 @@ impl CollectionExtraction {
             "#,
         )
         .bind(id)
-        .bind(CollectionExtractionStatus::Pending)
+        .bind(Status::Pending)
         .fetch_optional(&mut *tx)
         .await?;
 
         if let Some(claimed) = extraction {
             sqlx::query("UPDATE collection_extractions SET status = $1 WHERE id = $2")
-                .bind(CollectionExtractionStatus::InProgress)
+                .bind(Status::InProgress)
                 .bind(id)
                 .execute(&mut *tx)
                 .await?;
@@ -122,11 +114,7 @@ impl CollectionExtraction {
         }
     }
 
-    pub async fn update_status(
-        pool: &PgPool,
-        id: Uuid,
-        new_status: CollectionExtractionStatus,
-    ) -> sqlx::Result<()> {
+    pub async fn update_status(pool: &PgPool, id: Uuid, new_status: Status) -> sqlx::Result<()> {
         sqlx::query("UPDATE collection_extractions SET status = $1 WHERE id = $2")
             .bind(new_status)
             .bind(id)

@@ -1,4 +1,4 @@
-CREATE TYPE collection_extraction_status AS ENUM (
+CREATE TYPE status AS ENUM (
     'pending',
     'in_progress',
     'completed',
@@ -17,7 +17,7 @@ CREATE TABLE collections (
 CREATE TABLE collection_extractions (
     id               uuid PRIMARY KEY DEFAULT uuidv4(),
     collection_id    uuid REFERENCES collections(id),
-    status           collection_extraction_status NOT NULL DEFAULT 'pending',
+    status           status NOT NULL DEFAULT 'pending',
     created_at       timestamptz NOT NULL DEFAULT timezone('utc', now())
 );
 

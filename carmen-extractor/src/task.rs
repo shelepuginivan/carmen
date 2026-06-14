@@ -1,5 +1,6 @@
-use carmen_db::collections::{Collection, CollectionExtraction, CollectionExtractionStatus};
+use carmen_db::collections::{Collection, CollectionExtraction};
 use carmen_db::documents::Document;
+use carmen_db::types::Status;
 use log::{error, info, warn};
 use s3::Bucket;
 use sqlx::PgPool;
@@ -34,11 +35,11 @@ impl Task {
         let status = match self.run().await {
             Ok(_) => {
                 info!("Extraction {} completed successfully", self.id);
-                CollectionExtractionStatus::Completed
+                Status::Completed
             }
             Err(err) => {
                 error!("Extraction {} failed: {err}", self.id);
-                CollectionExtractionStatus::Failed
+                Status::Failed
             }
         };
 

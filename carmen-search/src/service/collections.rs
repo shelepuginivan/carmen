@@ -1,4 +1,5 @@
-use carmen_db::collections::{Collection, CollectionExtraction, CollectionExtractionStatus};
+use carmen_db::collections::{Collection, CollectionExtraction};
+use carmen_db::types::Status;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -40,7 +41,7 @@ impl From<Collection> for CollectionOut {
 }
 
 #[derive(Serialize, ToSchema)]
-pub enum CollectionBuildStatusOut {
+pub enum StatusOut {
     Pending,
     InProgress,
     Completed,
@@ -48,14 +49,14 @@ pub enum CollectionBuildStatusOut {
     Cancelled,
 }
 
-impl From<CollectionExtractionStatus> for CollectionBuildStatusOut {
-    fn from(value: CollectionExtractionStatus) -> Self {
+impl From<Status> for StatusOut {
+    fn from(value: Status) -> Self {
         match value {
-            CollectionExtractionStatus::Pending => Self::Pending,
-            CollectionExtractionStatus::InProgress => Self::InProgress,
-            CollectionExtractionStatus::Completed => Self::Completed,
-            CollectionExtractionStatus::Failed => Self::Failed,
-            CollectionExtractionStatus::Cancelled => Self::Cancelled,
+            Status::Pending => Self::Pending,
+            Status::InProgress => Self::InProgress,
+            Status::Completed => Self::Completed,
+            Status::Failed => Self::Failed,
+            Status::Cancelled => Self::Cancelled,
         }
     }
 }
@@ -65,7 +66,7 @@ impl From<CollectionExtractionStatus> for CollectionBuildStatusOut {
 pub struct CollectionExtractionOut {
     id: Uuid,
     collection_id: Uuid,
-    status: CollectionBuildStatusOut,
+    status: StatusOut,
     created_at: DateTime<Utc>,
 }
 
