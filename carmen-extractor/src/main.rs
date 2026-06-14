@@ -7,6 +7,7 @@ use sqlx::{PgPool, types::Uuid};
 use tokio::signal::unix::{SignalKind, signal};
 
 mod config;
+mod documents;
 mod extractors;
 mod task;
 
