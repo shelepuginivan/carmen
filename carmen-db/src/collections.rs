@@ -121,4 +121,17 @@ impl CollectionExtraction {
             Ok(None)
         }
     }
+
+    pub async fn update_status(
+        pool: &PgPool,
+        id: Uuid,
+        new_status: CollectionExtractionStatus,
+    ) -> sqlx::Result<()> {
+        sqlx::query("UPDATE collection_extractions SET status = $1 WHERE id = $2")
+            .bind(new_status)
+            .bind(id)
+            .execute(pool)
+            .await
+            .map(|_| ())
+    }
 }

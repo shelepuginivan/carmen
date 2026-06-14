@@ -10,6 +10,26 @@ pub struct Document {
 }
 
 impl Document {
+    pub async fn insert(
+        pool: &PgPool,
+        collection_id: Uuid,
+        canonical_path: &str,
+        checksum: [u8; 32],
+    ) -> sqlx::Result<Self> {
+        sqlx::query_as(
+            r#"
+            INSERT INTO documents (collection_id, canonical_path, checksum)
+            VALUES ($1, $2, $3)
+            RETURNING *
+            "#,
+        )
+        .bind(collection_id)
+        .bind(canonical_path)
+        .bind(checksum)
+        .fetch_one(pool)
+        .await
+    }
+
     pub async fn get_for_collection(pool: &PgPool, collection_id: Uuid) -> sqlx::Result<Vec<Self>> {
         sqlx::query_as("SELECT * FROM documents WHERE collection_id = $1")
             .bind(collection_id)
@@ -17,7 +37,7 @@ impl Document {
             .await
     }
 
-    pub async fn update_checksum(pool: &PgPool, id: Uuid, checksum: &[u8]) -> sqlx::Result<()> {
+    pub async fn update_checksum(pool: &PgPool, id: Uuid, checksum: [u8; 32]) -> sqlx::Result<()> {
         sqlx::query("UPDATE documents SET checksum = $1 WHERE id = $2")
             .bind(checksum)
             .bind(id)

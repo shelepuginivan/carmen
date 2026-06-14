@@ -1,4 +1,4 @@
-use carmen_db::collections::{Collection, CollectionExtraction};
+use carmen_db::collections::{Collection, CollectionExtraction, CollectionExtractionStatus};
 use carmen_db::documents::Document;
 use log::{error, info, warn};
 use s3::Bucket;
@@ -31,6 +31,22 @@ impl Task {
     }
 
     pub async fn start(self) -> anyhow::Result<()> {
+        let status = match self.run().await {
+            Ok(_) => {
+                info!("Extraction {} completed successfully", self.id);
+                CollectionExtractionStatus::Completed
+            }
+            Err(err) => {
+                error!("Extraction {} failed: {err}", self.id);
+                CollectionExtractionStatus::Failed
+            }
+        };
+
+        CollectionExtraction::update_status(&self.pool, self.id, status).await?;
+        Ok(())
+    }
+
+    async fn run(&self) -> anyhow::Result<()> {
         let extraction = match CollectionExtraction::claim(&self.pool, self.id).await? {
             Some(claimed) => claimed,
             None => return Ok(()),
@@ -69,7 +85,7 @@ impl Task {
 
         let diff = DocumentDiff::compute(documents, extracted).await?;
 
-        DocumentUpdater::new(self.pool, self.bucket)
+        DocumentUpdater::new(&self.pool, &self.bucket)
             .update(collection.id, &diff)
             .await?;
 
