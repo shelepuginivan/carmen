@@ -20,3 +20,10 @@ CREATE TABLE collection_extractions (
     status           collection_extraction_status NOT NULL DEFAULT 'pending',
     created_at       timestamptz NOT NULL DEFAULT timezone('utc', now())
 );
+
+CREATE TABLE documents (
+    id               uuid PRIMARY KEY DEFAULT uuidv4(),
+    collection_id    uuid REFERENCES collections(id),
+    canonical_path   varchar(256) NOT NULL,
+    checksum         bytea NOT NULL
+);
