@@ -24,7 +24,7 @@ pub struct CollectionOut {
     name: String,
     description: Option<String>,
     url: Option<String>,
-    source: String,
+    source: Option<String>,
 }
 
 impl From<Collection> for CollectionOut {

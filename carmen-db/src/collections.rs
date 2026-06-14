@@ -20,7 +20,7 @@ pub struct Collection {
     pub name: String,
     pub description: Option<String>,
     pub url: Option<String>,
-    pub source: String,
+    pub source: Option<String>,
 }
 
 #[derive(sqlx::FromRow)]
