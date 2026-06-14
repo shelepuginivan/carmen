@@ -37,6 +37,7 @@ impl<'a> DocumentUpdater<'a> {
     async fn add_document(&self, collection_id: Uuid, doc: &AddedDocument) -> anyhow::Result<()> {
         let new_document =
             Document::insert(self.pool, collection_id, &doc.canonical_path, doc.checksum).await?;
+        Document::schedule_indexing(self.pool, new_document.id).await?;
 
         let mut file = File::open(&doc.file_path).await?;
 
@@ -52,6 +53,7 @@ impl<'a> DocumentUpdater<'a> {
 
     async fn update_document(&self, doc: &UpdatedDocument) -> anyhow::Result<()> {
         Document::update_checksum(self.pool, doc.id, doc.checksum).await?;
+        Document::schedule_indexing(self.pool, doc.id).await?;
 
         let mut file = File::open(&doc.file_path).await?;
 
