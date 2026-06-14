@@ -1,6 +1,8 @@
+use std::path::Path;
+
 use carmen_db::collections::Collection;
 
-use super::Extractor;
+use super::{ExtractedDocument, Extractor};
 
 pub struct GitExtractor;
 
@@ -9,7 +11,11 @@ impl Extractor for GitExtractor {
         collection.source.as_deref() == Some("git") && collection.url.is_some()
     }
 
-    async fn extract(&self, collection: &Collection) -> anyhow::Result<()> {
+    async fn extract(
+        &self,
+        collection: &Collection,
+        tempdir: &Path,
+    ) -> anyhow::Result<Vec<ExtractedDocument>> {
         todo!()
     }
 }
