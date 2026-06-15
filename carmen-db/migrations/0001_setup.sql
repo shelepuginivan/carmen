@@ -16,7 +16,7 @@ CREATE TABLE collections (
 
 CREATE TABLE collection_extractions (
     id               uuid PRIMARY KEY DEFAULT uuidv4(),
-    collection_id    uuid REFERENCES collections(id),
+    collection_id    uuid REFERENCES collections(id) ON DELETE CASCADE,
     status           status NOT NULL DEFAULT 'pending',
     created_at       timestamptz NOT NULL DEFAULT timezone('utc', now())
 );
