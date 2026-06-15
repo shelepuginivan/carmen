@@ -30,3 +30,4 @@ tokio = { version = "1", features = ["full"] }
 uuid = { version = "1.23", features = ["serde"] }
 
 carmen-db = { path = "./carmen-db" }
+carmen-s3 = { path = "./carmen-s3" }

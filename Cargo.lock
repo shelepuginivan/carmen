@@ -472,6 +472,7 @@ version = "0.1.0"
 dependencies = [
  "rust-s3",
  "thiserror",
+ "uuid",
 ]
 
 [[package]]

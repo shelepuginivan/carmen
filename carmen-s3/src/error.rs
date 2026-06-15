@@ -27,3 +27,5 @@ impl From<CredentialsError> for StorageError {
         Self::Configuration(value.to_string())
     }
 }
+
+pub type Result<T, E = StorageError> = ::std::result::Result<T, E>;
