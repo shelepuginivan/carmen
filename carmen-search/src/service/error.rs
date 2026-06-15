@@ -2,17 +2,11 @@ use s3::error::S3Error;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("{0}")]
-    Conflict(String),
-
-    #[error("{0}")]
-    NotFound(String),
-
     #[error("entity not found")]
     EntityNotFound,
 
     #[error("an internal database error occurred")]
-    DatabaseError,
+    Database,
 
     #[error("an internal storage error occurred")]
     S3Error(#[from] S3Error),
@@ -25,7 +19,7 @@ impl From<sqlx::Error> for Error {
     fn from(err: sqlx::Error) -> Self {
         match err {
             sqlx::Error::RowNotFound => Self::EntityNotFound,
-            _ => Self::DatabaseError,
+            _ => Self::Database,
         }
     }
 }
