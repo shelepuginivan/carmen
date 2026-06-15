@@ -1,7 +1,10 @@
 use std::env;
+use std::path::Path;
 
 use s3::creds::Credentials;
+use s3::serde_types::ObjectIdentifier;
 use s3::{Bucket, Region};
+use tokio::fs::File;
 use uuid::Uuid;
 
 use crate::{Result, StorageError};
@@ -11,13 +14,13 @@ const EXPORTED_DOCUMENTS_PREFIX: &str = "exported";
 
 macro_rules! raw_document {
     ($key:expr) => {
-        s3::serde_types::ObjectIdentifier::new(format!("{RAW_DOCUMENTS_PREFIX}/{}", $key))
+        format!("{RAW_DOCUMENTS_PREFIX}/{}", $key)
     };
 }
 
 macro_rules! exported_document {
     ($key:expr) => {
-        s3::serde_types::ObjectIdentifier::new(format!("{EXPORTED_DOCUMENTS_PREFIX}/{}", $key))
+        format!("{EXPORTED_DOCUMENTS_PREFIX}/{}", $key)
     };
 }
 
@@ -41,10 +44,33 @@ impl Storage {
         Ok(Self { bucket })
     }
 
+    pub async fn put_raw_document_from_path(&self, id: Uuid, path: &Path) -> Result<()> {
+        let mut file = File::open(path).await?;
+
+        Ok(self
+            .bucket
+            .put_object_stream(&mut file, raw_document!(id))
+            .await
+            .map(|_| ())?)
+    }
+
+    pub async fn put_exported_document_from_path(&self, id: Uuid, path: &Path) -> Result<()> {
+        let mut file = File::open(path).await?;
+
+        Ok(self
+            .bucket
+            .put_object_stream(&mut file, exported_document!(id))
+            .await
+            .map(|_| ())?)
+    }
+
     pub async fn delete_document(&self, id: Uuid) -> Result<()> {
         Ok(self
             .bucket
-            .delete_objects(vec![raw_document!(id), exported_document!(id)])
+            .delete_objects(vec![
+                ObjectIdentifier::new(raw_document!(id)),
+                ObjectIdentifier::new(exported_document!(id)),
+            ])
             .await
             .map(|_| ())?)
     }
@@ -53,8 +79,8 @@ impl Storage {
         let mut objects = Vec::with_capacity(2 * ids.len());
 
         for id in ids {
-            objects.push(raw_document!(id));
-            objects.push(exported_document!(id));
+            objects.push(ObjectIdentifier::new(raw_document!(id)));
+            objects.push(ObjectIdentifier::new(exported_document!(id)));
         }
 
         Ok(self.bucket.delete_objects(objects).await.map(|_| ())?)

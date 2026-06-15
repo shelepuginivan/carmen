@@ -1,8 +1,8 @@
 use carmen_db::collections::{Collection, CollectionExtraction};
 use carmen_db::documents::Document;
 use carmen_db::types::Status;
+use carmen_s3::Storage;
 use log::{error, info, warn};
-use s3::Bucket;
 use sqlx::PgPool;
 use tempfile::TempDir;
 use tokio::sync::oneshot::{self, Receiver, Sender};
@@ -14,17 +14,17 @@ use crate::extractors::{EXTRACTORS, Extractor};
 pub struct Task {
     id: Uuid,
     pool: PgPool,
-    bucket: Box<Bucket>,
+    storage: Storage,
     cancel_rx: Receiver<()>,
 }
 
 impl Task {
-    pub fn new(id: Uuid, pool: PgPool, bucket: Box<Bucket>) -> (Self, Sender<()>) {
+    pub fn new(id: Uuid, pool: PgPool, storage: Storage) -> (Self, Sender<()>) {
         let (cancel_tx, cancel_rx) = oneshot::channel();
         let task = Self {
             id,
             pool,
-            bucket,
+            storage,
             cancel_rx,
         };
 
@@ -86,7 +86,7 @@ impl Task {
 
         let diff = DocumentDiff::compute(documents, extracted).await?;
 
-        DocumentUpdater::new(&self.pool, &self.bucket)
+        DocumentUpdater::new(&self.pool, &self.storage)
             .update(&extraction, &diff)
             .await?;
 

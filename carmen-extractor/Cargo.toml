@@ -11,7 +11,6 @@ enum_dispatch = "0.3"
 env_logger.workspace = true
 git2 = { version = "0.21.0", features = ["https"] }
 log.workspace = true
-rust-s3.workspace = true
 sha2 = "0.11"
 sqlx.workspace = true
 strum = { version = "0.28", features = ["derive"] }
@@ -21,3 +20,4 @@ uuid.workspace = true
 walkdir = "2"
 
 carmen-db.workspace = true
+carmen-s3.workspace = true

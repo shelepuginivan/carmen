@@ -436,11 +436,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "carmen-db",
+ "carmen-s3",
  "enum_dispatch",
  "env_logger",
  "git2",
  "log",
- "rust-s3",
  "sha2 0.11.0",
  "sqlx",
  "strum",
@@ -472,6 +472,7 @@ version = "0.1.0"
 dependencies = [
  "rust-s3",
  "thiserror",
+ "tokio",
  "uuid",
 ]
 

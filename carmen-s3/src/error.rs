@@ -9,6 +9,8 @@ pub enum StorageError {
     Configuration(String),
     #[error("{0}")]
     Runtime(String),
+    #[error("{0}")]
+    IO(#[from] tokio::io::Error),
 }
 
 impl From<S3Error> for StorageError {
