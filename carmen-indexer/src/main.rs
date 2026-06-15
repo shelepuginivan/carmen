@@ -10,8 +10,10 @@ use tokio::signal::unix::{SignalKind, signal};
 use tokio::sync::Semaphore;
 
 mod config;
+mod task;
 
 use crate::config::Config;
+use crate::task::Task;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -65,12 +67,12 @@ async fn main() -> anyhow::Result<()> {
                     let task_id: Uuid = notification.payload().parse()?;
                     let pool = pool.clone();
                     let bucket = bucket.clone();
-                    // let (task, _cancel_tx) = Task::new(task_id, pool, bucket);
+                    let (task, _cancel_tx) = Task::new(task_id, pool, bucket);
 
-                    // tokio::spawn(async move {
-                    //     let _ = task.start().await;
-                    //     drop(token)
-                    // });
+                    tokio::spawn(async move {
+                        let _ = task.start().await;
+                        drop(token)
+                    });
                 }
                 Err(err) => error!("{err}"),
             }
