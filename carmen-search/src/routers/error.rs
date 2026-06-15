@@ -23,9 +23,7 @@ impl From<service::Error> for Error {
             service::Error::Conflict(_) => StatusCode::CONFLICT,
             service::Error::NotFound(_) | service::Error::EntityNotFound => StatusCode::NOT_FOUND,
 
-            service::Error::DatabaseError | service::Error::Anyhow(_) => {
-                StatusCode::INTERNAL_SERVER_ERROR
-            }
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
         };
 
         Self {

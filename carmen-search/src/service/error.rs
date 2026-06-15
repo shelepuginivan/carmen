@@ -1,3 +1,5 @@
+use s3::error::S3Error;
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("{0}")]
@@ -11,6 +13,9 @@ pub enum Error {
 
     #[error("an internal database error occurred")]
     DatabaseError,
+
+    #[error("an internal storage error occurred")]
+    S3Error(#[from] S3Error),
 
     #[error("an internal server error occurred")]
     Anyhow(#[from] anyhow::Error),

@@ -1,6 +1,9 @@
 use carmen_db::collections::{Collection, CollectionExtraction};
+use carmen_db::documents::Document;
 use carmen_db::types::Status;
 use chrono::{DateTime, Utc};
+use s3::Bucket;
+use s3::serde_types::ObjectIdentifier;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use url::Url;
@@ -8,6 +11,8 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::error::Result;
+
+const EXTRACTED_DOCUMENTS_PREFIX: &str = "extracted";
 
 #[derive(Deserialize, ToSchema)]
 #[schema(title = "CollectionIn")]
@@ -140,7 +145,19 @@ pub async fn update_collection(db: &PgPool, update: CollectionUpdate) -> Result<
     .into())
 }
 
-pub async fn delete_collection(db: &PgPool, id: Uuid) -> Result<CollectionOut> {
-    // TODO: delete documents from s3
+pub async fn delete_collection(db: &PgPool, bucket: &Bucket, id: Uuid) -> Result<CollectionOut> {
+    let documents = Document::get_for_collection(db, id).await?;
+
+    let mut objects = Vec::with_capacity(2 * documents.len());
+
+    for doc in documents {
+        objects.push(ObjectIdentifier::new(format!(
+            "{EXTRACTED_DOCUMENTS_PREFIX}/{}",
+            doc.id
+        )));
+        // TODO: remove indexed documents
+    }
+
+    bucket.delete_objects(objects).await?;
     Ok(Collection::delete(db, id).await?.into())
 }
