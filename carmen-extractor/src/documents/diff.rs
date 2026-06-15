@@ -7,7 +7,7 @@ use tokio::fs::File;
 use tokio::io::{AsyncReadExt, BufReader};
 use uuid::Uuid;
 
-use crate::extractors::ExtractedDocument;
+use crate::downloaders::DownloadedDocument;
 
 struct OldDocument {
     id: Uuid,
@@ -34,7 +34,7 @@ pub struct DocumentDiff {
 }
 
 impl DocumentDiff {
-    pub async fn compute(old: Vec<Document>, new: Vec<ExtractedDocument>) -> anyhow::Result<Self> {
+    pub async fn compute(old: Vec<Document>, new: Vec<DownloadedDocument>) -> anyhow::Result<Self> {
         let mut diff = Self::default();
         let mut old_documents = HashMap::with_capacity(old.len());
 

@@ -1,30 +1,29 @@
 use std::path::Path;
 
-use carmen_db::collections::Collection;
+use carmen_db::collections::CollectionExtraction;
 use git2::{FetchOptions, build::RepoBuilder};
 use walkdir::{DirEntry, WalkDir};
 
-use super::{ExtractedDocument, Extractor};
+use super::{DownloadedDocument, Downloader};
 
-pub struct GitExtractor;
+pub struct GitDownloader;
 
-impl Extractor for GitExtractor {
-    fn can_extract(&self, collection: &Collection) -> bool {
-        collection.source.as_deref() == Some("git") && collection.url.is_some()
+impl Downloader for GitDownloader {
+    fn can_download(&self, extraction: &CollectionExtraction) -> bool {
+        extraction.source_type == "git"
     }
 
-    async fn extract(
+    async fn download(
         &self,
-        collection: &Collection,
+        extraction: &CollectionExtraction,
         tempdir: &Path,
-    ) -> anyhow::Result<Vec<ExtractedDocument>> {
-        let mut fo = FetchOptions::new();
-        fo.depth(1);
+    ) -> anyhow::Result<Vec<DownloadedDocument>> {
+        let mut fetch_opts = FetchOptions::new();
+        fetch_opts.depth(1);
 
-        RepoBuilder::new().fetch_options(fo).clone(
-            collection.url.as_ref().expect("collection url must be set"),
-            tempdir,
-        )?;
+        RepoBuilder::new()
+            .fetch_options(fetch_opts)
+            .clone(&extraction.source, tempdir)?;
 
         let mut extracted = Vec::new();
 
@@ -46,7 +45,7 @@ impl Extractor for GitExtractor {
 
             let file_path = entry.into_path();
 
-            extracted.push(ExtractedDocument {
+            extracted.push(DownloadedDocument {
                 file_path,
                 canonical_path,
             });
@@ -56,7 +55,7 @@ impl Extractor for GitExtractor {
     }
 }
 
-impl GitExtractor {
+impl GitDownloader {
     fn filter_file(entry: &DirEntry) -> bool {
         if !entry.file_type().is_file() {
             return false;

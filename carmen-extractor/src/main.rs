@@ -8,7 +8,7 @@ use tokio::signal::unix::{SignalKind, signal};
 
 mod config;
 mod documents;
-mod extractors;
+mod downloaders;
 mod task;
 
 use crate::config::Config;
