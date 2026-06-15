@@ -9,7 +9,7 @@ use tokio::sync::oneshot::{self, Receiver, Sender};
 use uuid::Uuid;
 
 use crate::documents::{DocumentDiff, DocumentUpdater};
-use crate::downloaders::{DOWNLOADERS, Downloader};
+use crate::extractors::{EXTRACTORS, Extractor};
 
 pub struct Task {
     id: Uuid,
@@ -62,8 +62,8 @@ impl Task {
 
         let tempdir = TempDir::with_prefix("carmen_extractor-")?;
 
-        let extracted = match DOWNLOADERS.iter().find(|ex| ex.can_download(&extraction)) {
-            Some(ex) => match ex.download(&extraction, tempdir.path()).await {
+        let extracted = match EXTRACTORS.iter().find(|ex| ex.can_extract(&extraction)) {
+            Some(ex) => match ex.extract(&extraction, tempdir.path()).await {
                 Ok(ex) => ex,
                 Err(err) => {
                     error!(
@@ -87,7 +87,7 @@ impl Task {
         let diff = DocumentDiff::compute(documents, extracted).await?;
 
         DocumentUpdater::new(&self.pool, &self.bucket)
-            .update(collection.id, &diff)
+            .update(&extraction, &diff)
             .await?;
 
         info!(

@@ -13,7 +13,7 @@ pub struct Collection {
     pub description: Option<String>,
 }
 
-#[derive(Default, sqlx::Type)]
+#[derive(Default, PartialEq, Eq, sqlx::Type)]
 #[sqlx(type_name = "collection_extraction_type", rename_all = "snake_case")]
 pub enum CollectionExtractionType {
     #[default]

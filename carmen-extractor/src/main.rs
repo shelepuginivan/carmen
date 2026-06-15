@@ -7,8 +7,9 @@ use sqlx::{PgPool, types::Uuid};
 use tokio::signal::unix::{SignalKind, signal};
 
 mod config;
+mod document;
 mod documents;
-mod downloaders;
+mod extractors;
 mod task;
 
 use crate::config::Config;

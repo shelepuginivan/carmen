@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-use carmen_db::documents::Document;
+use carmen_db::documents::Document as OldDocument;
 use sha2::{Digest, Sha256};
 use tokio::fs::File;
 use tokio::io::{AsyncReadExt, BufReader};
 use uuid::Uuid;
 
-use crate::downloaders::DownloadedDocument;
+use crate::document::Document as NewDocument;
 
-struct OldDocument {
+struct OldDocumentInfo {
     id: Uuid,
     checksum: [u8; 32],
 }
@@ -17,13 +17,15 @@ struct OldDocument {
 pub struct AddedDocument {
     pub canonical_path: String,
     pub checksum: [u8; 32],
-    pub file_path: PathBuf,
+    pub raw_path: PathBuf,
+    pub exported_path: PathBuf,
 }
 
 pub struct UpdatedDocument {
     pub id: Uuid,
     pub checksum: [u8; 32],
-    pub file_path: PathBuf,
+    pub raw_path: PathBuf,
+    pub exported_path: PathBuf,
 }
 
 #[derive(Default)]
@@ -34,22 +36,22 @@ pub struct DocumentDiff {
 }
 
 impl DocumentDiff {
-    pub async fn compute(old: Vec<Document>, new: Vec<DownloadedDocument>) -> anyhow::Result<Self> {
+    pub async fn compute(old: Vec<OldDocument>, new: Vec<NewDocument>) -> anyhow::Result<Self> {
         let mut diff = Self::default();
         let mut old_documents = HashMap::with_capacity(old.len());
 
-        for Document {
+        for OldDocument {
             id,
             canonical_path,
             checksum,
             ..
         } in old
         {
-            old_documents.insert(canonical_path, OldDocument { id, checksum });
+            old_documents.insert(canonical_path, OldDocumentInfo { id, checksum });
         }
 
         for new_document in new {
-            let new_checksum = file_checksum(&new_document.file_path).await?;
+            let new_checksum = file_checksum(&new_document.raw_path).await?;
 
             let old_document = match old_documents.remove(&new_document.canonical_path) {
                 Some(doc) => doc,
@@ -57,7 +59,8 @@ impl DocumentDiff {
                     diff.added.push(AddedDocument {
                         canonical_path: new_document.canonical_path,
                         checksum: new_checksum,
-                        file_path: new_document.file_path,
+                        raw_path: new_document.raw_path,
+                        exported_path: new_document.exported_path,
                     });
                     continue;
                 }
@@ -67,7 +70,8 @@ impl DocumentDiff {
                 diff.updated.push(UpdatedDocument {
                     id: old_document.id,
                     checksum: new_checksum,
-                    file_path: new_document.file_path,
+                    raw_path: new_document.raw_path,
+                    exported_path: new_document.exported_path,
                 });
             }
         }

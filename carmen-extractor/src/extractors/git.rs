@@ -4,26 +4,23 @@ use carmen_db::collections::CollectionExtraction;
 use git2::{FetchOptions, build::RepoBuilder};
 use walkdir::{DirEntry, WalkDir};
 
-use super::{DocumentFormat, DownloadedDocument, Downloader};
+use crate::document::{Document, DocumentBuilder, DocumentFormat};
 
-pub struct GitDownloader;
+use super::Extractor;
 
-impl Downloader for GitDownloader {
-    fn can_download(&self, extraction: &CollectionExtraction) -> bool {
+pub struct GitExtractor;
+
+impl Extractor for GitExtractor {
+    fn can_extract(&self, extraction: &CollectionExtraction) -> bool {
         extraction.source_type == "git"
     }
 
-    async fn download(
+    async fn extract(
         &self,
         extraction: &CollectionExtraction,
         tempdir: &Path,
-    ) -> anyhow::Result<Vec<DownloadedDocument>> {
-        let mut fetch_opts = FetchOptions::new();
-        fetch_opts.depth(1);
-
-        RepoBuilder::new()
-            .fetch_options(fetch_opts)
-            .clone(&extraction.source, tempdir)?;
+    ) -> anyhow::Result<Vec<Document>> {
+        Self::clone_repo(&extraction.source, tempdir)?;
 
         let mut extracted = Vec::new();
 
@@ -50,18 +47,31 @@ impl Downloader for GitDownloader {
 
             let file_path = entry.into_path();
 
-            extracted.push(DownloadedDocument {
-                file_path,
-                canonical_path,
-                format,
-            });
+            let document = DocumentBuilder::default()
+                .raw_path(file_path)
+                .raw_format(format)
+                .canonical_path(canonical_path)
+                .build()
+                .await?;
+
+            extracted.push(document);
         }
 
         Ok(extracted)
     }
 }
 
-impl GitDownloader {
+impl GitExtractor {
+    fn clone_repo(repo_url: &str, output: &Path) -> anyhow::Result<()> {
+        let mut fetch_opts = FetchOptions::new();
+        fetch_opts.depth(1);
+
+        Ok(RepoBuilder::new()
+            .fetch_options(fetch_opts)
+            .clone(repo_url, output)
+            .map(|_| ())?)
+    }
+
     fn filter_file(entry: &DirEntry) -> bool {
         if !entry.file_type().is_file() {
             return false;
