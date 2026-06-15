@@ -1,4 +1,4 @@
-use s3::error::S3Error;
+use s3::{creds::error::CredentialsError, error::S3Error};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -19,5 +19,11 @@ impl From<S3Error> for StorageError {
 
             other => Self::Runtime(other.to_string()),
         }
+    }
+}
+
+impl From<CredentialsError> for StorageError {
+    fn from(value: CredentialsError) -> Self {
+        Self::Configuration(value.to_string())
     }
 }
