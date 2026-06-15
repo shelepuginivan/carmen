@@ -11,8 +11,14 @@ pub struct Collection {
     pub id: Uuid,
     pub name: String,
     pub description: Option<String>,
-    pub url: Option<String>,
-    pub source: Option<String>,
+}
+
+#[derive(Default, sqlx::Type)]
+#[sqlx(type_name = "collection_extraction_type", rename_all = "snake_case")]
+pub enum CollectionExtractionType {
+    #[default]
+    Merge,
+    Override,
 }
 
 #[derive(sqlx::FromRow)]
@@ -20,6 +26,9 @@ pub struct CollectionExtraction {
     pub id: Uuid,
     pub collection_id: Uuid,
     pub status: Status,
+    pub source: String,
+    pub source_type: String,
+    pub extraction_type: CollectionExtractionType,
     pub created_at: DateTime<Utc>,
 }
 
@@ -28,18 +37,12 @@ impl Collection {
         pool: &PgPool,
         name: &str,
         description: Option<&str>,
-        url: Option<&str>,
-        source: Option<&str>,
     ) -> sqlx::Result<Self> {
-        sqlx::query_as(
-            "INSERT INTO collections (name, description, url, source) VALUES ($1, $2, $3, $4) RETURNING *",
-        )
-        .bind(name)
-        .bind(description)
-        .bind(url)
-        .bind(source)
-        .fetch_one(pool)
-        .await
+        sqlx::query_as("INSERT INTO collections (name, description) VALUES ($1, $2) RETURNING *")
+            .bind(name)
+            .bind(description)
+            .fetch_one(pool)
+            .await
     }
 
     pub async fn get(pool: &PgPool, id: Uuid) -> sqlx::Result<Self> {
@@ -60,7 +63,11 @@ impl Collection {
         id: Uuid,
     ) -> sqlx::Result<Vec<CollectionExtraction>> {
         sqlx::query_as(
-            "SELECT * FROM collection_extractions WHERE collection_id = $1 ORDER BY created_at DESC",
+            r#"
+            SELECT * FROM collection_extractions
+            WHERE collection_id = $1
+            ORDER BY created_at DESC
+            "#,
         )
         .bind(id)
         .fetch_all(pool)
@@ -70,11 +77,21 @@ impl Collection {
     pub async fn schedule_extraction(
         pool: &PgPool,
         id: Uuid,
+        source: &str,
+        source_type: &str,
+        extraction_type: Option<CollectionExtractionType>,
     ) -> sqlx::Result<CollectionExtraction> {
         let extraction: CollectionExtraction = sqlx::query_as(
-            "INSERT INTO collection_extractions (collection_id) VALUES ($1) RETURNING *",
+            r#"
+            INSERT INTO collection_extractions (collection_id, source, source_type, extraction_type)
+            VALUES ($1, $2, $3, $4)
+            RETURNING *
+            "#,
         )
         .bind(id)
+        .bind(source)
+        .bind(source_type)
+        .bind(extraction_type.unwrap_or_default())
         .fetch_one(pool)
         .await?;
 
@@ -92,23 +109,17 @@ impl Collection {
         id: Uuid,
         name: Option<&str>,
         description: Option<&str>,
-        url: Option<&str>,
-        source: Option<&str>,
     ) -> sqlx::Result<Self> {
         sqlx::query_as(
             r#"
             UPDATE collections SET
               name = COALESCE($1, name),
-              description = $2,
-              url = $3,
-              source = $4
+              description = $2
             WHERE id = $5 RETURNING *;
             "#,
         )
         .bind(name)
         .bind(description)
-        .bind(url)
-        .bind(source)
         .bind(id)
         .fetch_one(pool)
         .await

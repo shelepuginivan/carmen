@@ -14,23 +14,31 @@ CREATE TABLE collections (
     source         varchar(32)
 );
 
+CREATE TYPE collection_extraction_type AS ENUM (
+    'merge',
+    'override'
+);
+
 CREATE TABLE collection_extractions (
-    id               uuid PRIMARY KEY DEFAULT uuidv4(),
-    collection_id    uuid REFERENCES collections(id) ON DELETE CASCADE,
-    status           status NOT NULL DEFAULT 'pending',
-    created_at       timestamptz NOT NULL DEFAULT timezone('utc', now())
+    id                 uuid PRIMARY KEY DEFAULT uuidv4(),
+    collection_id      uuid REFERENCES collections(id) ON DELETE CASCADE,
+    status             status NOT NULL DEFAULT 'pending',
+    source             varchar(128) NOT NULL,
+    source_type        varchar(32) NOT NULL,
+    extraction_type    collection_extraction_type NOT NULL DEFAULT 'merge',
+    created_at         timestamptz NOT NULL DEFAULT timezone('utc', now())
 );
 
 CREATE TABLE documents (
-    id               uuid PRIMARY KEY DEFAULT uuidv4(),
-    collection_id    uuid REFERENCES collections(id),
-    canonical_path   varchar(256) NOT NULL,
-    checksum         bytea NOT NULL
+    id                uuid PRIMARY KEY DEFAULT uuidv4(),
+    collection_id     uuid REFERENCES collections(id) ON DELETE CASCADE,
+    canonical_path    varchar(256) NOT NULL,
+    checksum          bytea NOT NULL
 );
 
 CREATE TABLE document_indexing (
-    id               uuid PRIMARY KEY DEFAULT uuidv4(),
-    document_id      uuid REFERENCES documents(id) ON DELETE CASCADE,
-    status           status NOT NULL DEFAULT 'pending',
-    created_at       timestamptz NOT NULL DEFAULT timezone('utc', now())
+    id             uuid PRIMARY KEY DEFAULT uuidv4(),
+    document_id    uuid REFERENCES documents(id) ON DELETE CASCADE,
+    status         status NOT NULL DEFAULT 'pending',
+    created_at     timestamptz NOT NULL DEFAULT timezone('utc', now())
 );
