@@ -12,10 +12,12 @@ use super::collections;
         collections::schedule_extraction,
     ),
     components(schemas(
-        crate::service::collections::CollectionOut,
-        crate::service::collections::CollectionIn,
-        crate::service::collections::CollectionUpdate,
+        crate::service::collections::CollectionExtractionIn,
         crate::service::collections::CollectionExtractionOut,
+        crate::service::collections::CollectionExtractionTypeOut,
+        crate::service::collections::CollectionIn,
+        crate::service::collections::CollectionOut,
+        crate::service::collections::CollectionUpdate,
         super::error::ErrorWithDetail,
     ))
 )]

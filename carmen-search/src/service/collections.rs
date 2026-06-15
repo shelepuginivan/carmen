@@ -1,4 +1,4 @@
-use carmen_db::collections::{Collection, CollectionExtraction};
+use carmen_db::collections::{Collection, CollectionExtraction, CollectionExtractionType};
 use carmen_db::documents::Document;
 use carmen_db::types::Status;
 use chrono::{DateTime, Utc};
@@ -6,7 +6,6 @@ use s3::Bucket;
 use s3::serde_types::ObjectIdentifier;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use url::Url;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -19,8 +18,6 @@ const EXTRACTED_DOCUMENTS_PREFIX: &str = "extracted";
 pub struct CollectionIn {
     name: String,
     description: Option<String>,
-    url: Option<Url>,
-    source: Option<String>,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -29,8 +26,6 @@ pub struct CollectionUpdate {
     id: Uuid,
     name: Option<String>,
     description: Option<String>,
-    url: Option<Url>,
-    source: Option<String>,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -39,8 +34,6 @@ pub struct CollectionOut {
     id: Uuid,
     name: String,
     description: Option<String>,
-    url: Option<String>,
-    source: Option<String>,
 }
 
 impl From<Collection> for CollectionOut {
@@ -49,10 +42,16 @@ impl From<Collection> for CollectionOut {
             id: value.id,
             name: value.name,
             description: value.description,
-            url: value.url,
-            source: value.source,
         }
     }
+}
+
+#[derive(Deserialize, ToSchema)]
+pub struct CollectionExtractionIn {
+    collection_id: Uuid,
+    source: String,
+    source_type: String,
+    extraction_type: Option<CollectionExtractionTypeOut>,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -76,6 +75,21 @@ impl From<Status> for StatusOut {
     }
 }
 
+#[derive(Serialize, Deserialize, ToSchema)]
+pub enum CollectionExtractionTypeOut {
+    Merge,
+    Override,
+}
+
+impl From<CollectionExtractionType> for CollectionExtractionTypeOut {
+    fn from(value: CollectionExtractionType) -> Self {
+        match value {
+            CollectionExtractionType::Merge => Self::Merge,
+            CollectionExtractionType::Override => Self::Override,
+        }
+    }
+}
+
 #[derive(Serialize, ToSchema)]
 #[schema(title = "CollectionExtraction")]
 pub struct CollectionExtractionOut {
@@ -83,6 +97,9 @@ pub struct CollectionExtractionOut {
     collection_id: Uuid,
     status: StatusOut,
     created_at: DateTime<Utc>,
+    source: String,
+    source_type: String,
+    extraction_type: CollectionExtractionTypeOut,
 }
 
 impl From<CollectionExtraction> for CollectionExtractionOut {
@@ -92,6 +109,18 @@ impl From<CollectionExtraction> for CollectionExtractionOut {
             collection_id: value.collection_id,
             status: value.status.into(),
             created_at: value.created_at,
+            source: value.source,
+            source_type: value.source_type,
+            extraction_type: value.extraction_type.into(),
+        }
+    }
+}
+
+impl From<CollectionExtractionTypeOut> for CollectionExtractionType {
+    fn from(val: CollectionExtractionTypeOut) -> Self {
+        match val {
+            CollectionExtractionTypeOut::Merge => CollectionExtractionType::Merge,
+            CollectionExtractionTypeOut::Override => CollectionExtractionType::Override,
         }
     }
 }
@@ -101,8 +130,6 @@ pub async fn create_collection(db: &PgPool, collection_in: CollectionIn) -> Resu
         db,
         collection_in.name.as_ref(),
         collection_in.description.as_deref(),
-        collection_in.url.as_ref().map(|u| u.as_str()),
-        collection_in.source.as_deref(),
     )
     .await?
     .into())
@@ -128,8 +155,21 @@ pub async fn get_extractions(db: &PgPool, id: Uuid) -> Result<Vec<CollectionExtr
         .collect())
 }
 
-pub async fn schedule_extraction(db: &PgPool, id: Uuid) -> Result<CollectionExtractionOut> {
-    Ok(Collection::schedule_extraction(db, id).await?.into())
+pub async fn schedule_extraction(
+    db: &PgPool,
+    extraction: CollectionExtractionIn,
+) -> Result<CollectionExtractionOut> {
+    Ok(Collection::schedule_extraction(
+        db,
+        extraction.collection_id,
+        &extraction.source,
+        &extraction.source_type,
+        extraction
+            .extraction_type
+            .map(CollectionExtractionTypeOut::into),
+    )
+    .await?
+    .into())
 }
 
 pub async fn update_collection(db: &PgPool, update: CollectionUpdate) -> Result<CollectionOut> {
@@ -138,8 +178,6 @@ pub async fn update_collection(db: &PgPool, update: CollectionUpdate) -> Result<
         update.id,
         update.name.as_deref(),
         update.description.as_deref(),
-        update.url.as_ref().map(|u| u.as_str()),
-        update.source.as_deref(),
     )
     .await?
     .into())

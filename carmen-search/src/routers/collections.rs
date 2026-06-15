@@ -6,7 +6,7 @@ use axum::{Json, Router};
 use uuid::Uuid;
 
 use crate::app::AppState;
-use crate::service::collections::{self};
+use crate::service::collections::{self, CollectionExtractionIn};
 
 use super::error::{ErrorWithDetail, Result};
 
@@ -200,9 +200,7 @@ pub async fn get_extractions(
 #[utoipa::path(
     post,
     path = "/api/v1/collections/{id}/schedule",
-    params(
-        ("id" = Uuid, Path, description = "Collection ID")
-    ),
+    request_body = collections::CollectionExtractionIn,
     responses(
         (
             status = 202,
@@ -218,8 +216,8 @@ pub async fn get_extractions(
 )]
 pub async fn schedule_extraction(
     state: State<AppState>,
-    Path(id): Path<Uuid>,
+    Json(extraction): Json<CollectionExtractionIn>,
 ) -> Result<impl IntoResponse> {
-    let extraction = collections::schedule_extraction(&state.db, id).await?;
+    let extraction = collections::schedule_extraction(&state.db, extraction).await?;
     Ok((StatusCode::ACCEPTED, Json(extraction)))
 }
