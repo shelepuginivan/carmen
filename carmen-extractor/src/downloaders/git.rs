@@ -4,7 +4,7 @@ use carmen_db::collections::CollectionExtraction;
 use git2::{FetchOptions, build::RepoBuilder};
 use walkdir::{DirEntry, WalkDir};
 
-use super::{DownloadedDocument, Downloader};
+use super::{DocumentFormat, DownloadedDocument, Downloader};
 
 pub struct GitDownloader;
 
@@ -33,6 +33,11 @@ impl Downloader for GitDownloader {
             .filter_map(|e| e.ok())
             .filter(Self::filter_file)
         {
+            let format = match DocumentFormat::guess_for_path(entry.path()) {
+                Some(f) => f,
+                None => continue,
+            };
+
             let canonical_path = match entry
                 .path()
                 .strip_prefix(tempdir)
@@ -48,6 +53,7 @@ impl Downloader for GitDownloader {
             extracted.push(DownloadedDocument {
                 file_path,
                 canonical_path,
+                format,
             });
         }
 
@@ -61,33 +67,23 @@ impl GitDownloader {
             return false;
         }
 
-        let accept_stem =
-            if let Some(filename) = entry.path().file_stem().and_then(|stem| stem.to_str()) {
-                ![
-                    "ACKNOWLEDGMENTS",
-                    "AUTHORS",
-                    "CODEOWNERS",
-                    "CODE_OF_CONDUCT",
-                    "CONTRIBUTING",
-                    "CONTRIBUTORS",
-                    "ISSUE_TEMPLATE",
-                    "LICENSE",
-                    "PULL_REQUEST_TEMPLATE",
-                    "SUPPORT",
-                ]
-                .contains(&filename)
-            } else {
-                false
-            };
-
-        let accept_ext =
-            if let Some(extension) = entry.path().extension().and_then(|ext| ext.to_str()) {
-                ["md", "txt"].contains(&extension)
-            } else {
-                false
-            };
-
-        accept_stem && accept_ext
+        if let Some(filename) = entry.path().file_stem().and_then(|stem| stem.to_str()) {
+            ![
+                "ACKNOWLEDGMENTS",
+                "AUTHORS",
+                "CODEOWNERS",
+                "CODE_OF_CONDUCT",
+                "CONTRIBUTING",
+                "CONTRIBUTORS",
+                "ISSUE_TEMPLATE",
+                "LICENSE",
+                "PULL_REQUEST_TEMPLATE",
+                "SUPPORT",
+            ]
+            .contains(&filename)
+        } else {
+            false
+        }
     }
 
     fn filter_entry(entry: &DirEntry) -> bool {
