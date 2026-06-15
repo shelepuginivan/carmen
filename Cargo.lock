@@ -460,7 +460,9 @@ dependencies = [
  "log",
  "rust-s3",
  "sqlx",
+ "tempfile",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
