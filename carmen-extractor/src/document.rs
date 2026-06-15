@@ -36,7 +36,6 @@ pub struct Document {
     pub canonical_path: String,
     pub exported_path: PathBuf,
     pub raw_path: PathBuf,
-    pub raw_format: DocumentFormat,
 }
 
 #[derive(Default)]
@@ -76,12 +75,11 @@ impl DocumentBuilder {
             .or_else(|| DocumentFormat::guess_for_path(&raw_path))
             .unwrap_or_default();
 
-        if raw_format == DocumentFormat::Markdown {
+        if raw_format == DocumentFormat::Markdown || raw_format == DocumentFormat::PlainText {
             return Ok(Document {
                 canonical_path,
                 exported_path: raw_path.clone(),
                 raw_path,
-                raw_format,
             });
         }
 
@@ -93,8 +91,6 @@ impl DocumentBuilder {
 
         let result = Command::new("pandoc")
             .arg("--standalone")
-            .arg("--output")
-            .arg(&exported_path)
             .arg("--from")
             .arg(raw_format.to_string())
             .arg("--to")
@@ -110,7 +106,6 @@ impl DocumentBuilder {
                 canonical_path,
                 exported_path,
                 raw_path,
-                raw_format,
             })
         } else {
             bail!("failed to convert document with pandoc")
