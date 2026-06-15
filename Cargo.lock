@@ -467,6 +467,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "carmen-s3"
+version = "0.1.0"
+dependencies = [
+ "rust-s3",
+ "thiserror",
+]
+
+[[package]]
 name = "carmen-search"
 version = "0.1.0"
 dependencies = [

@@ -3,7 +3,7 @@ resolver = "3"
 members = [
     "carmen-db",
     "carmen-extractor",
-    "carmen-indexer",
+    "carmen-indexer", "carmen-s3",
     "carmen-search",
 ]
 
