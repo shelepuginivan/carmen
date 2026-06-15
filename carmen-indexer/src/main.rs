@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
 use carmen_db::documents::DOCUMENT_INDEXING_CHAN;
+use carmen_s3::Storage;
 use log::{error, info};
-use s3::creds::Credentials;
-use s3::{Bucket, Region};
 use sqlx::postgres::PgListener;
 use sqlx::{PgPool, types::Uuid};
 use tokio::signal::unix::{SignalKind, signal};
@@ -30,20 +29,7 @@ async fn main() -> anyhow::Result<()> {
     queue_listener.listen(DOCUMENT_INDEXING_CHAN).await?;
     info!("listening to PG channel '{DOCUMENT_INDEXING_CHAN}'");
 
-    let region = Region::Custom {
-        region: config.s3_region,
-        endpoint: config.s3_endpoint,
-    };
-
-    let credentials = Credentials::new(
-        Some(&config.s3_access_key),
-        Some(&config.s3_secret_key),
-        None,
-        None,
-        None,
-    )?;
-
-    let bucket = Bucket::new(&config.s3_bucket, region, credentials)?.with_path_style();
+    let storage = Storage::new_from_env()?;
 
     // Indexing is computationally heavy, hence limit the number of concurrent tasks.
     let tasks = Arc::new(Semaphore::new(config.task_limit));
@@ -66,8 +52,8 @@ async fn main() -> anyhow::Result<()> {
 
                     let task_id: Uuid = notification.payload().parse()?;
                     let pool = pool.clone();
-                    let bucket = bucket.clone();
-                    let (task, _cancel_tx) = Task::new(task_id, pool, bucket);
+                    let storage = storage.clone();
+                    let (task, _cancel_tx) = Task::new(task_id, pool, storage);
 
                     tokio::spawn(async move {
                         let _ = task.start().await;

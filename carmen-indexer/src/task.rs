@@ -1,7 +1,7 @@
 use carmen_db::documents::{Document, DocumentIndexing};
 use carmen_db::types::Status;
+use carmen_s3::Storage;
 use log::{error, info};
-use s3::Bucket;
 use sqlx::PgPool;
 use tempfile::TempDir;
 use tokio::sync::oneshot::{self, Receiver, Sender};
@@ -10,17 +10,17 @@ use uuid::Uuid;
 pub struct Task {
     id: Uuid,
     pool: PgPool,
-    bucket: Box<Bucket>,
+    storage: Storage,
     cancel_rx: Receiver<()>,
 }
 
 impl Task {
-    pub fn new(id: Uuid, pool: PgPool, bucket: Box<Bucket>) -> (Self, Sender<()>) {
+    pub fn new(id: Uuid, pool: PgPool, storage: Storage) -> (Self, Sender<()>) {
         let (cancel_tx, cancel_rx) = oneshot::channel();
         let task = Self {
             id,
             pool,
-            bucket,
+            storage,
             cancel_rx,
         };
 

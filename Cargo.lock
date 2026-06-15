@@ -456,10 +456,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "carmen-db",
+ "carmen-s3",
  "env_logger",
  "fastembed",
  "log",
- "rust-s3",
  "sqlx",
  "tempfile",
  "tokio",
