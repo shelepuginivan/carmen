@@ -1,8 +1,6 @@
 use axum::Router;
+use carmen_s3::Storage;
 use log::info;
-use s3::Bucket;
-use s3::Region;
-use s3::creds::Credentials;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
 use tokio::signal::unix::{SignalKind, signal};
@@ -27,21 +25,8 @@ async fn main() -> anyhow::Result<()> {
     let pool = PgPool::connect(&config.postgres_url).await?;
     info!("Database connection established");
 
-    let region = Region::Custom {
-        region: config.s3_region,
-        endpoint: config.s3_endpoint,
-    };
-
-    let credentials = Credentials::new(
-        Some(&config.s3_access_key),
-        Some(&config.s3_secret_key),
-        None,
-        None,
-        None,
-    )?;
-
-    let bucket = Bucket::new(&config.s3_bucket, region, credentials)?.with_path_style();
-    let state = AppState::new(pool, bucket);
+    let storage = Storage::new_from_env()?;
+    let state = AppState::new(pool, storage);
 
     let mut app = Router::new()
         .nest("/api/v1/collections", collections::router())

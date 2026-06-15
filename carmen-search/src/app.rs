@@ -1,14 +1,14 @@
-use s3::Bucket;
+use carmen_s3::Storage;
 use sqlx::PgPool;
 
 #[derive(Clone)]
 pub struct AppState {
     pub db: PgPool,
-    pub bucket: Box<Bucket>,
+    pub storage: Storage,
 }
 
 impl AppState {
-    pub fn new(db: PgPool, bucket: Box<Bucket>) -> Self {
-        Self { db, bucket }
+    pub fn new(db: PgPool, storage: Storage) -> Self {
+        Self { db, storage }
     }
 }

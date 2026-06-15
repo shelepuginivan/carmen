@@ -1,4 +1,4 @@
-use s3::error::S3Error;
+use carmen_s3::StorageError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -9,7 +9,7 @@ pub enum Error {
     Database,
 
     #[error("an internal storage error occurred")]
-    S3Error(#[from] S3Error),
+    Storage(#[from] StorageError),
 
     #[error("an internal server error occurred")]
     Anyhow(#[from] anyhow::Error),

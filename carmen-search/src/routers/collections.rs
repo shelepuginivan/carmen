@@ -159,7 +159,7 @@ pub async fn delete_collection(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
-    let extraction = collections::delete_collection(&state.db, &state.bucket, id).await?;
+    let extraction = collections::delete_collection(&state.db, &state.storage, id).await?;
     Ok((StatusCode::OK, Json(extraction)))
 }
 
