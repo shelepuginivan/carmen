@@ -427,6 +427,7 @@ dependencies = [
  "env_logger",
  "log",
  "sqlx",
+ "thiserror",
  "tokio",
 ]
 
