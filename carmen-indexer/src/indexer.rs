@@ -1,32 +1,37 @@
-use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
+use std::sync::Mutex;
+
+use fastembed::{InitOptions, TextEmbedding};
 use text_splitter::{Characters, MarkdownSplitter};
 
+use crate::config::Config;
+
 pub struct Indexer {
-    embedder: TextEmbedding,
+    embedder: Mutex<TextEmbedding>,
     splitter: MarkdownSplitter<Characters>,
 }
 
-pub struct Chunk<'a> {
-    pub text: &'a str,
+pub struct Chunk<'text> {
+    pub text: &'text str,
     pub embedding: Vec<f32>,
 }
 
 impl Indexer {
-    pub fn new() -> anyhow::Result<Self> {
-        // TODO: configure from env vars, maybe move to common crate?
-        //       also download models at build time?
-        let embedder = TextEmbedding::try_new(
-            InitOptions::new(EmbeddingModel::AllMiniLML6V2).with_intra_threads(4),
-        )?;
+    pub fn new(config: &Config) -> anyhow::Result<Self> {
+        let mut options = InitOptions::new(config.embedding_model.clone());
 
-        let splitter = MarkdownSplitter::new(512);
+        if let Some(intra_threads) = config.embedding_threads {
+            options = options.with_intra_threads(intra_threads);
+        }
+
+        let embedder = Mutex::new(TextEmbedding::try_new(options)?);
+        let splitter = MarkdownSplitter::new(config.max_chunk_size);
 
         Ok(Self { embedder, splitter })
     }
 
-    pub fn embed_document<'text>(&mut self, text: &'text str) -> anyhow::Result<Vec<Chunk<'text>>> {
+    pub fn embed_document<'text>(&self, text: &'text str) -> anyhow::Result<Vec<Chunk<'text>>> {
         let fragments: Vec<&str> = self.splitter.chunks(text).collect();
-        let embeddings = self.embedder.embed(&fragments, None)?;
+        let embeddings = self.embedder.lock().unwrap().embed(&fragments, None)?;
 
         Ok(embeddings
             .into_iter()

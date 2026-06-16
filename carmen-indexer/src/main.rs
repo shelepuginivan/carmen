@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use carmen_db::documents::DOCUMENT_INDEXING_CHAN;
 use carmen_s3::Storage;
@@ -31,7 +31,7 @@ async fn main() -> anyhow::Result<()> {
     info!("listening to PG channel '{DOCUMENT_INDEXING_CHAN}'");
 
     let storage = Storage::new_from_env()?;
-    let indexer = Arc::new(Mutex::new(Indexer::new()?));
+    let indexer = Arc::new(Indexer::new(&config)?);
 
     // Indexing is computationally heavy, hence limit the number of concurrent tasks.
     let tasks = Arc::new(Semaphore::new(config.task_limit));

@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use carmen_db::chunks::Chunk;
 use carmen_db::documents::{Document, DocumentIndexing};
@@ -15,7 +15,7 @@ pub struct Task {
     id: Uuid,
     pool: PgPool,
     storage: Storage,
-    indexer: Arc<Mutex<Indexer>>,
+    indexer: Arc<Indexer>,
     cancel_rx: Receiver<()>,
 }
 
@@ -24,7 +24,7 @@ impl Task {
         id: Uuid,
         pool: PgPool,
         storage: Storage,
-        indexer: Arc<Mutex<Indexer>>,
+        indexer: Arc<Indexer>,
     ) -> (Self, Sender<()>) {
         let (cancel_tx, cancel_rx) = oneshot::channel();
         let task = Self {
@@ -72,7 +72,7 @@ impl Task {
             .get_exported_document_as_string(document.id)
             .await?;
 
-        let chunks = self.indexer.lock().unwrap().embed_document(&document_str)?;
+        let chunks = self.indexer.embed_document(&document_str)?;
 
         for chunk in chunks {
             Chunk::insert(
