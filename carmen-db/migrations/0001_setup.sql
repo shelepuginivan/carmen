@@ -1,3 +1,5 @@
+CREATE EXTENSION vector;
+
 CREATE TYPE status AS ENUM (
     'pending',
     'in_progress',
@@ -41,4 +43,13 @@ CREATE TABLE document_indexing (
     document_id    uuid REFERENCES documents(id) ON DELETE CASCADE,
     status         status NOT NULL DEFAULT 'pending',
     created_at     timestamptz NOT NULL DEFAULT timezone('utc', now())
+);
+
+CREATE TABLE chunks (
+    id             uuid PRIMARY KEY DEFAULT uuidv4(),
+    document_id    uuid REFERENCES documents(id) ON DELETE CASCADE,
+    text           text NOT NULL,
+    language       regconfig NOT NULL DEFAULT 'simple',
+    fts_vector     tsvector GENERATED ALWAYS AS (to_tsvector(language, text)) STORED,
+    embedding      vector NOT NULL
 );

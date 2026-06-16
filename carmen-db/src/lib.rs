@@ -6,6 +6,7 @@ use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
 use tokio::time::sleep;
 
+pub mod chunks;
 pub mod collections;
 pub mod documents;
 pub mod error;
