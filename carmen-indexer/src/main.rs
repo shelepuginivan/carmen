@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use carmen_db::documents::DOCUMENT_INDEXING_CHAN;
 use carmen_s3::Storage;
@@ -9,9 +9,11 @@ use tokio::signal::unix::{SignalKind, signal};
 use tokio::sync::Semaphore;
 
 mod config;
+mod indexer;
 mod task;
 
 use crate::config::Config;
+use crate::indexer::Indexer;
 use crate::task::Task;
 
 #[tokio::main]
@@ -29,6 +31,7 @@ async fn main() -> anyhow::Result<()> {
     info!("listening to PG channel '{DOCUMENT_INDEXING_CHAN}'");
 
     let storage = Storage::new_from_env()?;
+    let indexer = Arc::new(Mutex::new(Indexer::new()?));
 
     // Indexing is computationally heavy, hence limit the number of concurrent tasks.
     let tasks = Arc::new(Semaphore::new(config.task_limit));
@@ -52,7 +55,8 @@ async fn main() -> anyhow::Result<()> {
                     let task_id: Uuid = notification.payload().parse()?;
                     let pool = pool.clone();
                     let storage = storage.clone();
-                    let (task, _cancel_tx) = Task::new(task_id, pool, storage);
+                    let indexer = indexer.clone();
+                    let (task, _cancel_tx) = Task::new(task_id, pool, storage, indexer);
 
                     tokio::spawn(async move {
                         let _ = task.start().await;

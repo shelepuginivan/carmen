@@ -1,33 +1,43 @@
+use std::sync::{Arc, Mutex};
+
 use carmen_db::documents::{Document, DocumentIndexing};
 use carmen_db::types::Status;
 use carmen_s3::Storage;
 use log::{error, info};
 use sqlx::PgPool;
-use tempfile::TempDir;
 use tokio::sync::oneshot::{self, Receiver, Sender};
 use uuid::Uuid;
+
+use crate::indexer::Indexer;
 
 pub struct Task {
     id: Uuid,
     pool: PgPool,
     storage: Storage,
+    indexer: Arc<Mutex<Indexer>>,
     cancel_rx: Receiver<()>,
 }
 
 impl Task {
-    pub fn new(id: Uuid, pool: PgPool, storage: Storage) -> (Self, Sender<()>) {
+    pub fn new(
+        id: Uuid,
+        pool: PgPool,
+        storage: Storage,
+        indexer: Arc<Mutex<Indexer>>,
+    ) -> (Self, Sender<()>) {
         let (cancel_tx, cancel_rx) = oneshot::channel();
         let task = Self {
             id,
             pool,
             storage,
+            indexer,
             cancel_rx,
         };
 
         (task, cancel_tx)
     }
 
-    pub async fn start(self) -> anyhow::Result<()> {
+    pub async fn start(mut self) -> anyhow::Result<()> {
         let status = match self.run().await {
             Ok(_) => {
                 info!("Indexing {} completed successfully", self.id);
@@ -43,7 +53,7 @@ impl Task {
         Ok(())
     }
 
-    async fn run(&self) -> anyhow::Result<()> {
+    async fn run(&mut self) -> anyhow::Result<()> {
         let indexing = match DocumentIndexing::claim(&self.pool, self.id).await? {
             Some(claimed) => claimed,
             None => return Ok(()),
@@ -56,9 +66,14 @@ impl Task {
             indexing.id, document.id,
         );
 
-        let tempdir = TempDir::with_prefix("carmen_indexer-")?;
+        let document_str = self
+            .storage
+            .get_exported_document_as_string(document.id)
+            .await?;
 
-        // TODO: index document
+        let chunks = self.indexer.lock().unwrap().embed_document(&document_str)?;
+
+        // TODO: save chunks to db
 
         Ok(())
     }

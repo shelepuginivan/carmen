@@ -11,7 +11,7 @@ env_logger.workspace = true
 fastembed.workspace = true
 log.workspace = true
 sqlx.workspace = true
-tempfile.workspace = true
+text-splitter = { version = "0.32.0", features = ["markdown"] }
 tokio.workspace = true
 uuid.workspace = true
 
