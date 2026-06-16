@@ -5,4 +5,5 @@
 !carmen-db
 !carmen-extractor
 !carmen-indexer
+!carmen-s3
 !carmen-search
