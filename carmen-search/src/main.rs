@@ -1,7 +1,6 @@
 use axum::Router;
 use carmen_s3::Storage;
 use log::info;
-use sqlx::PgPool;
 use tokio::net::TcpListener;
 use tokio::signal::unix::{SignalKind, signal};
 use utoipa::OpenApi;
@@ -22,9 +21,7 @@ async fn main() -> anyhow::Result<()> {
     env_logger::init_from_env("CARMEN_LOG");
 
     let config = Config::load_env()?;
-    let pool = PgPool::connect(&config.postgres_url).await?;
-    info!("Database connection established");
-
+    let pool = carmen_db::connect_from_env().await?;
     let storage = Storage::new_from_env()?;
     let state = AppState::new(pool, storage);
 

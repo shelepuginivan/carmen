@@ -4,7 +4,7 @@ use carmen_db::documents::DOCUMENT_INDEXING_CHAN;
 use carmen_s3::Storage;
 use log::{error, info};
 use sqlx::postgres::PgListener;
-use sqlx::{PgPool, types::Uuid};
+use sqlx::types::Uuid;
 use tokio::signal::unix::{SignalKind, signal};
 use tokio::sync::Semaphore;
 
@@ -22,8 +22,7 @@ async fn main() -> anyhow::Result<()> {
     let mut signal_interrupt = signal(SignalKind::interrupt())?;
 
     let config = Config::load_env()?;
-    let pool = PgPool::connect(&config.postgres_url).await?;
-    info!("Database connection established");
+    let pool = carmen_db::connect_from_env().await?;
 
     let mut queue_listener = PgListener::connect_with(&pool).await?;
     queue_listener.listen(DOCUMENT_INDEXING_CHAN).await?;
