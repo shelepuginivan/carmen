@@ -44,6 +44,15 @@ impl Storage {
         Ok(Self { bucket })
     }
 
+    pub async fn get_exported_document_as_string(&self, id: Uuid) -> Result<String> {
+        Ok(self
+            .bucket
+            .get_object(exported_document!(id))
+            .await
+            .unwrap()
+            .to_string()?)
+    }
+
     pub async fn put_raw_document_from_path(&self, id: Uuid, path: &Path) -> Result<()> {
         let mut file = File::open(path).await?;
 

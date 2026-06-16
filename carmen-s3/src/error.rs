@@ -1,3 +1,5 @@
+use std::str::Utf8Error;
+
 use s3::{creds::error::CredentialsError, error::S3Error};
 use thiserror::Error;
 
@@ -9,6 +11,8 @@ pub enum StorageError {
     Configuration(String),
     #[error("{0}")]
     Runtime(String),
+    #[error("object is not a valid UTF-8 string: {0}")]
+    UTF8(#[from] Utf8Error),
     #[error("{0}")]
     IO(#[from] tokio::io::Error),
 }
