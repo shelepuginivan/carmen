@@ -72,14 +72,12 @@ impl Task {
             .get_exported_document_as_string(document.id)
             .await?;
 
-        let chunks = self.indexer.embed_document(&document_str)?;
-
-        for chunk in chunks {
+        for chunk in self.indexer.embed_document(&document_str)? {
             Chunk::insert(
                 &self.pool,
                 document.id,
                 chunk.text,
-                "simple", // TODO: detect language
+                &chunk.language,
                 chunk.embedding,
             )
             .await?;

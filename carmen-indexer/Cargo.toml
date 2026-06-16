@@ -9,6 +9,7 @@ license.workspace = true
 anyhow.workspace = true
 env_logger.workspace = true
 fastembed.workspace = true
+lingua.workspace = true
 log.workspace = true
 sqlx.workspace = true
 text-splitter = { version = "0.32.0", features = ["markdown"] }

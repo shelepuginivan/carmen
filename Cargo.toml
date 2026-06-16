@@ -19,6 +19,7 @@ axum = "0.8"
 chrono = { version = "0.4", features = ["serde"] }
 env_logger = "0.11"
 fastembed = "5"
+lingua = "1.8"
 log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
