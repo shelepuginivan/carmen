@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex};
 
+use carmen_db::chunks::Chunk;
 use carmen_db::documents::{Document, DocumentIndexing};
 use carmen_db::types::Status;
 use carmen_s3::Storage;
@@ -73,7 +74,16 @@ impl Task {
 
         let chunks = self.indexer.lock().unwrap().embed_document(&document_str)?;
 
-        // TODO: save chunks to db
+        for chunk in chunks {
+            Chunk::insert(
+                &self.pool,
+                document.id,
+                chunk.text,
+                "simple", // TODO: detect language
+                chunk.embedding,
+            )
+            .await?;
+        }
 
         Ok(())
     }
