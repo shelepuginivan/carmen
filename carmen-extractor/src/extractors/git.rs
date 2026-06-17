@@ -66,10 +66,11 @@ impl GitExtractor {
         let mut fetch_opts = FetchOptions::new();
         fetch_opts.depth(1);
 
-        Ok(RepoBuilder::new()
+        RepoBuilder::new()
             .fetch_options(fetch_opts)
-            .clone(repo_url, output)
-            .map(|_| ())?)
+            .clone(repo_url, output)?;
+
+        Ok(())
     }
 
     fn filter_file(entry: &DirEntry) -> bool {

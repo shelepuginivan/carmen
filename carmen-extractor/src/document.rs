@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, bail};
+use anyhow::{Context, bail};
 use tempfile::NamedTempFile;
 use tokio::process::Command;
 
@@ -17,10 +17,7 @@ pub enum DocumentFormat {
 
 impl DocumentFormat {
     pub fn guess_for_path(path: &Path) -> Option<Self> {
-        let extension = match path.extension().and_then(|ext| ext.to_str()) {
-            Some(ext) => ext,
-            None => return None,
-        };
+        let extension = path.extension().and_then(|ext| ext.to_str())?;
 
         match extension {
             "md" => Some(Self::Markdown),
@@ -62,13 +59,8 @@ impl DocumentBuilder {
     }
 
     pub async fn build(self) -> anyhow::Result<Document> {
-        let raw_path = self
-            .raw_path
-            .ok_or_else(|| anyhow!("raw_path must be set"))?;
-
-        let canonical_path = self
-            .canonical_path
-            .ok_or_else(|| anyhow!("canonical_path must be set"))?;
+        let raw_path = self.raw_path.context("raw_path must be set")?;
+        let canonical_path = self.canonical_path.context("canonical_path must be set")?;
 
         let raw_format = self
             .raw_format
@@ -83,9 +75,7 @@ impl DocumentBuilder {
             });
         }
 
-        let parent = raw_path
-            .parent()
-            .ok_or_else(|| anyhow!("cannot determine parent directory"))?;
+        let parent = raw_path.parent().context("cannot get parent directory")?;
 
         let (output, exported_path) = NamedTempFile::new_in(parent)?.keep()?;
 

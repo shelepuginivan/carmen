@@ -48,40 +48,39 @@ impl Storage {
         Ok(self
             .bucket
             .get_object(exported_document!(id))
-            .await
-            .unwrap()
+            .await?
             .to_string()?)
     }
 
     pub async fn put_raw_document_from_path(&self, id: Uuid, path: &Path) -> Result<()> {
         let mut file = File::open(path).await?;
 
-        Ok(self
-            .bucket
+        self.bucket
             .put_object_stream(&mut file, raw_document!(id))
-            .await
-            .map(|_| ())?)
+            .await?;
+
+        Ok(())
     }
 
     pub async fn put_exported_document_from_path(&self, id: Uuid, path: &Path) -> Result<()> {
         let mut file = File::open(path).await?;
 
-        Ok(self
-            .bucket
+        self.bucket
             .put_object_stream(&mut file, exported_document!(id))
-            .await
-            .map(|_| ())?)
+            .await?;
+
+        Ok(())
     }
 
     pub async fn delete_document(&self, id: Uuid) -> Result<()> {
-        Ok(self
-            .bucket
+        self.bucket
             .delete_objects(vec![
                 ObjectIdentifier::new(raw_document!(id)),
                 ObjectIdentifier::new(exported_document!(id)),
             ])
-            .await
-            .map(|_| ())?)
+            .await?;
+
+        Ok(())
     }
 
     pub async fn delete_documents(&self, ids: &[Uuid]) -> Result<()> {
@@ -92,7 +91,9 @@ impl Storage {
             objects.push(ObjectIdentifier::new(exported_document!(id)));
         }
 
-        Ok(self.bucket.delete_objects(objects).await.map(|_| ())?)
+        self.bucket.delete_objects(objects).await?;
+
+        Ok(())
     }
 }
 

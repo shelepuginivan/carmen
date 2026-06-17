@@ -170,7 +170,8 @@ impl CollectionExtraction {
             .bind(new_status)
             .bind(id)
             .execute(pool)
-            .await
-            .map(|_| ())
+            .await?;
+
+        Ok(())
     }
 }

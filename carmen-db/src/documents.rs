@@ -62,8 +62,9 @@ impl Document {
             .bind(checksum)
             .bind(id)
             .execute(pool)
-            .await
-            .map(|_| ())
+            .await?;
+
+        Ok(())
     }
 
     pub async fn delete(pool: &PgPool, id: Uuid) -> sqlx::Result<Self> {
@@ -136,7 +137,8 @@ impl DocumentIndexing {
             .bind(new_status)
             .bind(id)
             .execute(pool)
-            .await
-            .map(|_| ())
+            .await?;
+
+        Ok(())
     }
 }
