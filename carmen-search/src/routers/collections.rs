@@ -44,7 +44,7 @@ pub async fn create(
     state: State<AppState>,
     Json(collection_in): Json<collections::dto::CreateCollection>,
 ) -> Result<impl IntoResponse> {
-    let collection = collections::create_collection(&state.db, collection_in).await?;
+    let collection = state.collections.create(collection_in).await?;
     Ok((StatusCode::CREATED, Json(collection)))
 }
 
@@ -66,7 +66,7 @@ pub async fn create(
     ),
 )]
 pub async fn get_all(state: State<AppState>) -> Result<impl IntoResponse> {
-    let collections = collections::get_all_collections(&state.db).await?;
+    let collections = state.collections.get_all().await?;
     Ok((StatusCode::OK, Json(collections)))
 }
 
@@ -96,8 +96,8 @@ pub async fn get_all(state: State<AppState>) -> Result<impl IntoResponse> {
     ),
 )]
 pub async fn get_by_id(state: State<AppState>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
-    let collections = collections::get_collection(&state.db, id).await?;
-    Ok((StatusCode::OK, Json(collections)))
+    let collection = state.collections.get_one(id).await?;
+    Ok((StatusCode::OK, Json(collection)))
 }
 
 /// Update collection
@@ -127,7 +127,7 @@ pub async fn update(
     state: State<AppState>,
     Json(collection_update): Json<collections::dto::UpdateCollection>,
 ) -> Result<impl IntoResponse> {
-    let collection = collections::update_collection(&state.db, collection_update).await?;
+    let collection = state.collections.update(collection_update).await?;
     Ok((StatusCode::OK, Json(collection)))
 }
 
@@ -160,8 +160,8 @@ pub async fn delete_collection(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
-    let extraction = collections::delete_collection(&state.db, &state.storage, id).await?;
-    Ok((StatusCode::OK, Json(extraction)))
+    let collection = state.collections.delete(id).await?;
+    Ok((StatusCode::OK, Json(collection)))
 }
 
 /// Get collection documents
@@ -193,8 +193,8 @@ pub async fn get_documents(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
-    let extractions = documents::get_documents_in_collection(&state.db, id).await?;
-    Ok((StatusCode::OK, Json(extractions)))
+    let documents = state.documents.get_from_collection(id).await?;
+    Ok((StatusCode::OK, Json(documents)))
 }
 
 /// Get collection extractions
@@ -226,7 +226,7 @@ pub async fn get_extractions(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
-    let extractions = collections::get_extractions(&state.db, id).await?;
+    let extractions = state.collections.get_extractions(id).await?;
     Ok((StatusCode::OK, Json(extractions)))
 }
 
@@ -252,6 +252,6 @@ pub async fn schedule_extraction(
     state: State<AppState>,
     Json(extraction): Json<collections::dto::ScheduleCollectionExtraction>,
 ) -> Result<impl IntoResponse> {
-    let extraction = collections::schedule_extraction(&state.db, extraction).await?;
+    let extraction = state.collections.schedule_extraction(extraction).await?;
     Ok((StatusCode::ACCEPTED, Json(extraction)))
 }

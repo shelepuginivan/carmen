@@ -1,14 +1,28 @@
+use std::sync::Arc;
+
 use carmen_s3::Storage;
 use sqlx::PgPool;
 
+use crate::service::collections::CollectionService;
+use crate::service::documents::DocumentsService;
+
 #[derive(Clone)]
 pub struct AppState {
-    pub db: PgPool,
-    pub storage: Storage,
+    pub collections: CollectionService,
+    pub documents: DocumentsService,
 }
 
 impl AppState {
-    pub fn new(db: PgPool, storage: Storage) -> Self {
-        Self { db, storage }
+    pub fn new(pool: PgPool, storage: Storage) -> Self {
+        let pool = Arc::new(pool);
+        let storage = Arc::new(storage);
+
+        let collections = CollectionService::new(pool.clone(), storage.clone());
+        let documents = DocumentsService::new(pool, storage);
+
+        Self {
+            collections,
+            documents,
+        }
     }
 }
