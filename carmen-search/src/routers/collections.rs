@@ -6,7 +6,7 @@ use axum::{Json, Router};
 use uuid::Uuid;
 
 use crate::app::AppState;
-use crate::service::collections::{self, CollectionExtractionIn};
+use crate::service::collections;
 
 use super::error::{ErrorWithDetail, Result};
 
@@ -25,12 +25,12 @@ pub fn router() -> Router<AppState> {
 #[utoipa::path(
     post,
     path = "/api/v1/collections",
-    request_body = collections::CollectionIn,
+    request_body = collections::dto::CreateCollection,
     responses(
         (
             status = 201,
             description = "Collection created successfully",
-            body = collections::CollectionOut,
+            body = collections::dto::Collection,
         ),
         (
             status = 500,
@@ -41,7 +41,7 @@ pub fn router() -> Router<AppState> {
 )]
 pub async fn create(
     state: State<AppState>,
-    Json(collection_in): Json<collections::CollectionIn>,
+    Json(collection_in): Json<collections::dto::CreateCollection>,
 ) -> Result<impl IntoResponse> {
     let collection = collections::create_collection(&state.db, collection_in).await?;
     Ok((StatusCode::CREATED, Json(collection)))
@@ -55,7 +55,7 @@ pub async fn create(
         (
             status = 200,
             description = "Collections",
-            body = collections::CollectionOut,
+            body = collections::dto::Collection,
         ),
         (
             status = 500,
@@ -80,7 +80,7 @@ pub async fn get_all(state: State<AppState>) -> Result<impl IntoResponse> {
         (
             status = 200,
             description = "The requested collection",
-            body = collections::CollectionOut,
+            body = collections::dto::Collection,
         ),
         (
             status = 404,
@@ -103,12 +103,12 @@ pub async fn get_by_id(state: State<AppState>, Path(id): Path<Uuid>) -> Result<i
 #[utoipa::path(
     patch,
     path = "/api/v1/collections/{id}",
-    request_body = collections::CollectionUpdate,
+    request_body = collections::dto::UpdateCollection,
     responses(
         (
             status = 200,
             description = "Collection updated successfully",
-            body = collections::CollectionOut,
+            body = collections::dto::Collection,
         ),
         (
             status = 404,
@@ -124,7 +124,7 @@ pub async fn get_by_id(state: State<AppState>, Path(id): Path<Uuid>) -> Result<i
 )]
 pub async fn update(
     state: State<AppState>,
-    Json(collection_update): Json<collections::CollectionUpdate>,
+    Json(collection_update): Json<collections::dto::UpdateCollection>,
 ) -> Result<impl IntoResponse> {
     let collection = collections::update_collection(&state.db, collection_update).await?;
     Ok((StatusCode::OK, Json(collection)))
@@ -141,7 +141,7 @@ pub async fn update(
         (
             status = 200,
             description = "Collection deleted",
-            body = collections::CollectionExtractionOut,
+            body = collections::dto::CollectionExtraction,
         ),
         (
             status = 404,
@@ -174,7 +174,7 @@ pub async fn delete_collection(
         (
             status = 200,
             description = "Extractions of the collection",
-            body = Vec<collections::CollectionExtractionOut>,
+            body = Vec<collections::dto::CollectionExtraction>,
         ),
         (
             status = 404,
@@ -200,12 +200,12 @@ pub async fn get_extractions(
 #[utoipa::path(
     post,
     path = "/api/v1/collections/{id}/schedule",
-    request_body = collections::CollectionExtractionIn,
+    request_body = collections::dto::ScheduleCollectionExtraction,
     responses(
         (
             status = 202,
             description = "Scheduled extraction",
-            body = collections::CollectionExtractionOut,
+            body = collections::dto::CollectionExtraction,
         ),
         (
             status = 500,
@@ -216,7 +216,7 @@ pub async fn get_extractions(
 )]
 pub async fn schedule_extraction(
     state: State<AppState>,
-    Json(extraction): Json<CollectionExtractionIn>,
+    Json(extraction): Json<collections::dto::ScheduleCollectionExtraction>,
 ) -> Result<impl IntoResponse> {
     let extraction = collections::schedule_extraction(&state.db, extraction).await?;
     Ok((StatusCode::ACCEPTED, Json(extraction)))

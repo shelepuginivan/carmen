@@ -13,10 +13,9 @@ pub struct Collection {
     pub description: Option<String>,
 }
 
-#[derive(Default, PartialEq, Eq, sqlx::Type)]
+#[derive(PartialEq, Eq, sqlx::Type)]
 #[sqlx(type_name = "collection_extraction_type", rename_all = "snake_case")]
 pub enum CollectionExtractionType {
-    #[default]
     Merge,
     Override,
 }
@@ -79,7 +78,7 @@ impl Collection {
         id: Uuid,
         source: &str,
         source_type: &str,
-        extraction_type: Option<CollectionExtractionType>,
+        extraction_type: CollectionExtractionType,
     ) -> sqlx::Result<CollectionExtraction> {
         let extraction: CollectionExtraction = sqlx::query_as(
             r#"
@@ -91,7 +90,7 @@ impl Collection {
         .bind(id)
         .bind(source)
         .bind(source_type)
-        .bind(extraction_type.unwrap_or_default())
+        .bind(extraction_type)
         .fetch_one(pool)
         .await?;
 
@@ -112,10 +111,10 @@ impl Collection {
     ) -> sqlx::Result<Self> {
         sqlx::query_as(
             r#"
-            UPDATE collections SET
-              name = COALESCE($1, name),
-              description = $2
-            WHERE id = $5 RETURNING *;
+            UPDATE collections
+            SET name = COALESCE($1, name), description = $2
+            WHERE id = $3
+            RETURNING *
             "#,
         )
         .bind(name)
