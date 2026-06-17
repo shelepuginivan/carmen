@@ -55,6 +55,8 @@ services:
         condition: service_started
       migrations:
         condition: service_completed_successfully
+    volumes:
+      - fastembed_cache:/app/.fastembed_cache
 
   search:
     image: localhost/carmen-search:latest
@@ -71,8 +73,11 @@ services:
         condition: service_started
       migrations:
         condition: service_completed_successfully
+    volumes:
+      - fastembed_cache:/app/.fastembed_cache
 
 
 volumes:
   pg_data:
   rustfs_data:
+  fastembed_cache:
