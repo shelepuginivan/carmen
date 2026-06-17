@@ -6,7 +6,7 @@ use axum::{Json, Router};
 use uuid::Uuid;
 
 use crate::app::AppState;
-use crate::service::collections;
+use crate::service::{collections, documents};
 
 use super::error::{ErrorWithDetail, Result};
 
@@ -17,6 +17,7 @@ pub fn router() -> Router<AppState> {
         .route("/{id}", get(get_by_id))
         .route("/{id}", patch(update))
         .route("/{id}", delete(delete_collection))
+        .route("/{id}/documents", get(get_documents))
         .route("/{id}/extractions", get(get_extractions))
         .route("/{id}/schedule", post(schedule_extraction))
 }
@@ -161,6 +162,39 @@ pub async fn delete_collection(
 ) -> Result<impl IntoResponse> {
     let extraction = collections::delete_collection(&state.db, &state.storage, id).await?;
     Ok((StatusCode::OK, Json(extraction)))
+}
+
+/// Get collection documents
+#[utoipa::path(
+    get,
+    path = "/api/v1/collections/{id}/documents",
+    params(
+        ("id" = Uuid, Path, description = "Collection ID")
+    ),
+    responses(
+        (
+            status = 200,
+            description = "Documents in this collection",
+            body = Vec<documents::dto::Document>,
+        ),
+        (
+            status = 404,
+            description = "Collection not found",
+            body = ErrorWithDetail,
+        ),
+        (
+            status = 500,
+            description = "Internal server error occurred",
+            body = ErrorWithDetail,
+        )
+    ),
+)]
+pub async fn get_documents(
+    state: State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse> {
+    let extractions = documents::get_documents_in_collection(&state.db, id).await?;
+    Ok((StatusCode::OK, Json(extractions)))
 }
 
 /// Get collection extractions

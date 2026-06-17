@@ -8,6 +8,7 @@ use super::collections;
     collections::update,
     collections::delete_collection,
     collections::get_extractions,
+    collections::get_documents,
     collections::schedule_extraction,
 ))]
 pub struct ApiDoc;
