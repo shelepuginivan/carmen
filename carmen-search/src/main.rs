@@ -1,5 +1,6 @@
 use axum::Router;
 use carmen_s3::Storage;
+use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
 use log::info;
 use tokio::net::TcpListener;
 use tokio::signal::unix::{SignalKind, signal};
@@ -13,8 +14,7 @@ mod service;
 
 use crate::app::AppState;
 use crate::config::Config;
-use crate::routers::apidoc;
-use crate::routers::collections;
+use crate::routers::{apidoc, collections, search};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -23,10 +23,15 @@ async fn main() -> anyhow::Result<()> {
     let config = Config::load_env()?;
     let pool = carmen_db::connect_from_env().await?;
     let storage = Storage::new_from_env()?;
-    let state = AppState::new(pool, storage);
+
+    // TODO: from env
+    let embedder = TextEmbedding::try_new(InitOptions::new(EmbeddingModel::AllMiniLML6V2))?;
+
+    let state = AppState::new(pool, storage, embedder);
 
     let mut app = Router::new()
         .nest("/api/v1/collections", collections::router())
+        .nest("/api/v1/search", search::router())
         .with_state(state);
 
     if let Some(docs_path) = config.docs_path {

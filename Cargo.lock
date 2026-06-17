@@ -501,6 +501,7 @@ dependencies = [
  "carmen-s3",
  "chrono",
  "env_logger",
+ "fastembed",
  "log",
  "serde",
  "serde_json",

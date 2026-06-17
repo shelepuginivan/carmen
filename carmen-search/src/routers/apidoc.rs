@@ -1,4 +1,5 @@
 use super::collections;
+use super::search;
 
 #[derive(utoipa::OpenApi)]
 #[openapi(paths(
@@ -10,5 +11,6 @@ use super::collections;
     collections::get_extractions,
     collections::get_documents,
     collections::schedule_extraction,
+    search::semantic,
 ))]
 pub struct ApiDoc;
