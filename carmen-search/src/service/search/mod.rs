@@ -2,6 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use carmen_db::chunks::Chunk;
 use fastembed::TextEmbedding;
+use lingua::LanguageDetector;
 use sqlx::PgPool;
 
 use crate::service::search::dto::SearchParameters;
@@ -14,11 +15,20 @@ pub mod dto;
 pub struct SearchService {
     pool: Arc<PgPool>,
     embedder: Arc<Mutex<TextEmbedding>>,
+    detector: Arc<LanguageDetector>,
 }
 
 impl SearchService {
-    pub fn new(pool: Arc<PgPool>, embedder: Arc<Mutex<TextEmbedding>>) -> Self {
-        Self { pool, embedder }
+    pub fn new(
+        pool: Arc<PgPool>,
+        embedder: Arc<Mutex<TextEmbedding>>,
+        detector: Arc<LanguageDetector>,
+    ) -> Self {
+        Self {
+            pool,
+            embedder,
+            detector,
+        }
     }
 
     pub async fn semantic(&self, params: SearchParameters) -> Result<Vec<dto::Chunk>> {

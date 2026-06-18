@@ -11,16 +11,17 @@ axum.workspace = true
 chrono.workspace = true
 env_logger.workspace = true
 fastembed.workspace = true
+lingua.workspace = true
 log.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 sqlx.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
+url = { version = "2.5", features = ["serde"] }
 utoipa = { version = "5", features = ["chrono", "url", "uuid"] }
 utoipa-swagger-ui = { version = "9", features = ["axum"] }
 uuid.workspace = true
-url = { version = "2.5", features = ["serde"] }
 
 carmen-db.workspace = true
 carmen-s3.workspace = true

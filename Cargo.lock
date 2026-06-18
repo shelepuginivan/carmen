@@ -502,6 +502,7 @@ dependencies = [
  "chrono",
  "env_logger",
  "fastembed",
+ "lingua",
  "log",
  "serde",
  "serde_json",
