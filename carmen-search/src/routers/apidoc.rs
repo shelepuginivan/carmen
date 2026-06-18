@@ -11,6 +11,7 @@ use super::search;
     collections::get_extractions,
     collections::get_documents,
     collections::schedule_extraction,
+    search::full_text,
     search::semantic,
 ))]
 pub struct ApiDoc;
