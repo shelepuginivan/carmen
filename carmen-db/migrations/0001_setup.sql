@@ -53,3 +53,11 @@ CREATE TABLE chunks (
     fts_vector     tsvector GENERATED ALWAYS AS (to_tsvector(language, text)) STORED,
     embedding      vector NOT NULL
 );
+
+CREATE FUNCTION rrf_score(rank bigint, rrf_k int DEFAULT 50)
+RETURNS numeric
+LANGUAGE SQL
+IMMUTABLE PARALLEL SAFE
+AS $$
+    SELECT coalesce(1.0 / ($1 + $2), 0.0);
+$$;
