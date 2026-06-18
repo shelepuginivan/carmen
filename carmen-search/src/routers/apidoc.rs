@@ -13,5 +13,6 @@ use super::search;
     collections::schedule_extraction,
     search::full_text,
     search::semantic,
+    search::hybrid,
 ))]
 pub struct ApiDoc;

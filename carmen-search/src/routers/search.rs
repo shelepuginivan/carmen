@@ -14,6 +14,7 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/semantic", get(semantic))
         .route("/fulltext", get(full_text))
+        .route("/hybrid", get(hybrid))
 }
 
 /// Full text search
@@ -65,5 +66,31 @@ pub async fn semantic(
     Query(params): Query<SearchParameters>,
 ) -> Result<impl IntoResponse> {
     let results = state.search.semantic(params).await?;
+    Ok((StatusCode::OK, Json(results)))
+}
+
+/// Hybrid search
+#[utoipa::path(
+    get,
+    path = "/api/v1/search/hybrid",
+    params(SearchParameters),
+    responses(
+        (
+            status = 200,
+            description = "Search results",
+            body = Vec<search::dto::Chunk>,
+        ),
+        (
+            status = 500,
+            description = "Internal server error occurred",
+            body = ErrorWithDetail,
+        )
+    ),
+)]
+pub async fn hybrid(
+    state: State<AppState>,
+    Query(params): Query<SearchParameters>,
+) -> Result<impl IntoResponse> {
+    let results = state.search.hybrid(params).await?;
     Ok((StatusCode::OK, Json(results)))
 }

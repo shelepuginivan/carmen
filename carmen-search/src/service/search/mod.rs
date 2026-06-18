@@ -32,11 +32,7 @@ impl SearchService {
     }
 
     pub async fn full_text(&self, params: SearchParameters) -> Result<Vec<dto::Chunk>> {
-        let language = self
-            .detector
-            .detect_language_of(&params.query)
-            .map(|lang| lang.to_string())
-            .unwrap_or_else(|| "simple".to_string());
+        let language = self.detect_language(&params.query);
 
         Ok(Chunk::full_text_search(
             &self.pool,
@@ -52,12 +48,7 @@ impl SearchService {
     }
 
     pub async fn semantic(&self, params: SearchParameters) -> Result<Vec<dto::Chunk>> {
-        let embedding = self
-            .embedder
-            .lock()
-            .unwrap()
-            .embed(&[params.query], None)?
-            .remove(0);
+        let embedding = self.compute_embedding(&params.query)?;
 
         Ok(Chunk::semantic_search(
             &self.pool,
@@ -69,5 +60,39 @@ impl SearchService {
         .into_iter()
         .map(dto::Chunk::from)
         .collect())
+    }
+
+    pub async fn hybrid(&self, params: SearchParameters) -> Result<Vec<dto::Chunk>> {
+        let language = self.detect_language(&params.query);
+        let embedding = self.compute_embedding(&params.query)?;
+
+        Ok(Chunk::hybrid_search(
+            &self.pool,
+            params.collection,
+            &params.query,
+            &language,
+            embedding,
+            params.limit.unwrap_or(10).into(),
+        )
+        .await?
+        .into_iter()
+        .map(dto::Chunk::from)
+        .collect())
+    }
+
+    fn detect_language(&self, query: &str) -> String {
+        self.detector
+            .detect_language_of(query)
+            .map(|lang| lang.to_string())
+            .unwrap_or_else(|| "simple".to_string())
+    }
+
+    fn compute_embedding(&self, query: &str) -> anyhow::Result<Vec<f32>> {
+        Ok(self
+            .embedder
+            .lock()
+            .unwrap()
+            .embed([&query], None)?
+            .remove(0))
     }
 }
