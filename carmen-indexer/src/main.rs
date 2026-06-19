@@ -1,20 +1,15 @@
-use std::sync::Arc;
-
 use carmen_db::documents::DOCUMENT_INDEXING_CHAN;
-use carmen_s3::Storage;
 use log::{error, info};
 use sqlx::postgres::PgListener;
 use sqlx::types::Uuid;
 use tokio::signal::unix::{SignalKind, signal};
-use tokio::sync::Semaphore;
+use tokio::sync::mpsc;
 
 mod config;
-mod indexer;
-mod task;
+mod worker;
 
 use crate::config::Config;
-use crate::indexer::Indexer;
-use crate::task::Task;
+use crate::worker::{Task, Worker};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -30,11 +25,9 @@ async fn main() -> anyhow::Result<()> {
     queue_listener.listen(DOCUMENT_INDEXING_CHAN).await?;
     info!("listening to PG channel '{DOCUMENT_INDEXING_CHAN}'");
 
-    let storage = Storage::new_from_env()?;
-    let indexer = Arc::new(Indexer::new(&config)?);
-
-    // Indexing is computationally heavy, hence limit the number of concurrent tasks.
-    let tasks = Arc::new(Semaphore::new(config.task_limit));
+    let (tx, rx) = mpsc::channel(16);
+    let worker = Worker::new(&config, pool.clone(), rx)?;
+    let handle = tokio::spawn(worker.start());
 
     loop {
         tokio::select! {
@@ -50,24 +43,20 @@ async fn main() -> anyhow::Result<()> {
 
             notification = queue_listener.recv() => match notification {
                 Ok(notification) => {
-                    let token = tasks.clone().acquire_owned().await.unwrap();
-
                     let task_id: Uuid = notification.payload().parse()?;
-                    let pool = pool.clone();
-                    let storage = storage.clone();
-                    let indexer = indexer.clone();
-                    let (task, _cancel_tx) = Task::new(task_id, pool, storage, indexer);
-
-                    tokio::spawn(async move {
-                        let _ = task.start().await;
-                        drop(token)
-                    });
+                    let task = Task::new(task_id);
+                    tx.send(task).await?;
                 }
                 Err(err) => error!("{err}"),
             }
         }
     }
 
+    drop(tx);
+
+    handle.await?;
+
+    queue_listener.unlisten_all().await?;
     pool.clone().close().await;
 
     Ok(())

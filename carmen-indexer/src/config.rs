@@ -4,11 +4,8 @@ use std::str::FromStr;
 use anyhow::anyhow;
 use fastembed::EmbeddingModel;
 use lingua::Language;
-use tokio::sync::Semaphore;
 
 pub struct Config {
-    pub task_limit: usize,
-
     pub embedding_threads: Option<usize>,
     pub embedding_model: EmbeddingModel,
     pub max_chunk_size: usize,
@@ -17,12 +14,6 @@ pub struct Config {
 
 impl Config {
     pub fn load_env() -> anyhow::Result<Self> {
-        let task_limit = if let Ok(v) = env::var("CARMEN_INDEXER_TASK_LIMIT") {
-            usize::from_str(&v)?.clamp(1, Semaphore::MAX_PERMITS)
-        } else {
-            3
-        };
-
         let embedding_threads = if let Ok(v) = env::var("CARMEN_INDEXER_EMBEDDING_THREADS") {
             Some(v.parse()?)
         } else {
@@ -38,7 +29,7 @@ impl Config {
         let max_chunk_size = if let Ok(v) = env::var("CARMEN_INDEXER_MAX_CHUNK_SIZE") {
             v.parse()?
         } else {
-            512
+            1024
         };
 
         let languages = if let Ok(v) = env::var("CARMEN_DETECT_LANGUAGES") {
@@ -60,7 +51,6 @@ impl Config {
         };
 
         Ok(Self {
-            task_limit,
             embedding_model,
             embedding_threads,
             max_chunk_size,
