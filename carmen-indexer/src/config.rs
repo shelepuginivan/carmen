@@ -6,8 +6,10 @@ use fastembed::EmbeddingModel;
 use lingua::Language;
 
 pub struct Config {
-    pub embedding_threads: Option<usize>,
     pub embedding_model: EmbeddingModel,
+    pub embedding_threads: Option<usize>,
+    pub embedding_batch_size: Option<usize>,
+
     pub max_chunk_size: usize,
     pub languages: Vec<Language>,
 }
@@ -15,6 +17,12 @@ pub struct Config {
 impl Config {
     pub fn load_env() -> anyhow::Result<Self> {
         let embedding_threads = if let Ok(v) = env::var("CARMEN_INDEXER_EMBEDDING_THREADS") {
+            Some(v.parse()?)
+        } else {
+            None
+        };
+
+        let embedding_batch_size = if let Ok(v) = env::var("CARMEN_INDEXER_EMBEDDING_BATCH_SIZE") {
             Some(v.parse()?)
         } else {
             None
@@ -53,6 +61,8 @@ impl Config {
         Ok(Self {
             embedding_model,
             embedding_threads,
+            embedding_batch_size,
+
             max_chunk_size,
             languages,
         })

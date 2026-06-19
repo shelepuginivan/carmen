@@ -27,6 +27,7 @@ struct WorkerActor {
     embedder: TextEmbedding,
     splitter: MarkdownSplitter<Characters>,
     detector: LanguageDetector,
+    batch_size: Option<usize>,
 }
 
 pub struct WorkerHandle {
@@ -89,6 +90,7 @@ impl WorkerActor {
             embedder,
             splitter,
             detector,
+            batch_size: config.embedding_batch_size,
         })
     }
 
@@ -138,7 +140,7 @@ impl WorkerActor {
             .await?;
 
         let fragments: Vec<&str> = self.splitter.chunks(&document_str).collect();
-        let embeddings = self.embedder.embed(&fragments, None)?;
+        let embeddings = self.embedder.embed(&fragments, self.batch_size)?;
 
         for (embedding, fragment) in embeddings.into_iter().zip(fragments) {
             let lang = self
