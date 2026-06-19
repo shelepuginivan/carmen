@@ -1,3 +1,4 @@
+use anyhow::Context;
 use carmen_db::documents::DocumentIndexing;
 use carmen_db::{chunks::Chunk, types::Status};
 use carmen_s3::Storage;
@@ -6,7 +7,9 @@ use lingua::{LanguageDetector, LanguageDetectorBuilder};
 use log::{error, info};
 use sqlx::PgPool;
 use text_splitter::{Characters, MarkdownSplitter};
-use tokio::sync::mpsc::{self, Receiver, Sender};
+use tokio::select;
+use tokio::sync::{mpsc, watch};
+use tokio::task::JoinHandle;
 use uuid::Uuid;
 
 use crate::config::Config;
@@ -16,8 +19,10 @@ struct Task {
 }
 
 struct WorkerActor {
+    stop: watch::Receiver<bool>,
+    tasks: mpsc::Receiver<Task>,
+
     pool: PgPool,
-    tasks: Receiver<Task>,
     storage: Storage,
     embedder: TextEmbedding,
     splitter: MarkdownSplitter<Characters>,
@@ -25,16 +30,24 @@ struct WorkerActor {
 }
 
 pub struct WorkerHandle {
-    tasks: Sender<Task>,
+    stop: watch::Sender<bool>,
+    tasks: mpsc::Sender<Task>,
+    handle: JoinHandle<()>,
 }
 
 impl WorkerHandle {
     pub fn new(config: &Config, pool: PgPool) -> anyhow::Result<Self> {
-        let (tx, rx) = mpsc::channel(16);
-        let mut actor = WorkerActor::new(config, pool, rx)?;
-        tokio::spawn(async move { actor.run().await });
+        let (stop_tx, stop_rx) = watch::channel(false);
+        let (tasks_tx, tasks_rx) = mpsc::channel(16);
 
-        Ok(Self { tasks: tx })
+        let mut actor = WorkerActor::new(config, pool, tasks_rx, stop_rx)?;
+        let handle = tokio::spawn(async move { actor.run().await });
+
+        Ok(Self {
+            stop: stop_tx,
+            tasks: tasks_tx,
+            handle,
+        })
     }
 
     pub async fn push_task(&self, id: Uuid) {
@@ -42,13 +55,21 @@ impl WorkerHandle {
         let _ = self.tasks.send(task).await;
     }
 
-    pub async fn stop(self) {
-        drop(self.tasks);
+    pub async fn stop(self) -> anyhow::Result<()> {
+        self.stop.send(true).context("failed to stop actor")?;
+        self.handle.await.context("failed to join actor handle")?;
+
+        Ok(())
     }
 }
 
 impl WorkerActor {
-    pub fn new(config: &Config, pool: PgPool, rx: Receiver<Task>) -> anyhow::Result<Self> {
+    pub fn new(
+        config: &Config,
+        pool: PgPool,
+        tasks_rx: mpsc::Receiver<Task>,
+        cancel_rx: watch::Receiver<bool>,
+    ) -> anyhow::Result<Self> {
         let mut options = InitOptions::new(config.embedding_model.clone());
 
         if let Some(intra_threads) = config.embedding_threads {
@@ -61,8 +82,9 @@ impl WorkerActor {
         let detector = LanguageDetectorBuilder::from_languages(&config.languages).build();
 
         Ok(Self {
+            tasks: tasks_rx,
+            stop: cancel_rx,
             pool,
-            tasks: rx,
             storage,
             embedder,
             splitter,
@@ -71,8 +93,17 @@ impl WorkerActor {
     }
 
     pub async fn run(&mut self) {
-        while let Some(task) = self.tasks.recv().await {
-            let _ = self.process_task(task).await;
+        loop {
+            select! {
+                _ = self.stop.changed() => {
+                    if *self.stop.borrow() {
+                        break;
+                    }
+                }
+                Some(task) = self.tasks.recv() => {
+                    let _ = self.process_task(task).await;
+                }
+            }
         }
     }
 

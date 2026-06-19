@@ -48,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
         }
     }
 
-    worker.stop().await;
+    worker.stop().await?;
     queue_listener.unlisten_all().await?;
     pool.clone().close().await;
 
