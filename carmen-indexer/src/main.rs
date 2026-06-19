@@ -3,13 +3,12 @@ use log::{error, info};
 use sqlx::postgres::PgListener;
 use sqlx::types::Uuid;
 use tokio::signal::unix::{SignalKind, signal};
-use tokio::sync::mpsc;
 
 mod config;
 mod worker;
 
 use crate::config::Config;
-use crate::worker::{Task, Worker};
+use crate::worker::WorkerHandle;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -25,9 +24,7 @@ async fn main() -> anyhow::Result<()> {
     queue_listener.listen(DOCUMENT_INDEXING_CHAN).await?;
     info!("listening to PG channel '{DOCUMENT_INDEXING_CHAN}'");
 
-    let (tx, rx) = mpsc::channel(16);
-    let worker = Worker::new(&config, pool.clone(), rx)?;
-    let handle = tokio::spawn(worker.start());
+    let worker = WorkerHandle::new(&config, pool.clone())?;
 
     loop {
         tokio::select! {
@@ -44,18 +41,14 @@ async fn main() -> anyhow::Result<()> {
             notification = queue_listener.recv() => match notification {
                 Ok(notification) => {
                     let task_id: Uuid = notification.payload().parse()?;
-                    let task = Task::new(task_id);
-                    tx.send(task).await?;
+                    worker.push_task(task_id).await;
                 }
-                Err(err) => error!("{err}"),
+                Err(err) => error!("Failed to receive notification: {err}"),
             }
         }
     }
 
-    drop(tx);
-
-    handle.await?;
-
+    worker.stop().await;
     queue_listener.unlisten_all().await?;
     pool.clone().close().await;
 

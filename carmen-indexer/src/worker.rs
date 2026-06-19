@@ -6,22 +6,16 @@ use lingua::{LanguageDetector, LanguageDetectorBuilder};
 use log::{error, info};
 use sqlx::PgPool;
 use text_splitter::{Characters, MarkdownSplitter};
-use tokio::sync::mpsc::Receiver;
+use tokio::sync::mpsc::{self, Receiver, Sender};
 use uuid::Uuid;
 
 use crate::config::Config;
 
-pub struct Task {
+struct Task {
     id: Uuid,
 }
 
-impl Task {
-    pub fn new(id: Uuid) -> Task {
-        Self { id }
-    }
-}
-
-pub struct Worker {
+struct WorkerActor {
     pool: PgPool,
     tasks: Receiver<Task>,
     storage: Storage,
@@ -30,8 +24,31 @@ pub struct Worker {
     detector: LanguageDetector,
 }
 
-impl Worker {
-    pub fn new(config: &Config, pool: PgPool, tasks: Receiver<Task>) -> anyhow::Result<Self> {
+pub struct WorkerHandle {
+    tasks: Sender<Task>,
+}
+
+impl WorkerHandle {
+    pub fn new(config: &Config, pool: PgPool) -> anyhow::Result<Self> {
+        let (tx, rx) = mpsc::channel(16);
+        let mut actor = WorkerActor::new(config, pool, rx)?;
+        tokio::spawn(async move { actor.run().await });
+
+        Ok(Self { tasks: tx })
+    }
+
+    pub async fn push_task(&self, id: Uuid) {
+        let task = Task { id };
+        let _ = self.tasks.send(task).await;
+    }
+
+    pub async fn stop(self) {
+        drop(self.tasks);
+    }
+}
+
+impl WorkerActor {
+    pub fn new(config: &Config, pool: PgPool, rx: Receiver<Task>) -> anyhow::Result<Self> {
         let mut options = InitOptions::new(config.embedding_model.clone());
 
         if let Some(intra_threads) = config.embedding_threads {
@@ -45,7 +62,7 @@ impl Worker {
 
         Ok(Self {
             pool,
-            tasks,
+            tasks: rx,
             storage,
             embedder,
             splitter,
@@ -53,7 +70,7 @@ impl Worker {
         })
     }
 
-    pub async fn start(mut self) {
+    pub async fn run(&mut self) {
         while let Some(task) = self.tasks.recv().await {
             let _ = self.process_task(task).await;
         }
