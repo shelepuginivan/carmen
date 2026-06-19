@@ -58,6 +58,7 @@ impl WorkerHandle {
 
     pub async fn stop(self) -> anyhow::Result<()> {
         self.stop.send(true).context("failed to stop actor")?;
+        info!("Waiting for the ongoing indexing to complete...");
         self.handle.await.context("failed to join actor handle")?;
 
         Ok(())

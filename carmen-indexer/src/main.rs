@@ -22,19 +22,19 @@ async fn main() -> anyhow::Result<()> {
 
     let mut queue_listener = PgListener::connect_with(&pool).await?;
     queue_listener.listen(DOCUMENT_INDEXING_CHAN).await?;
-    info!("listening to PG channel '{DOCUMENT_INDEXING_CHAN}'");
+    info!("Subscribed to PG channel '{DOCUMENT_INDEXING_CHAN}'");
 
     let worker = WorkerHandle::new(&config, pool.clone())?;
 
     loop {
         tokio::select! {
             _ = signal_terminate.recv() => {
-                info!("received SIGTERM, shutting down");
+                info!("Received SIGTERM, shutting down...");
                 break;
             },
 
             _ = signal_interrupt.recv() => {
-                info!("received SIGINT, shutting down");
+                info!("Received SIGINT, shutting down...");
                 break;
             },
 
