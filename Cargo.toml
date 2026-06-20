@@ -1,10 +1,11 @@
 [workspace]
 resolver = "3"
 members = [
+    "carmen-api",
     "carmen-db",
     "carmen-extractor",
-    "carmen-indexer", "carmen-s3",
-    "carmen-search",
+    "carmen-indexer",
+    "carmen-s3",
 ]
 
 [workspace.package]

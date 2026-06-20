@@ -28,6 +28,24 @@ services:
     depends_on:
       - postgres
 
+  api:
+    image: localhost/carmen-api:latest
+    container_name: carmen-api
+    env_file:
+      - env/.env.api
+    ports:
+      - 5124:5124
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_started
+      rustfs:
+        condition: service_started
+      migrations:
+        condition: service_completed_successfully
+    volumes:
+      - fastembed_cache:/app/.fastembed_cache
+
   extractor:
     image: localhost/carmen-extractor:latest
     container_name: carmen-extractor
@@ -47,24 +65,6 @@ services:
     container_name: carmen-indexer
     env_file:
       - env/.env.indexer
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_started
-      rustfs:
-        condition: service_started
-      migrations:
-        condition: service_completed_successfully
-    volumes:
-      - fastembed_cache:/app/.fastembed_cache
-
-  search:
-    image: localhost/carmen-search:latest
-    container_name: carmen-search
-    env_file:
-      - env/.env.search
-    ports:
-      - 5124:5124
     restart: unless-stopped
     depends_on:
       postgres:

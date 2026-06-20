@@ -1,5 +1,5 @@
 [package]
-name = "carmen-search"
+name = "carmen-api"
 authors.workspace = true
 version.workspace = true
 edition.workspace = true

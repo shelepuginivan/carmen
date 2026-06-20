@@ -4,6 +4,12 @@ COPY . .
 RUN cargo build --release
 
 
+FROM debian:trixie-slim as carmen-api
+WORKDIR /app
+COPY --from=builder /build/target/release/carmen-api .
+ENTRYPOINT ["/app/carmen-api"]
+
+
 FROM debian:trixie-slim as carmen-extractor
 WORKDIR /app
 
@@ -15,7 +21,6 @@ RUN apt-get update -y \
 COPY --from=builder /build/target/release/carmen-extractor .
 
 ENTRYPOINT ["/app/carmen-extractor"]
-
 
 
 FROM debian:trixie-slim as carmen-indexer
@@ -35,9 +40,3 @@ FROM debian:trixie-slim as carmen-migrations
 WORKDIR /app
 COPY --from=builder /build/target/release/carmen-migrate .
 ENTRYPOINT ["/app/carmen-migrate"]
-
-
-FROM debian:trixie-slim as carmen-search
-WORKDIR /app
-COPY --from=builder /build/target/release/carmen-search .
-ENTRYPOINT ["/app/carmen-search"]
