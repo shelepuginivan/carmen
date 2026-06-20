@@ -432,6 +432,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 
 [[package]]
+name = "carmen-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "carmen-db",
+ "carmen-s3",
+ "chrono",
+ "env_logger",
+ "fastembed",
+ "lingua",
+ "log",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "url",
+ "utoipa",
+ "utoipa-swagger-ui",
+ "uuid",
+]
+
+[[package]]
 name = "carmen-db"
 version = "0.1.0"
 dependencies = [
@@ -482,36 +506,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "carmen-nlp"
+version = "0.1.0"
+dependencies = [
+ "fastembed",
+ "lingua",
+ "thiserror",
+]
+
+[[package]]
 name = "carmen-s3"
 version = "0.1.0"
 dependencies = [
  "rust-s3",
  "thiserror",
  "tokio",
- "uuid",
-]
-
-[[package]]
-name = "carmen-search"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "carmen-db",
- "carmen-s3",
- "chrono",
- "env_logger",
- "fastembed",
- "lingua",
- "log",
- "serde",
- "serde_json",
- "sqlx",
- "thiserror",
- "tokio",
- "url",
- "utoipa",
- "utoipa-swagger-ui",
  "uuid",
 ]
 

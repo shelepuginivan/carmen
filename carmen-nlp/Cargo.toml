@@ -1,0 +1,11 @@
+[package]
+name = "carmen-nlp"
+authors.workspace = true
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+fastembed.workspace = true
+lingua.workspace = true
+thiserror.workspace = true
