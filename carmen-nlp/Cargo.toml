@@ -6,7 +6,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-fastembed.workspace = true
+fastembed = "5"
 lingua = {
     version = "1.8",
     default-features = false,
