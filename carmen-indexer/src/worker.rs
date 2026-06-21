@@ -1,9 +1,8 @@
 use anyhow::Context;
 use carmen_db::documents::DocumentIndexing;
 use carmen_db::{chunks::Chunk, types::Status};
+use carmen_nlp::{Embedder, LangDetector};
 use carmen_s3::Storage;
-use fastembed::{InitOptions, TextEmbedding};
-use lingua::{LanguageDetector, LanguageDetectorBuilder};
 use log::{error, info};
 use sqlx::PgPool;
 use text_splitter::{Characters, MarkdownSplitter};
@@ -24,10 +23,9 @@ struct WorkerActor {
 
     pool: PgPool,
     storage: Storage,
-    embedder: TextEmbedding,
+    embedder: Embedder,
     splitter: MarkdownSplitter<Characters>,
-    detector: LanguageDetector,
-    batch_size: Option<usize>,
+    detector: LangDetector,
 }
 
 pub struct WorkerHandle {
@@ -72,16 +70,11 @@ impl WorkerActor {
         tasks_rx: mpsc::Receiver<Task>,
         cancel_rx: watch::Receiver<bool>,
     ) -> anyhow::Result<Self> {
-        let mut options = InitOptions::new(config.embedding_model.clone());
+        let detector = LangDetector::new_from_env()?;
+        let embedder = Embedder::new_from_env()?;
 
-        if let Some(intra_threads) = config.embedding_threads {
-            options = options.with_intra_threads(intra_threads);
-        }
-
-        let embedder = TextEmbedding::try_new(options)?;
         let storage = Storage::new_from_env()?;
         let splitter = MarkdownSplitter::new(config.max_chunk_size);
-        let detector = LanguageDetectorBuilder::from_languages(&config.languages).build();
 
         Ok(Self {
             tasks: tasks_rx,
@@ -91,7 +84,6 @@ impl WorkerActor {
             embedder,
             splitter,
             detector,
-            batch_size: config.embedding_batch_size,
         })
     }
 
@@ -141,15 +133,10 @@ impl WorkerActor {
             .await?;
 
         let fragments: Vec<&str> = self.splitter.chunks(&document_str).collect();
-        let embeddings = self.embedder.embed(&fragments, self.batch_size)?;
+        let embeddings = self.embedder.embed_chunks(&fragments)?;
 
         for (embedding, fragment) in embeddings.into_iter().zip(fragments) {
-            let lang = self
-                .detector
-                .detect_language_of(fragment)
-                .map(|lang| lang.to_string())
-                .unwrap_or_else(|| "simple".to_string());
-
+            let lang = self.detector.detect(fragment).to_string();
             Chunk::insert(&self.pool, indexing.document_id, fragment, &lang, embedding).await?;
         }
 

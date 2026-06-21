@@ -8,8 +8,6 @@ license.workspace = true
 [dependencies]
 anyhow.workspace = true
 env_logger.workspace = true
-fastembed.workspace = true
-lingua.workspace = true
 log.workspace = true
 sqlx.workspace = true
 text-splitter = { version = "0.32.0", features = ["markdown"] }
@@ -17,4 +15,5 @@ tokio.workspace = true
 uuid.workspace = true
 
 carmen-db.workspace = true
+carmen-nlp.workspace = true
 carmen-s3.workspace = true
