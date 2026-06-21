@@ -1,5 +1,7 @@
 mod detect;
 
+use std::fmt;
+
 pub use detect::*;
 
 /// Languages that are supported by both tsvector and lingua.
@@ -10,7 +12,7 @@ pub use detect::*;
 ///
 /// Since other languages are not supported, they are not detected and cannot be enabled in
 /// configuration.
-#[derive(strum::Display, strum::EnumString)]
+#[derive(strum::EnumString)]
 #[strum(ascii_case_insensitive)]
 pub enum Language {
     #[strum(disabled)]
@@ -104,6 +106,45 @@ pub enum Language {
     Turkish,
 }
 
+// We have to implement this manually since strum does not allow to disable enum variants for
+// specific traits.
+//
+// See: https://github.com/Peternator7/strum/issues/413.
+impl fmt::Display for Language {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            Language::Simple => "simple",
+            Language::Arabic => "arabic",
+            Language::Armenian => "armenian",
+            Language::Basque => "basque",
+            Language::Catalan => "catalan",
+            Language::Danish => "danish",
+            Language::Dutch => "dutch",
+            Language::English => "english",
+            Language::Estonian => "estonian",
+            Language::Finnish => "finnish",
+            Language::French => "french",
+            Language::German => "german",
+            Language::Greek => "greek",
+            Language::Hindi => "hindi",
+            Language::Hungarian => "hungarian",
+            Language::Indonesian => "indonesian",
+            Language::Irish => "irish",
+            Language::Italian => "italian",
+            Language::Lithuanian => "lithuanian",
+            Language::Portuguese => "portuguese",
+            Language::Romanian => "romanian",
+            Language::Russian => "russian",
+            Language::Serbian => "serbian",
+            Language::Spanish => "spanish",
+            Language::Swedish => "swedish",
+            Language::Tamil => "tamil",
+            Language::Turkish => "turkish",
+        };
+        write!(f, "{s}")
+    }
+}
+
 impl From<lingua::Language> for Language {
     fn from(value: lingua::Language) -> Self {
         match value {
@@ -133,11 +174,6 @@ impl From<lingua::Language> for Language {
             lingua::Language::Swedish => Self::Swedish,
             lingua::Language::Tamil => Self::Tamil,
             lingua::Language::Turkish => Self::Turkish,
-
-            // For some reason rust-analyzer complains here, even though all enum members are
-            // guarded behind lingua features.
-            #[allow(unreachable_patterns)]
-            _ => Self::Simple,
         }
     }
 }
