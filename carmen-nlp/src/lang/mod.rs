@@ -1,3 +1,7 @@
+mod detect;
+
+pub use detect::*;
+
 /// Languages that are supported by both tsvector and lingua.
 ///
 /// ```sql
