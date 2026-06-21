@@ -1,5 +1,5 @@
 use axum::Router;
-use carmen_nlp::{Embedder, LangDetector};
+use carmen_nlp::{Embedder, LangDetector, Reranker};
 use carmen_s3::Storage;
 use log::info;
 use tokio::net::TcpListener;
@@ -25,8 +25,9 @@ async fn main() -> anyhow::Result<()> {
     let storage = Storage::new_from_env()?;
     let embedder = Embedder::new_from_env()?;
     let detector = LangDetector::new_from_env()?;
+    let reranker = Reranker::new_from_env()?;
 
-    let state = AppState::new(pool, storage, embedder, detector);
+    let state = AppState::new(pool, storage, embedder, detector, reranker);
 
     let mut app = Router::new()
         .nest("/api/v1/collections", collections::router())

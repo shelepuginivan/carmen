@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use carmen_nlp::{Embedder, LangDetector};
+use carmen_nlp::{Embedder, LangDetector, Reranker};
 use carmen_s3::Storage;
 use sqlx::PgPool;
 
@@ -16,15 +16,22 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(pool: PgPool, storage: Storage, embedder: Embedder, detector: LangDetector) -> Self {
+    pub fn new(
+        pool: PgPool,
+        storage: Storage,
+        embedder: Embedder,
+        detector: LangDetector,
+        reranker: Reranker,
+    ) -> Self {
         let pool = Arc::new(pool);
         let storage = Arc::new(storage);
         let embedder = Arc::new(Mutex::new(embedder));
         let detector = Arc::new(detector);
+        let reranker = Arc::new(Mutex::new(reranker));
 
         let collections = CollectionService::new(pool.clone(), storage.clone());
         let documents = DocumentsService::new(pool.clone(), storage);
-        let search = SearchService::new(pool, embedder, detector);
+        let search = SearchService::new(pool, embedder, detector, reranker);
 
         Self {
             collections,
