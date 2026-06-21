@@ -7,16 +7,16 @@ license.workspace = true
 
 [dependencies]
 fastembed = "5"
-lingua = {
-    version = "1.8",
-    default-features = false,
-    features = [
-        "arabic", "armenian", "basque", "catalan", "danish", "dutch",
-        "english", "estonian", "finnish", "french", "german", "greek", "hindi",
-        "hungarian", "indonesian", "irish", "italian", "lithuanian",
-        "portuguese", "romanian", "russian", "serbian", "spanish", "swedish",
-        "tamil", "turkish",
-    ]
-}
 strum.workspace = true
 thiserror.workspace = true
+
+[dependencies.lingua]
+version = "1.8"
+default-features = false
+features = [
+    "arabic", "armenian", "basque", "catalan", "danish", "dutch",
+    "english", "estonian", "finnish", "french", "german", "greek", "hindi",
+    "hungarian", "indonesian", "irish", "italian", "lithuanian",
+    "portuguese", "romanian", "russian", "serbian", "spanish", "swedish",
+    "tamil", "turkish",
+]
