@@ -6,4 +6,5 @@
 !carmen-db
 !carmen-extractor
 !carmen-indexer
+!carmen-nlp
 !carmen-s3
