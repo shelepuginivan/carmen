@@ -11,6 +11,9 @@ pub enum Error {
     #[error("an internal storage error occurred")]
     Storage(#[from] StorageError),
 
+    #[error("{0}")]
+    NLP(#[from] carmen_nlp::Error),
+
     #[error("an internal server error occurred")]
     Anyhow(#[from] anyhow::Error),
 }

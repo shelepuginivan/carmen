@@ -1,8 +1,7 @@
 use std::sync::{Arc, Mutex};
 
+use carmen_nlp::{Embedder, LangDetector};
 use carmen_s3::Storage;
-use fastembed::TextEmbedding;
-use lingua::LanguageDetector;
 use sqlx::PgPool;
 
 use crate::service::collections::CollectionService;
@@ -17,12 +16,7 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(
-        pool: PgPool,
-        storage: Storage,
-        embedder: TextEmbedding,
-        detector: LanguageDetector,
-    ) -> Self {
+    pub fn new(pool: PgPool, storage: Storage, embedder: Embedder, detector: LangDetector) -> Self {
         let pool = Arc::new(pool);
         let storage = Arc::new(storage);
         let embedder = Arc::new(Mutex::new(embedder));

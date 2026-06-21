@@ -1,8 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use carmen_db::chunks::Chunk;
-use fastembed::TextEmbedding;
-use lingua::LanguageDetector;
+use carmen_nlp::{Embedder, LangDetector};
 use sqlx::PgPool;
 
 use crate::service::search::dto::SearchParameters;
@@ -14,15 +13,15 @@ pub mod dto;
 #[derive(Clone)]
 pub struct SearchService {
     pool: Arc<PgPool>,
-    embedder: Arc<Mutex<TextEmbedding>>,
-    detector: Arc<LanguageDetector>,
+    embedder: Arc<Mutex<Embedder>>,
+    detector: Arc<LangDetector>,
 }
 
 impl SearchService {
     pub fn new(
         pool: Arc<PgPool>,
-        embedder: Arc<Mutex<TextEmbedding>>,
-        detector: Arc<LanguageDetector>,
+        embedder: Arc<Mutex<Embedder>>,
+        detector: Arc<LangDetector>,
     ) -> Self {
         Self {
             pool,
@@ -32,7 +31,7 @@ impl SearchService {
     }
 
     pub async fn full_text(&self, params: SearchParameters) -> Result<Vec<dto::Chunk>> {
-        let language = self.detect_language(&params.query);
+        let language = self.detector.detect(&params.query).to_string();
 
         Ok(Chunk::full_text_search(
             &self.pool,
@@ -48,7 +47,7 @@ impl SearchService {
     }
 
     pub async fn semantic(&self, params: SearchParameters) -> Result<Vec<dto::Chunk>> {
-        let embedding = self.compute_embedding(&params.query)?;
+        let embedding = self.embedder.lock().unwrap().embed_query(&params.query)?;
 
         Ok(Chunk::semantic_search(
             &self.pool,
@@ -63,8 +62,8 @@ impl SearchService {
     }
 
     pub async fn hybrid(&self, params: SearchParameters) -> Result<Vec<dto::Chunk>> {
-        let language = self.detect_language(&params.query);
-        let embedding = self.compute_embedding(&params.query)?;
+        let language = self.detector.detect(&params.query).to_string();
+        let embedding = self.embedder.lock().unwrap().embed_query(&params.query)?;
 
         Ok(Chunk::hybrid_search(
             &self.pool,
@@ -78,21 +77,5 @@ impl SearchService {
         .into_iter()
         .map(dto::Chunk::from)
         .collect())
-    }
-
-    fn detect_language(&self, query: &str) -> String {
-        self.detector
-            .detect_language_of(query)
-            .map(|lang| lang.to_string())
-            .unwrap_or_else(|| "simple".to_string())
-    }
-
-    fn compute_embedding(&self, query: &str) -> anyhow::Result<Vec<f32>> {
-        Ok(self
-            .embedder
-            .lock()
-            .unwrap()
-            .embed([&query], None)?
-            .remove(0))
     }
 }

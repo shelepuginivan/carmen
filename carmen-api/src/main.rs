@@ -1,7 +1,6 @@
 use axum::Router;
+use carmen_nlp::{Embedder, LangDetector};
 use carmen_s3::Storage;
-use fastembed::{InitOptions, TextEmbedding};
-use lingua::LanguageDetectorBuilder;
 use log::info;
 use tokio::net::TcpListener;
 use tokio::signal::unix::{SignalKind, signal};
@@ -24,15 +23,8 @@ async fn main() -> anyhow::Result<()> {
     let config = Config::load_env()?;
     let pool = carmen_db::connect_from_env().await?;
     let storage = Storage::new_from_env()?;
-
-    let mut options = InitOptions::new(config.embedding_model);
-
-    if let Some(intra_threads) = config.embedding_threads {
-        options = options.with_intra_threads(intra_threads);
-    }
-
-    let embedder = TextEmbedding::try_new(options)?;
-    let detector = LanguageDetectorBuilder::from_languages(&config.languages).build();
+    let embedder = Embedder::new_from_env()?;
+    let detector = LangDetector::new_from_env()?;
 
     let state = AppState::new(pool, storage, embedder, detector);
 
