@@ -7,6 +7,11 @@ services:
     restart: unless-stopped
     volumes:
       - pg_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   rustfs:
     image: rustfs/rustfs:latest
@@ -24,9 +29,10 @@ services:
     container_name: carmen-migrations
     env_file:
       - env/.env.migrations
-    restart: unless-stopped
+    restart: "no"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   api:
     image: localhost/carmen-api:latest
@@ -38,7 +44,7 @@ services:
     restart: unless-stopped
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       rustfs:
         condition: service_started
       migrations:
@@ -54,7 +60,7 @@ services:
     restart: unless-stopped
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       rustfs:
         condition: service_started
       migrations:
@@ -68,7 +74,7 @@ services:
     restart: unless-stopped
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       rustfs:
         condition: service_started
       migrations:
