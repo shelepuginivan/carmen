@@ -28,6 +28,10 @@ pub fn router() -> Router<AppState> {
             description = "Raw document",
         ),
         (
+            status = 404,
+            description = "Document not found",
+        ),
+        (
             status = 500,
             description = "Internal server error occurred",
             body = ErrorWithDetail,

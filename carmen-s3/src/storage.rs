@@ -8,7 +8,7 @@ use s3::{Bucket, Region};
 use tokio::fs::File;
 use uuid::Uuid;
 
-use crate::{Result, StorageError};
+use crate::{Error, Result};
 
 const RAW_DOCUMENTS_PREFIX: &str = "raw";
 const EXPORTED_DOCUMENTS_PREFIX: &str = "exported";
@@ -109,9 +109,9 @@ impl Storage {
     }
 }
 
-fn read_env(key: &'static str) -> Result<String, StorageError> {
+fn read_env(key: &'static str) -> Result<String, Error> {
     match env::var(key) {
         Ok(var) => Ok(var),
-        Err(_) => Err(StorageError::Environment(key)),
+        Err(_) => Err(Error::Environment(key)),
     }
 }

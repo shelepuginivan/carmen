@@ -20,7 +20,9 @@ pub struct ErrorWithDetail {
 impl From<service::Error> for Error {
     fn from(err: service::Error) -> Self {
         let status = match err {
-            service::Error::EntityNotFound => StatusCode::NOT_FOUND,
+            service::Error::EntityNotFound | service::Error::ObjectNotFound => {
+                StatusCode::NOT_FOUND
+            }
 
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         };
