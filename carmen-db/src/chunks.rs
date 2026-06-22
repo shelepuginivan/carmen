@@ -33,4 +33,13 @@ impl Chunk {
         .fetch_one(pool)
         .await
     }
+
+    pub async fn delete_for_document(pool: &PgPool, document_id: Uuid) -> sqlx::Result<()> {
+        sqlx::query("DELETE FROM chunks WHERE document_id = $1")
+            .bind(document_id)
+            .execute(pool)
+            .await?;
+
+        Ok(())
+    }
 }

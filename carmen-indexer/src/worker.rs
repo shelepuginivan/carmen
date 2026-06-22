@@ -135,6 +135,8 @@ impl WorkerActor {
         let fragments: Vec<&str> = self.splitter.chunks(&document_str).collect();
         let embeddings = self.embedder.embed_chunks(&fragments)?;
 
+        Chunk::delete_for_document(&self.pool, indexing.document_id).await?;
+
         for (embedding, fragment) in embeddings.into_iter().zip(fragments) {
             let lang = self.detector.detect(fragment).to_string();
             Chunk::insert(&self.pool, indexing.document_id, fragment, &lang, embedding).await?;
