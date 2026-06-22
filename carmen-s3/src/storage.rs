@@ -2,6 +2,7 @@ use std::env;
 use std::path::Path;
 
 use s3::creds::Credentials;
+use s3::request::ResponseDataStream;
 use s3::serde_types::ObjectIdentifier;
 use s3::{Bucket, Region};
 use tokio::fs::File;
@@ -50,6 +51,17 @@ impl Storage {
             .get_object(exported_document!(id))
             .await?
             .to_string()?)
+    }
+
+    pub async fn get_raw_document_as_stream(&self, id: Uuid) -> Result<ResponseDataStream> {
+        Ok(self.bucket.get_object_stream(raw_document!(id)).await?)
+    }
+
+    pub async fn get_exported_document_as_stream(&self, id: Uuid) -> Result<ResponseDataStream> {
+        Ok(self
+            .bucket
+            .get_object_stream(exported_document!(id))
+            .await?)
     }
 
     pub async fn put_raw_document_from_path(&self, id: Uuid, path: &Path) -> Result<()> {
