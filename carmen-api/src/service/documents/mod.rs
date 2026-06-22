@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use axum::body::Body;
 use carmen_db::documents::Document;
 use carmen_s3::Storage;
 use sqlx::PgPool;
@@ -26,5 +27,17 @@ impl DocumentsService {
             .into_iter()
             .map(dto::Document::from)
             .collect())
+    }
+
+    pub async fn get_raw_stream(&self, id: Uuid) -> Result<Body> {
+        let stream = self.storage.get_raw_document_as_stream(id).await?;
+
+        Ok(Body::from_stream(stream.bytes))
+    }
+
+    pub async fn get_exported_stream(&self, id: Uuid) -> Result<Body> {
+        let stream = self.storage.get_exported_document_as_stream(id).await?;
+
+        Ok(Body::from_stream(stream.bytes))
     }
 }
