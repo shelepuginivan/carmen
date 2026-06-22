@@ -29,6 +29,10 @@ impl DocumentsService {
             .collect())
     }
 
+    pub async fn get_one(&self, id: Uuid) -> Result<dto::Document> {
+        Ok(Document::get(&self.pool, id).await?.into())
+    }
+
     pub async fn get_raw_stream(&self, id: Uuid) -> Result<Body> {
         let stream = self.storage.get_raw_document_as_stream(id).await?;
 
@@ -39,5 +43,15 @@ impl DocumentsService {
         let stream = self.storage.get_exported_document_as_stream(id).await?;
 
         Ok(Body::from_stream(stream.bytes))
+    }
+
+    pub async fn delete(&self, id: Uuid) -> Result<dto::Document> {
+        let deleted = Document::delete(&self.pool, id).await?.into();
+        self.storage.delete_document(id).await?;
+        Ok(deleted)
+    }
+
+    pub async fn schedule_indexing(&self, id: Uuid) -> Result<dto::DocumentIndexing> {
+        Ok(Document::schedule_indexing(&self.pool, id).await?.into())
     }
 }
