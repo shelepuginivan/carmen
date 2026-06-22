@@ -23,7 +23,6 @@ impl AppState {
         detector: LangDetector,
         reranker: Reranker,
     ) -> Self {
-        let pool = Arc::new(pool);
         let storage = Arc::new(storage);
         let embedder = Arc::new(Mutex::new(embedder));
         let detector = Arc::new(detector);

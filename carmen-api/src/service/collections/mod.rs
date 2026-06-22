@@ -12,12 +12,12 @@ pub mod dto;
 
 #[derive(Clone)]
 pub struct CollectionService {
-    pool: Arc<PgPool>,
+    pool: PgPool,
     storage: Arc<Storage>,
 }
 
 impl CollectionService {
-    pub fn new(pool: Arc<PgPool>, storage: Arc<Storage>) -> Self {
+    pub fn new(pool: PgPool, storage: Arc<Storage>) -> Self {
         Self { pool, storage }
     }
 

@@ -12,7 +12,7 @@ pub mod dto;
 
 #[derive(Clone)]
 pub struct SearchService {
-    pool: Arc<PgPool>,
+    pool: PgPool,
     embedder: Arc<Mutex<Embedder>>,
     detector: Arc<LangDetector>,
     reranker: Arc<Mutex<Reranker>>,
@@ -20,7 +20,7 @@ pub struct SearchService {
 
 impl SearchService {
     pub fn new(
-        pool: Arc<PgPool>,
+        pool: PgPool,
         embedder: Arc<Mutex<Embedder>>,
         detector: Arc<LangDetector>,
         reranker: Arc<Mutex<Reranker>>,
