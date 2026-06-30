@@ -10,6 +10,18 @@ use super::Extractor;
 
 pub struct GitExtractor;
 
+struct GitSourceParams<'a> {
+    branch: Option<&'a str>,
+}
+
+impl<'a> GitSourceParams<'a> {
+    fn from_json(value: &'a serde_json::Value) -> GitSourceParams<'a> {
+        let branch = value["branch"].as_str();
+
+        Self { branch }
+    }
+}
+
 impl Extractor for GitExtractor {
     fn can_extract(&self, extraction: &CollectionExtraction) -> bool {
         extraction.source_type == "git"
@@ -20,7 +32,8 @@ impl Extractor for GitExtractor {
         extraction: &CollectionExtraction,
         tempdir: &Path,
     ) -> anyhow::Result<Vec<Document>> {
-        Self::clone_repo(&extraction.source, tempdir)?;
+        let params = GitSourceParams::from_json(&extraction.parameters);
+        Self::clone_repo(&extraction.source, &params, tempdir)?;
 
         let mut extracted = Vec::new();
 
@@ -62,14 +75,22 @@ impl Extractor for GitExtractor {
 }
 
 impl GitExtractor {
-    fn clone_repo(repo_url: &str, output: &Path) -> anyhow::Result<()> {
+    fn clone_repo(
+        repo_url: &str,
+        params: &GitSourceParams<'_>,
+        output: &Path,
+    ) -> anyhow::Result<()> {
         let mut fetch_opts = FetchOptions::new();
         fetch_opts.depth(1);
 
-        RepoBuilder::new()
-            .fetch_options(fetch_opts)
-            .clone(repo_url, output)?;
+        let mut builder = RepoBuilder::new();
+        builder.fetch_options(fetch_opts);
 
+        if let Some(branch) = params.branch {
+            builder.branch(branch);
+        }
+
+        builder.clone(repo_url, output)?;
         Ok(())
     }
 
