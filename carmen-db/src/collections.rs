@@ -28,6 +28,7 @@ pub struct CollectionExtraction {
     pub source: String,
     pub source_type: String,
     pub extraction_type: CollectionExtractionType,
+    pub parameters: serde_json::Value,
     pub created_at: DateTime<Utc>,
 }
 
@@ -79,11 +80,13 @@ impl Collection {
         source: &str,
         source_type: &str,
         extraction_type: CollectionExtractionType,
+        parameters: &serde_json::Value,
     ) -> sqlx::Result<CollectionExtraction> {
         let extraction: CollectionExtraction = sqlx::query_as(
             r#"
-            INSERT INTO collection_extractions (collection_id, source, source_type, extraction_type)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO collection_extractions
+            (collection_id, source, source_type, extraction_type, parameters)
+            VALUES ($1, $2, $3, $4, $5)
             RETURNING *
             "#,
         )
@@ -91,6 +94,7 @@ impl Collection {
         .bind(source)
         .bind(source_type)
         .bind(extraction_type)
+        .bind(parameters)
         .fetch_one(pool)
         .await?;
 

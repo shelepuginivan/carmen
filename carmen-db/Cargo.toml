@@ -10,6 +10,8 @@ anyhow.workspace = true
 env_logger.workspace = true
 log.workspace = true
 pgvector = { version = "0.4", features = ["sqlx"] }
+serde.workspace = true
+serde_json.workspace = true
 sqlx.workspace = true
 thiserror.workspace = true
 tokio.workspace = true

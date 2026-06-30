@@ -85,6 +85,7 @@ impl CollectionService {
             collection_id,
             source,
             source_type,
+            parameters,
             extraction_type,
         }: dto::ScheduleCollectionExtraction,
     ) -> Result<dto::CollectionExtraction> {
@@ -94,6 +95,7 @@ impl CollectionService {
             &source,
             &source_type,
             extraction_type.into(),
+            &parameters,
         )
         .await?
         .into())

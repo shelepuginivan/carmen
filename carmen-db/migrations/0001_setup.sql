@@ -28,6 +28,7 @@ CREATE TABLE collection_extractions (
     source             varchar(128) NOT NULL,
     source_type        varchar(32) NOT NULL,
     extraction_type    collection_extraction_type NOT NULL DEFAULT 'merge',
+    parameters         jsonb NOT NULL DEFAULT '{}'::jsonb,
     created_at         timestamptz NOT NULL DEFAULT timezone('utc', now())
 );
 
