@@ -51,7 +51,7 @@ impl Embedder {
 
     pub fn embed_chunks(&mut self, s: &[&str]) -> Result<Vec<Vec<f32>>> {
         let chunks: Vec<_> = s
-            .into_iter()
+            .iter()
             .map(|s| format!("{}{s}", self.chunk_prefix))
             .collect();
 
