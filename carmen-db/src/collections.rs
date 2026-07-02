@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use sqlx::PgPool;
 use sqlx::types::Uuid;
 use sqlx::types::chrono::{DateTime, Utc};
@@ -5,6 +7,7 @@ use sqlx::types::chrono::{DateTime, Utc};
 use super::types::Status;
 
 pub const COLLECTION_EXTRACTION_CHAN: &str = "carmen_collection_extraction";
+pub const EXTRACTION_DELAY: Duration = Duration::from_secs(10);
 
 #[derive(sqlx::FromRow)]
 pub struct Collection {
@@ -176,5 +179,36 @@ impl CollectionExtraction {
             .await?;
 
         Ok(())
+    }
+
+    pub async fn cancel(pool: &PgPool, id: Uuid) -> sqlx::Result<bool> {
+        let mut tx = pool.begin().await?;
+
+        let extraction = sqlx::query_as::<_, Self>(
+            r#"
+            SELECT * FROM collection_extractions
+            WHERE id = $1 AND status = $2 AND created_at < $3
+            FOR UPDATE SKIP LOCKED
+            "#,
+        )
+        .bind(id)
+        .bind(Status::Pending)
+        .bind(Utc::now() - EXTRACTION_DELAY)
+        .fetch_optional(&mut *tx)
+        .await?;
+
+        if extraction.is_none() {
+            tx.rollback().await?;
+            return Ok(false);
+        }
+
+        sqlx::query("UPDATE collection_extractions SET status = $1 WHERE id = $2")
+            .bind(Status::InProgress)
+            .bind(id)
+            .execute(&mut *tx)
+            .await?;
+
+        tx.commit().await?;
+        Ok(true)
     }
 }
