@@ -1,16 +1,18 @@
-use carmen_db::collections::COLLECTION_EXTRACTION_CHAN;
-use carmen_s3::Storage;
+use std::time::Duration;
+
+use carmen_db::collections::CollectionExtraction;
 use log::{error, info};
-use sqlx::postgres::PgListener;
-use sqlx::types::Uuid;
 use tokio::signal::unix::{SignalKind, signal};
+use tokio::time::{MissedTickBehavior, interval};
 
 mod document;
 mod documents;
 mod extractors;
-mod task;
+mod worker;
 
-use crate::task::Task;
+use crate::worker::WorkerHandle;
+
+const EXTRACTION_POLL_INTERVAL: Duration = Duration::from_secs(5);
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -21,40 +23,35 @@ async fn main() -> anyhow::Result<()> {
 
     let pool = carmen_db::connect_from_env().await?;
 
-    let mut queue_listener = PgListener::connect_with(&pool).await?;
-    queue_listener.listen(COLLECTION_EXTRACTION_CHAN).await?;
-    info!("listening to PG channel '{COLLECTION_EXTRACTION_CHAN}'");
+    let mut interval = interval(EXTRACTION_POLL_INTERVAL);
+    interval.set_missed_tick_behavior(MissedTickBehavior::Skip);
 
-    let storage = Storage::new_from_env()?;
+    let worker = WorkerHandle::new(pool.clone())?;
 
     loop {
         tokio::select! {
             _ = signal_terminate.recv() => {
-                info!("received SIGTERM, shutting down");
+                info!("Received SIGTERM, shutting down...");
                 break;
             },
 
             _ = signal_interrupt.recv() => {
-                info!("received SIGINT, shutting down");
+                info!("Received SIGINT, shutting down...");
                 break;
             },
 
-            notification = queue_listener.recv() => match notification {
-                Ok(notification) => {
-                    let task_id: Uuid = notification.payload().parse()?;
-                    let pool = pool.clone();
-                    let storage = storage.clone();
-                    let (task, _cancel_tx) = Task::new(task_id, pool, storage);
-
-                    tokio::spawn(async move {
-                        let _ = task.start().await;
-                    });
-                }
-                Err(err) => error!("{err}"),
-            }
+            _ = interval.tick() => match CollectionExtraction::claim(&pool).await {
+                Ok(Some(extraction)) => {
+                    worker.push_extraction(extraction).await;
+                    interval.reset_immediately();
+                },
+                Ok(None) => {}
+                Err(err) => error!("Failed to claim extraction: {err}"),
+            },
         }
     }
 
+    worker.stop().await?;
     pool.clone().close().await;
 
     Ok(())

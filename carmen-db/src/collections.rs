@@ -4,7 +4,6 @@ use sqlx::PgPool;
 use sqlx::types::Uuid;
 use sqlx::types::chrono::{DateTime, Utc};
 
-pub const COLLECTION_EXTRACTION_CHAN: &str = "carmen_collection_extraction";
 pub const EXTRACTION_DELAY: Duration = Duration::from_secs(10);
 
 #[derive(sqlx::FromRow)]
@@ -93,7 +92,7 @@ impl Collection {
         extraction_type: CollectionExtractionType,
         parameters: &serde_json::Value,
     ) -> sqlx::Result<CollectionExtraction> {
-        let extraction: CollectionExtraction = sqlx::query_as(
+        sqlx::query_as(
             r#"
             INSERT INTO collection_extractions
             (collection_id, source, source_type, extraction_type, parameters)
@@ -107,15 +106,7 @@ impl Collection {
         .bind(extraction_type)
         .bind(parameters)
         .fetch_one(pool)
-        .await?;
-
-        sqlx::query("SELECT pg_notify($1, $2)")
-            .bind(COLLECTION_EXTRACTION_CHAN)
-            .bind(extraction.id.to_string())
-            .execute(pool)
-            .await?;
-
-        Ok(extraction)
+        .await
     }
 
     pub async fn update(
@@ -148,25 +139,27 @@ impl Collection {
 }
 
 impl CollectionExtraction {
-    pub async fn claim(pool: &PgPool, id: Uuid) -> sqlx::Result<Option<Self>> {
+    pub async fn claim(pool: &PgPool) -> sqlx::Result<Option<Self>> {
         let mut tx = pool.begin().await?;
 
         let extraction = sqlx::query_as::<_, Self>(
             r#"
             SELECT * FROM collection_extractions
-            WHERE id = $1 AND status = $2
+            WHERE status = $1 AND created_at > $2
+            ORDER BY created_at
+            LIMIT 1
             FOR UPDATE SKIP LOCKED
             "#,
         )
-        .bind(id)
         .bind(CollectionExtractionStatus::Pending)
+        .bind(Utc::now() - EXTRACTION_DELAY)
         .fetch_optional(&mut *tx)
         .await?;
 
         if let Some(claimed) = extraction {
             sqlx::query("UPDATE collection_extractions SET status = $1 WHERE id = $2")
                 .bind(CollectionExtractionStatus::InProgress)
-                .bind(id)
+                .bind(claimed.id)
                 .execute(&mut *tx)
                 .await?;
 
