@@ -2,8 +2,6 @@ use sqlx::PgPool;
 use sqlx::types::Uuid;
 use sqlx::types::chrono::{DateTime, Utc};
 
-use crate::types::Status;
-
 pub const DOCUMENT_INDEXING_CHAN: &str = "carmen_document_indexing";
 
 #[derive(sqlx::FromRow)]
@@ -14,11 +12,20 @@ pub struct Document {
     pub checksum: [u8; 32],
 }
 
+#[derive(sqlx::Type)]
+#[sqlx(type_name = "document_indexing_status", rename_all = "snake_case")]
+pub enum DocumentIndexingStatus {
+    Pending,
+    InProgress,
+    Completed,
+    Failed,
+}
+
 #[derive(sqlx::FromRow)]
 pub struct DocumentIndexing {
     pub id: Uuid,
     pub document_id: Uuid,
-    pub status: Status,
+    pub status: DocumentIndexingStatus,
     pub created_at: DateTime<Utc>,
 }
 
@@ -112,13 +119,13 @@ impl DocumentIndexing {
             "#,
         )
         .bind(id)
-        .bind(Status::Pending)
+        .bind(DocumentIndexingStatus::Pending)
         .fetch_optional(&mut *tx)
         .await?;
 
         if let Some(claimed) = extraction {
             sqlx::query("UPDATE document_indexing SET status = $1 WHERE id = $2")
-                .bind(Status::InProgress)
+                .bind(DocumentIndexingStatus::InProgress)
                 .bind(id)
                 .execute(&mut *tx)
                 .await?;
@@ -132,7 +139,11 @@ impl DocumentIndexing {
         }
     }
 
-    pub async fn update_status(pool: &PgPool, id: Uuid, new_status: Status) -> sqlx::Result<()> {
+    pub async fn update_status(
+        pool: &PgPool,
+        id: Uuid,
+        new_status: DocumentIndexingStatus,
+    ) -> sqlx::Result<()> {
         sqlx::query("UPDATE document_indexing SET status = $1 WHERE id = $2")
             .bind(new_status)
             .bind(id)

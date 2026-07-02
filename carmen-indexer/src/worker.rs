@@ -1,6 +1,6 @@
 use anyhow::Context;
-use carmen_db::documents::DocumentIndexing;
-use carmen_db::{chunks::Chunk, types::Status};
+use carmen_db::chunks::Chunk;
+use carmen_db::documents::{DocumentIndexing, DocumentIndexingStatus};
 use carmen_nlp::{Embedder, LangDetector};
 use carmen_s3::Storage;
 use log::{error, info};
@@ -111,11 +111,11 @@ impl WorkerActor {
         let status = match self.do_indexing(&indexing).await {
             Ok(_) => {
                 info!("Indexing {} completed successfully", indexing.id);
-                Status::Completed
+                DocumentIndexingStatus::Completed
             }
             Err(err) => {
                 error!("Indexing {} failed: {err}", indexing.id);
-                Status::Failed
+                DocumentIndexingStatus::Failed
             }
         };
 

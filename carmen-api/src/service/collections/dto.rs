@@ -43,14 +43,14 @@ pub enum CollectionExtractionStatus {
     Cancelled,
 }
 
-impl From<carmen_db::types::Status> for CollectionExtractionStatus {
-    fn from(value: carmen_db::types::Status) -> Self {
+impl From<carmen_db::collections::CollectionExtractionStatus> for CollectionExtractionStatus {
+    fn from(value: carmen_db::collections::CollectionExtractionStatus) -> Self {
         match value {
-            carmen_db::types::Status::Pending => Self::Pending,
-            carmen_db::types::Status::InProgress => Self::InProgress,
-            carmen_db::types::Status::Completed => Self::Completed,
-            carmen_db::types::Status::Failed => Self::Failed,
-            carmen_db::types::Status::Cancelled => Self::Cancelled,
+            carmen_db::collections::CollectionExtractionStatus::Pending => Self::Pending,
+            carmen_db::collections::CollectionExtractionStatus::InProgress => Self::InProgress,
+            carmen_db::collections::CollectionExtractionStatus::Completed => Self::Completed,
+            carmen_db::collections::CollectionExtractionStatus::Failed => Self::Failed,
+            carmen_db::collections::CollectionExtractionStatus::Cancelled => Self::Cancelled,
         }
     }
 }

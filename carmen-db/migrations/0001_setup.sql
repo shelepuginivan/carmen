@@ -1,13 +1,5 @@
 CREATE EXTENSION vector;
 
-CREATE TYPE status AS ENUM (
-    'pending',
-    'in_progress',
-    'completed',
-    'failed',
-    'cancelled'
-);
-
 CREATE TABLE collections (
     id             uuid PRIMARY KEY DEFAULT uuidv4(),
     name           varchar(32) UNIQUE NOT NULL,
@@ -21,10 +13,18 @@ CREATE TYPE collection_extraction_type AS ENUM (
     'override'
 );
 
+CREATE TYPE collection_extraction_status AS ENUM (
+    'pending',
+    'in_progress',
+    'completed',
+    'failed',
+    'cancelled'
+);
+
 CREATE TABLE collection_extractions (
     id                 uuid PRIMARY KEY DEFAULT uuidv4(),
     collection_id      uuid REFERENCES collections(id) ON DELETE CASCADE,
-    status             status NOT NULL DEFAULT 'pending',
+    status             collection_extraction_status NOT NULL DEFAULT 'pending',
     source             varchar(128) NOT NULL,
     source_type        varchar(32) NOT NULL,
     extraction_type    collection_extraction_type NOT NULL DEFAULT 'merge',
@@ -39,10 +39,17 @@ CREATE TABLE documents (
     checksum          bytea NOT NULL
 );
 
+CREATE TYPE document_indexing_status AS ENUM (
+    'pending',
+    'in_progress',
+    'completed',
+    'failed'
+);
+
 CREATE TABLE document_indexing (
     id             uuid PRIMARY KEY DEFAULT uuidv4(),
     document_id    uuid REFERENCES documents(id) ON DELETE CASCADE,
-    status         status NOT NULL DEFAULT 'pending',
+    status         document_indexing_status NOT NULL DEFAULT 'pending',
     created_at     timestamptz NOT NULL DEFAULT timezone('utc', now())
 );
 

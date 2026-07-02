@@ -25,17 +25,15 @@ pub enum DocumentIndexingStatus {
     InProgress,
     Completed,
     Failed,
-    Cancelled,
 }
 
-impl From<carmen_db::types::Status> for DocumentIndexingStatus {
-    fn from(value: carmen_db::types::Status) -> Self {
+impl From<carmen_db::documents::DocumentIndexingStatus> for DocumentIndexingStatus {
+    fn from(value: carmen_db::documents::DocumentIndexingStatus) -> Self {
         match value {
-            carmen_db::types::Status::Pending => Self::Pending,
-            carmen_db::types::Status::InProgress => Self::InProgress,
-            carmen_db::types::Status::Completed => Self::Completed,
-            carmen_db::types::Status::Failed => Self::Failed,
-            carmen_db::types::Status::Cancelled => Self::Cancelled,
+            carmen_db::documents::DocumentIndexingStatus::Pending => Self::Pending,
+            carmen_db::documents::DocumentIndexingStatus::InProgress => Self::InProgress,
+            carmen_db::documents::DocumentIndexingStatus::Completed => Self::Completed,
+            carmen_db::documents::DocumentIndexingStatus::Failed => Self::Failed,
         }
     }
 }

@@ -4,8 +4,6 @@ use sqlx::PgPool;
 use sqlx::types::Uuid;
 use sqlx::types::chrono::{DateTime, Utc};
 
-use super::types::Status;
-
 pub const COLLECTION_EXTRACTION_CHAN: &str = "carmen_collection_extraction";
 pub const EXTRACTION_DELAY: Duration = Duration::from_secs(10);
 
@@ -14,6 +12,16 @@ pub struct Collection {
     pub id: Uuid,
     pub name: String,
     pub description: Option<String>,
+}
+
+#[derive(sqlx::Type)]
+#[sqlx(type_name = "collection_extraction_status", rename_all = "snake_case")]
+pub enum CollectionExtractionStatus {
+    Pending,
+    InProgress,
+    Completed,
+    Failed,
+    Cancelled,
 }
 
 #[derive(PartialEq, Eq, sqlx::Type)]
@@ -27,7 +35,7 @@ pub enum CollectionExtractionType {
 pub struct CollectionExtraction {
     pub id: Uuid,
     pub collection_id: Uuid,
-    pub status: Status,
+    pub status: CollectionExtractionStatus,
     pub source: String,
     pub source_type: String,
     pub extraction_type: CollectionExtractionType,
@@ -151,13 +159,13 @@ impl CollectionExtraction {
             "#,
         )
         .bind(id)
-        .bind(Status::Pending)
+        .bind(CollectionExtractionStatus::Pending)
         .fetch_optional(&mut *tx)
         .await?;
 
         if let Some(claimed) = extraction {
             sqlx::query("UPDATE collection_extractions SET status = $1 WHERE id = $2")
-                .bind(Status::InProgress)
+                .bind(CollectionExtractionStatus::InProgress)
                 .bind(id)
                 .execute(&mut *tx)
                 .await?;
@@ -171,7 +179,11 @@ impl CollectionExtraction {
         }
     }
 
-    pub async fn update_status(pool: &PgPool, id: Uuid, new_status: Status) -> sqlx::Result<()> {
+    pub async fn update_status(
+        pool: &PgPool,
+        id: Uuid,
+        new_status: CollectionExtractionStatus,
+    ) -> sqlx::Result<()> {
         sqlx::query("UPDATE collection_extractions SET status = $1 WHERE id = $2")
             .bind(new_status)
             .bind(id)
@@ -192,7 +204,7 @@ impl CollectionExtraction {
             "#,
         )
         .bind(id)
-        .bind(Status::Pending)
+        .bind(CollectionExtractionStatus::Pending)
         .bind(Utc::now() - EXTRACTION_DELAY)
         .fetch_optional(&mut *tx)
         .await?;
@@ -203,7 +215,7 @@ impl CollectionExtraction {
         }
 
         sqlx::query("UPDATE collection_extractions SET status = $1 WHERE id = $2")
-            .bind(Status::InProgress)
+            .bind(CollectionExtractionStatus::InProgress)
             .bind(id)
             .execute(&mut *tx)
             .await?;
