@@ -87,11 +87,11 @@ impl WorkerActor {
     async fn process_extraction(&mut self, extraction: CollectionExtraction) -> anyhow::Result<()> {
         let status = match self.do_extraction(&extraction).await {
             Ok(_) => {
-                info!("Indexing {} completed successfully", extraction.id);
+                info!("Extraction {} completed successfully", extraction.id);
                 CollectionExtractionStatus::Completed
             }
             Err(err) => {
-                error!("Indexing {} failed: {err}", extraction.id);
+                error!("Extraction {} failed: {err}", extraction.id);
                 CollectionExtractionStatus::Failed
             }
         };
