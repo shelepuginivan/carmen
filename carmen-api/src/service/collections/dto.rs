@@ -43,14 +43,14 @@ pub enum CollectionExtractionStatus {
     Cancelled,
 }
 
-impl From<carmen_db::collections::CollectionExtractionStatus> for CollectionExtractionStatus {
-    fn from(value: carmen_db::collections::CollectionExtractionStatus) -> Self {
+impl From<carmen_db::extractions::ExtractionStatus> for CollectionExtractionStatus {
+    fn from(value: carmen_db::extractions::ExtractionStatus) -> Self {
         match value {
-            carmen_db::collections::CollectionExtractionStatus::Pending => Self::Pending,
-            carmen_db::collections::CollectionExtractionStatus::InProgress => Self::InProgress,
-            carmen_db::collections::CollectionExtractionStatus::Completed => Self::Completed,
-            carmen_db::collections::CollectionExtractionStatus::Failed => Self::Failed,
-            carmen_db::collections::CollectionExtractionStatus::Cancelled => Self::Cancelled,
+            carmen_db::extractions::ExtractionStatus::Pending => Self::Pending,
+            carmen_db::extractions::ExtractionStatus::InProgress => Self::InProgress,
+            carmen_db::extractions::ExtractionStatus::Completed => Self::Completed,
+            carmen_db::extractions::ExtractionStatus::Failed => Self::Failed,
+            carmen_db::extractions::ExtractionStatus::Cancelled => Self::Cancelled,
         }
     }
 }
@@ -62,16 +62,16 @@ pub enum CollectionExtractionType {
     Override,
 }
 
-impl From<carmen_db::collections::CollectionExtractionType> for CollectionExtractionType {
-    fn from(value: carmen_db::collections::CollectionExtractionType) -> Self {
+impl From<carmen_db::extractions::ExtractionType> for CollectionExtractionType {
+    fn from(value: carmen_db::extractions::ExtractionType) -> Self {
         match value {
-            carmen_db::collections::CollectionExtractionType::Merge => Self::Merge,
-            carmen_db::collections::CollectionExtractionType::Override => Self::Override,
+            carmen_db::extractions::ExtractionType::Merge => Self::Merge,
+            carmen_db::extractions::ExtractionType::Override => Self::Override,
         }
     }
 }
 
-impl From<CollectionExtractionType> for carmen_db::collections::CollectionExtractionType {
+impl From<CollectionExtractionType> for carmen_db::extractions::ExtractionType {
     fn from(val: CollectionExtractionType) -> Self {
         match val {
             CollectionExtractionType::Merge => Self::Merge,
@@ -100,8 +100,8 @@ pub struct CollectionExtraction {
     pub extraction_type: CollectionExtractionType,
 }
 
-impl From<carmen_db::collections::CollectionExtraction> for CollectionExtraction {
-    fn from(value: carmen_db::collections::CollectionExtraction) -> Self {
+impl From<carmen_db::extractions::Extraction> for CollectionExtraction {
+    fn from(value: carmen_db::extractions::Extraction) -> Self {
         Self {
             id: value.id,
             collection_id: value.collection_id,

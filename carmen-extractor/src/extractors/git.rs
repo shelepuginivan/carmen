@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use carmen_db::collections::CollectionExtraction;
+use carmen_db::extractions::Extraction;
 use git2::{FetchOptions, build::RepoBuilder};
 use walkdir::{DirEntry, WalkDir};
 
@@ -25,7 +25,7 @@ impl<'a> GitSourceParams<'a> {
 impl Extractor for GitExtractor {
     async fn extract(
         &self,
-        extraction: &CollectionExtraction,
+        extraction: &Extraction,
         tempdir: &Path,
     ) -> anyhow::Result<Vec<Document>> {
         let params = GitSourceParams::from_json(&extraction.parameters);

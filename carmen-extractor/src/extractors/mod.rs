@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::sync::LazyLock;
 
-use carmen_db::collections::CollectionExtraction;
+use carmen_db::extractions::Extraction;
 use enum_dispatch::enum_dispatch;
 use strum::EnumString;
 
@@ -18,7 +18,7 @@ use github_wiki::GitHubWikiExtractor;
 pub trait Extractor {
     async fn extract(
         &self,
-        extraction: &CollectionExtraction,
+        extraction: &Extraction,
         tempdir: &Path,
     ) -> anyhow::Result<Vec<Document>>;
 }

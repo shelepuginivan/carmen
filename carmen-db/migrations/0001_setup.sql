@@ -8,12 +8,12 @@ CREATE TABLE collections (
     source         varchar(32)
 );
 
-CREATE TYPE collection_extraction_type AS ENUM (
+CREATE TYPE extraction_type AS ENUM (
     'merge',
     'override'
 );
 
-CREATE TYPE collection_extraction_status AS ENUM (
+CREATE TYPE extraction_status AS ENUM (
     'pending',
     'in_progress',
     'completed',
@@ -21,13 +21,13 @@ CREATE TYPE collection_extraction_status AS ENUM (
     'cancelled'
 );
 
-CREATE TABLE collection_extractions (
+CREATE TABLE extractions (
     id                 uuid PRIMARY KEY DEFAULT uuidv4(),
     collection_id      uuid REFERENCES collections(id) ON DELETE CASCADE,
-    status             collection_extraction_status NOT NULL DEFAULT 'pending',
+    status             extraction_status NOT NULL DEFAULT 'pending',
     source             varchar(128) NOT NULL,
     source_type        varchar(32) NOT NULL,
-    extraction_type    collection_extraction_type NOT NULL DEFAULT 'merge',
+    extraction_type    extraction_type NOT NULL DEFAULT 'merge',
     parameters         jsonb NOT NULL DEFAULT '{}'::jsonb,
     created_at         timestamptz NOT NULL DEFAULT timezone('utc', now())
 );

@@ -1,6 +1,7 @@
 use anyhow::{Context, bail};
-use carmen_db::collections::{Collection, CollectionExtraction, CollectionExtractionStatus};
+use carmen_db::collections::Collection;
 use carmen_db::documents::Document;
+use carmen_db::extractions::{Extraction, ExtractionStatus};
 use carmen_s3::Storage;
 use log::{error, info};
 use sqlx::PgPool;
@@ -13,7 +14,7 @@ use crate::extractors::{EXTRACTORS, Extractor};
 
 struct WorkerActor {
     stop: watch::Receiver<bool>,
-    tasks: mpsc::Receiver<CollectionExtraction>,
+    tasks: mpsc::Receiver<Extraction>,
 
     pool: PgPool,
     storage: Storage,
@@ -21,7 +22,7 @@ struct WorkerActor {
 
 pub struct WorkerHandle {
     stop: watch::Sender<bool>,
-    tasks: mpsc::Sender<CollectionExtraction>,
+    tasks: mpsc::Sender<Extraction>,
     handle: JoinHandle<()>,
 }
 
@@ -40,7 +41,7 @@ impl WorkerHandle {
         })
     }
 
-    pub async fn push_extraction(&self, task: CollectionExtraction) {
+    pub async fn push_extraction(&self, task: Extraction) {
         let _ = self.tasks.send(task).await;
     }
 
@@ -56,7 +57,7 @@ impl WorkerHandle {
 impl WorkerActor {
     pub fn new(
         pool: PgPool,
-        tasks_rx: mpsc::Receiver<CollectionExtraction>,
+        tasks_rx: mpsc::Receiver<Extraction>,
         cancel_rx: watch::Receiver<bool>,
     ) -> anyhow::Result<Self> {
         let storage = Storage::new_from_env()?;
@@ -84,24 +85,24 @@ impl WorkerActor {
         }
     }
 
-    async fn process_extraction(&mut self, extraction: CollectionExtraction) -> anyhow::Result<()> {
+    async fn process_extraction(&mut self, extraction: Extraction) -> anyhow::Result<()> {
         let status = match self.do_extraction(&extraction).await {
             Ok(_) => {
                 info!("Extraction {} completed successfully", extraction.id);
-                CollectionExtractionStatus::Completed
+                ExtractionStatus::Completed
             }
             Err(err) => {
                 error!("Extraction {} failed: {err}", extraction.id);
-                CollectionExtractionStatus::Failed
+                ExtractionStatus::Failed
             }
         };
 
-        CollectionExtraction::update_status(&self.pool, extraction.id, status).await?;
+        Extraction::update_status(&self.pool, extraction.id, status).await?;
 
         Ok(())
     }
 
-    async fn do_extraction(&mut self, extraction: &CollectionExtraction) -> anyhow::Result<()> {
+    async fn do_extraction(&mut self, extraction: &Extraction) -> anyhow::Result<()> {
         let source_type = match extraction.source_type.parse() {
             Ok(et) => et,
             Err(_) => bail!(

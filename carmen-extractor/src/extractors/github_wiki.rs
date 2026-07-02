@@ -1,6 +1,6 @@
 use std::{fs::DirEntry, path::Path};
 
-use carmen_db::collections::CollectionExtraction;
+use carmen_db::extractions::Extraction;
 use git2::{FetchOptions, build::RepoBuilder};
 
 use crate::document::{Document, DocumentBuilder, DocumentFormat};
@@ -12,7 +12,7 @@ pub struct GitHubWikiExtractor;
 impl Extractor for GitHubWikiExtractor {
     async fn extract(
         &self,
-        extraction: &CollectionExtraction,
+        extraction: &Extraction,
         tempdir: &Path,
     ) -> anyhow::Result<Vec<Document>> {
         Self::clone_repo(&extraction.source, tempdir)?;

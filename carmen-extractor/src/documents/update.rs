@@ -1,5 +1,5 @@
-use carmen_db::collections::{CollectionExtraction, CollectionExtractionType};
 use carmen_db::documents::Document;
+use carmen_db::extractions::{Extraction, ExtractionType};
 use carmen_s3::Storage;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -16,12 +16,8 @@ impl<'a> DocumentUpdater<'a> {
         Self { pool, storage }
     }
 
-    pub async fn update(
-        &self,
-        extraction: &CollectionExtraction,
-        diff: &DocumentDiff,
-    ) -> anyhow::Result<()> {
-        if extraction.extraction_type == CollectionExtractionType::Override {
+    pub async fn update(&self, extraction: &Extraction, diff: &DocumentDiff) -> anyhow::Result<()> {
+        if extraction.extraction_type == ExtractionType::Override {
             self.remove_documents(&diff.removed).await?;
         }
 

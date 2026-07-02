@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use carmen_db::collections::CollectionExtraction;
+use carmen_db::extractions::Extraction;
 use log::{error, info};
 use tokio::signal::unix::{SignalKind, signal};
 use tokio::time::{MissedTickBehavior, interval};
@@ -40,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
                 break;
             },
 
-            _ = interval.tick() => match CollectionExtraction::claim(&pool).await {
+            _ = interval.tick() => match Extraction::claim(&pool).await {
                 Ok(Some(extraction)) => {
                     worker.push_extraction(extraction).await;
                     interval.reset_immediately();
