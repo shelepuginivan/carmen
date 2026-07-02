@@ -27,13 +27,13 @@ pub enum DocumentIndexingStatus {
     Failed,
 }
 
-impl From<carmen_db::documents::DocumentIndexingStatus> for DocumentIndexingStatus {
-    fn from(value: carmen_db::documents::DocumentIndexingStatus) -> Self {
+impl From<carmen_db::indexing::IndexingStatus> for DocumentIndexingStatus {
+    fn from(value: carmen_db::indexing::IndexingStatus) -> Self {
         match value {
-            carmen_db::documents::DocumentIndexingStatus::Pending => Self::Pending,
-            carmen_db::documents::DocumentIndexingStatus::InProgress => Self::InProgress,
-            carmen_db::documents::DocumentIndexingStatus::Completed => Self::Completed,
-            carmen_db::documents::DocumentIndexingStatus::Failed => Self::Failed,
+            carmen_db::indexing::IndexingStatus::Pending => Self::Pending,
+            carmen_db::indexing::IndexingStatus::InProgress => Self::InProgress,
+            carmen_db::indexing::IndexingStatus::Completed => Self::Completed,
+            carmen_db::indexing::IndexingStatus::Failed => Self::Failed,
         }
     }
 }
@@ -46,8 +46,8 @@ pub struct DocumentIndexing {
     pub created_at: DateTime<Utc>,
 }
 
-impl From<carmen_db::documents::DocumentIndexing> for DocumentIndexing {
-    fn from(value: carmen_db::documents::DocumentIndexing) -> Self {
+impl From<carmen_db::indexing::Indexing> for DocumentIndexing {
+    fn from(value: carmen_db::indexing::Indexing) -> Self {
         Self {
             id: value.id,
             document_id: value.document_id,

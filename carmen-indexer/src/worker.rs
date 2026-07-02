@@ -1,6 +1,6 @@
 use anyhow::Context;
 use carmen_db::chunks::Chunk;
-use carmen_db::documents::{DocumentIndexing, DocumentIndexingStatus};
+use carmen_db::indexing::{Indexing, IndexingStatus};
 use carmen_nlp::{Embedder, LangDetector};
 use carmen_s3::Storage;
 use log::{error, info};
@@ -13,7 +13,7 @@ use crate::config::Config;
 
 struct WorkerActor {
     stop: watch::Receiver<bool>,
-    tasks: mpsc::Receiver<DocumentIndexing>,
+    tasks: mpsc::Receiver<Indexing>,
 
     pool: PgPool,
     storage: Storage,
@@ -24,7 +24,7 @@ struct WorkerActor {
 
 pub struct WorkerHandle {
     stop: watch::Sender<bool>,
-    tasks: mpsc::Sender<DocumentIndexing>,
+    tasks: mpsc::Sender<Indexing>,
     handle: JoinHandle<()>,
 }
 
@@ -43,7 +43,7 @@ impl WorkerHandle {
         })
     }
 
-    pub async fn push_indexing(&self, task: DocumentIndexing) {
+    pub async fn push_indexing(&self, task: Indexing) {
         let _ = self.tasks.send(task).await;
     }
 
@@ -60,7 +60,7 @@ impl WorkerActor {
     pub fn new(
         config: &Config,
         pool: PgPool,
-        tasks_rx: mpsc::Receiver<DocumentIndexing>,
+        tasks_rx: mpsc::Receiver<Indexing>,
         cancel_rx: watch::Receiver<bool>,
     ) -> anyhow::Result<Self> {
         let detector = LangDetector::new_from_env()?;
@@ -95,24 +95,24 @@ impl WorkerActor {
         }
     }
 
-    async fn process_indexing(&mut self, indexing: DocumentIndexing) -> anyhow::Result<()> {
+    async fn process_indexing(&mut self, indexing: Indexing) -> anyhow::Result<()> {
         let status = match self.do_indexing(&indexing).await {
             Ok(_) => {
                 info!("Indexing {} completed successfully", indexing.id);
-                DocumentIndexingStatus::Completed
+                IndexingStatus::Completed
             }
             Err(err) => {
                 error!("Indexing {} failed: {err}", indexing.id);
-                DocumentIndexingStatus::Failed
+                IndexingStatus::Failed
             }
         };
 
-        DocumentIndexing::update_status(&self.pool, indexing.id, status).await?;
+        Indexing::update_status(&self.pool, indexing.id, status).await?;
 
         Ok(())
     }
 
-    async fn do_indexing(&mut self, indexing: &DocumentIndexing) -> anyhow::Result<()> {
+    async fn do_indexing(&mut self, indexing: &Indexing) -> anyhow::Result<()> {
         info!("Started indexing {}...", indexing.id);
 
         let document_str = self

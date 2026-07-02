@@ -34,7 +34,6 @@ impl Collection {
             .await
     }
 
-    
     pub async fn update(
         pool: &PgPool,
         id: Uuid,

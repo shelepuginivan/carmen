@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use carmen_db::documents::DocumentIndexing;
+use carmen_db::indexing::Indexing;
 use log::{error, info};
 use tokio::signal::unix::{SignalKind, signal};
 use tokio::time::{MissedTickBehavior, interval};
@@ -40,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
                 break;
             },
 
-            _ = interval.tick() => match DocumentIndexing::claim(&pool).await {
+            _ = interval.tick() => match Indexing::claim(&pool).await {
                 Ok(Some(indexing)) => {
                     worker.push_indexing(indexing).await;
                     interval.reset_immediately();

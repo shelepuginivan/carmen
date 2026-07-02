@@ -39,17 +39,17 @@ CREATE TABLE documents (
     checksum          bytea NOT NULL
 );
 
-CREATE TYPE document_indexing_status AS ENUM (
+CREATE TYPE indexing_status AS ENUM (
     'pending',
     'in_progress',
     'completed',
     'failed'
 );
 
-CREATE TABLE document_indexing (
+CREATE TABLE indexing (
     id             uuid PRIMARY KEY DEFAULT uuidv4(),
     document_id    uuid REFERENCES documents(id) ON DELETE CASCADE,
-    status         document_indexing_status NOT NULL DEFAULT 'pending',
+    status         indexing_status NOT NULL DEFAULT 'pending',
     created_at     timestamptz NOT NULL DEFAULT timezone('utc', now())
 );
 

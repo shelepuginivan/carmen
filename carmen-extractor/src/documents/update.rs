@@ -1,5 +1,6 @@
 use carmen_db::documents::Document;
 use carmen_db::extractions::{Extraction, ExtractionType};
+use carmen_db::indexing::Indexing;
 use carmen_s3::Storage;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -35,7 +36,7 @@ impl<'a> DocumentUpdater<'a> {
     async fn add_document(&self, collection_id: Uuid, doc: &AddedDocument) -> anyhow::Result<()> {
         let new_document =
             Document::insert(self.pool, collection_id, &doc.canonical_path, doc.checksum).await?;
-        Document::schedule_indexing(self.pool, new_document.id).await?;
+        Indexing::schedule(self.pool, new_document.id).await?;
 
         self.storage
             .put_raw_document_from_path(new_document.id, &doc.raw_path)
@@ -50,7 +51,7 @@ impl<'a> DocumentUpdater<'a> {
 
     async fn update_document(&self, doc: &UpdatedDocument) -> anyhow::Result<()> {
         Document::update_checksum(self.pool, doc.id, doc.checksum).await?;
-        Document::schedule_indexing(self.pool, doc.id).await?;
+        Indexing::schedule(self.pool, doc.id).await?;
 
         self.storage
             .put_raw_document_from_path(doc.id, &doc.raw_path)

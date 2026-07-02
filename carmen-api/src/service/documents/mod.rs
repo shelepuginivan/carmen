@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::body::Body;
-use carmen_db::documents::Document;
+use carmen_db::{documents::Document, indexing::Indexing};
 use carmen_s3::Storage;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -51,7 +51,7 @@ impl DocumentsService {
         Ok(deleted)
     }
 
-    pub async fn schedule_indexing(&self, id: Uuid) -> Result<dto::DocumentIndexing> {
-        Ok(Document::schedule_indexing(&self.pool, id).await?.into())
+    pub async fn schedule_indexing(&self, document_id: Uuid) -> Result<dto::DocumentIndexing> {
+        Ok(Indexing::schedule(&self.pool, document_id).await?.into())
     }
 }
