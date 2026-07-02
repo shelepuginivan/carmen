@@ -6,7 +6,6 @@ use carmen_s3::Storage;
 use log::{error, info};
 use sqlx::PgPool;
 use text_splitter::{Characters, MarkdownSplitter};
-use tokio::select;
 use tokio::sync::{mpsc, watch};
 use tokio::task::JoinHandle;
 
@@ -83,7 +82,7 @@ impl WorkerActor {
 
     pub async fn run(&mut self) {
         loop {
-            select! {
+            tokio::select! {
                 _ = self.stop.changed() => {
                     if *self.stop.borrow() {
                         break;
