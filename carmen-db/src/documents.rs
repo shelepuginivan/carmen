@@ -2,8 +2,6 @@ use sqlx::PgPool;
 use sqlx::types::Uuid;
 use sqlx::types::chrono::{DateTime, Utc};
 
-pub const DOCUMENT_INDEXING_CHAN: &str = "carmen_document_indexing";
-
 #[derive(sqlx::FromRow)]
 pub struct Document {
     pub id: Uuid,
@@ -91,34 +89,26 @@ impl Document {
     }
 
     pub async fn schedule_indexing(pool: &PgPool, id: Uuid) -> sqlx::Result<DocumentIndexing> {
-        let extraction: DocumentIndexing =
-            sqlx::query_as("INSERT INTO document_indexing (document_id) VALUES ($1) RETURNING *")
-                .bind(id)
-                .fetch_one(pool)
-                .await?;
-
-        sqlx::query("SELECT pg_notify($1, $2)")
-            .bind(DOCUMENT_INDEXING_CHAN)
-            .bind(extraction.id.to_string())
-            .execute(pool)
-            .await?;
-
-        Ok(extraction)
+        sqlx::query_as("INSERT INTO document_indexing (document_id) VALUES ($1) RETURNING *")
+            .bind(id)
+            .fetch_one(pool)
+            .await
     }
 }
 
 impl DocumentIndexing {
-    pub async fn claim(pool: &PgPool, id: Uuid) -> sqlx::Result<Option<Self>> {
+    pub async fn claim(pool: &PgPool) -> sqlx::Result<Option<Self>> {
         let mut tx = pool.begin().await?;
 
         let extraction = sqlx::query_as::<_, Self>(
             r#"
             SELECT * FROM document_indexing
-            WHERE id = $1 AND status = $2
+            WHERE status = $1
+            ORDER BY created_at
+            LIMIT 1
             FOR UPDATE SKIP LOCKED
             "#,
         )
-        .bind(id)
         .bind(DocumentIndexingStatus::Pending)
         .fetch_optional(&mut *tx)
         .await?;
@@ -126,7 +116,7 @@ impl DocumentIndexing {
         if let Some(claimed) = extraction {
             sqlx::query("UPDATE document_indexing SET status = $1 WHERE id = $2")
                 .bind(DocumentIndexingStatus::InProgress)
-                .bind(id)
+                .bind(claimed.id)
                 .execute(&mut *tx)
                 .await?;
 

@@ -9,17 +9,12 @@ use text_splitter::{Characters, MarkdownSplitter};
 use tokio::select;
 use tokio::sync::{mpsc, watch};
 use tokio::task::JoinHandle;
-use uuid::Uuid;
 
 use crate::config::Config;
 
-struct Task {
-    id: Uuid,
-}
-
 struct WorkerActor {
     stop: watch::Receiver<bool>,
-    tasks: mpsc::Receiver<Task>,
+    tasks: mpsc::Receiver<DocumentIndexing>,
 
     pool: PgPool,
     storage: Storage,
@@ -30,7 +25,7 @@ struct WorkerActor {
 
 pub struct WorkerHandle {
     stop: watch::Sender<bool>,
-    tasks: mpsc::Sender<Task>,
+    tasks: mpsc::Sender<DocumentIndexing>,
     handle: JoinHandle<()>,
 }
 
@@ -49,8 +44,7 @@ impl WorkerHandle {
         })
     }
 
-    pub async fn push_task(&self, id: Uuid) {
-        let task = Task { id };
+    pub async fn push_indexing(&self, task: DocumentIndexing) {
         let _ = self.tasks.send(task).await;
     }
 
@@ -67,7 +61,7 @@ impl WorkerActor {
     pub fn new(
         config: &Config,
         pool: PgPool,
-        tasks_rx: mpsc::Receiver<Task>,
+        tasks_rx: mpsc::Receiver<DocumentIndexing>,
         cancel_rx: watch::Receiver<bool>,
     ) -> anyhow::Result<Self> {
         let detector = LangDetector::new_from_env()?;
@@ -96,18 +90,13 @@ impl WorkerActor {
                     }
                 }
                 Some(task) = self.tasks.recv() => {
-                    let _ = self.process_task(task).await;
+                    let _ = self.process_indexing(task).await;
                 }
             }
         }
     }
 
-    async fn process_task(&mut self, task: Task) -> anyhow::Result<()> {
-        let indexing = match DocumentIndexing::claim(&self.pool, task.id).await? {
-            Some(i) => i,
-            None => return Ok(()),
-        };
-
+    async fn process_indexing(&mut self, indexing: DocumentIndexing) -> anyhow::Result<()> {
         let status = match self.do_indexing(&indexing).await {
             Ok(_) => {
                 info!("Indexing {} completed successfully", indexing.id);

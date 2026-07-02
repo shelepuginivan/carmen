@@ -1,14 +1,17 @@
-use carmen_db::documents::DOCUMENT_INDEXING_CHAN;
+use std::time::Duration;
+
+use carmen_db::documents::DocumentIndexing;
 use log::{error, info};
-use sqlx::postgres::PgListener;
-use sqlx::types::Uuid;
 use tokio::signal::unix::{SignalKind, signal};
+use tokio::time::{MissedTickBehavior, interval};
 
 mod config;
 mod worker;
 
 use crate::config::Config;
 use crate::worker::WorkerHandle;
+
+const INDEXING_POLL_INTERVAL: Duration = Duration::from_secs(5);
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -20,9 +23,8 @@ async fn main() -> anyhow::Result<()> {
     let config = Config::load_env()?;
     let pool = carmen_db::connect_from_env().await?;
 
-    let mut queue_listener = PgListener::connect_with(&pool).await?;
-    queue_listener.listen(DOCUMENT_INDEXING_CHAN).await?;
-    info!("Subscribed to PG channel '{DOCUMENT_INDEXING_CHAN}'");
+    let mut interval = interval(INDEXING_POLL_INTERVAL);
+    interval.set_missed_tick_behavior(MissedTickBehavior::Skip);
 
     let worker = WorkerHandle::new(&config, pool.clone())?;
 
@@ -38,18 +40,18 @@ async fn main() -> anyhow::Result<()> {
                 break;
             },
 
-            notification = queue_listener.recv() => match notification {
-                Ok(notification) => {
-                    let task_id: Uuid = notification.payload().parse()?;
-                    worker.push_task(task_id).await;
-                }
-                Err(err) => error!("Failed to receive notification: {err}"),
-            }
+            _ = interval.tick() => match DocumentIndexing::claim(&pool).await {
+                Ok(Some(indexing)) => {
+                    worker.push_indexing(indexing).await;
+                    interval.reset_immediately();
+                },
+                Ok(None) => {}
+                Err(err) => error!("Failed to claim indexing: {err}"),
+            },
         }
     }
 
     worker.stop().await?;
-    queue_listener.unlisten_all().await?;
     pool.clone().close().await;
 
     Ok(())
