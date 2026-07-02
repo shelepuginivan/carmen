@@ -20,6 +20,7 @@ pub fn router() -> Router<AppState> {
         .route("/{id}/documents", get(get_documents))
         .route("/{id}/extractions", get(get_extractions))
         .route("/{id}/schedule", post(schedule_extraction))
+        .route("/extractions/{id}/cancel", post(cancel_extraction))
 }
 
 /// Create new collection
@@ -254,4 +255,32 @@ pub async fn schedule_extraction(
 ) -> Result<impl IntoResponse> {
     let extraction = state.collections.schedule_extraction(extraction).await?;
     Ok((StatusCode::ACCEPTED, Json(extraction)))
+}
+
+/// Cancel an extraction
+#[utoipa::path(
+    post,
+    path = "/api/v1/collections/extractions/{id}/cancel",
+    params(
+        ("id" = Uuid, Path, description = "Extraction ID")
+    ),
+    responses(
+        (
+            status = 200,
+            description = "Cancellation result",
+            body = collections::dto::CancellationResult,
+        ),
+        (
+            status = 500,
+            description = "Internal server error occurred",
+            body = ErrorWithDetail,
+        )
+    ),
+)]
+pub async fn cancel_extraction(
+    state: State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse> {
+    let result = state.collections.cancel_extraction(id).await?;
+    Ok((StatusCode::OK, Json(result)))
 }

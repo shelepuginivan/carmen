@@ -12,6 +12,7 @@ use super::search;
     collections::get_extractions,
     collections::get_documents,
     collections::schedule_extraction,
+    collections::cancel_extraction,
     documents::get_by_id,
     documents::raw_document,
     documents::exported_document,

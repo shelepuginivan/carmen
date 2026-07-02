@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use carmen_db::collections::Collection;
+use carmen_db::collections::{Collection, CollectionExtraction};
 use carmen_db::documents::Document;
 use carmen_s3::Storage;
 use sqlx::PgPool;
@@ -99,5 +99,10 @@ impl CollectionService {
         )
         .await?
         .into())
+    }
+
+    pub async fn cancel_extraction(&self, id: Uuid) -> Result<dto::CancellationResult> {
+        let cancelled = CollectionExtraction::cancel(&self.pool, id).await?;
+        Ok(dto::CancellationResult { cancelled })
     }
 }

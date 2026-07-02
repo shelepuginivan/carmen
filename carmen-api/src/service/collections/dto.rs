@@ -113,3 +113,8 @@ impl From<carmen_db::collections::CollectionExtraction> for CollectionExtraction
         }
     }
 }
+
+#[derive(Serialize, ToSchema)]
+pub struct CancellationResult {
+    pub cancelled: bool,
+}
