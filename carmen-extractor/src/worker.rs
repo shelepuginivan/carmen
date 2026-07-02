@@ -1,4 +1,4 @@
-use anyhow::{Context, anyhow};
+use anyhow::{Context, bail};
 use carmen_db::collections::{Collection, CollectionExtraction, CollectionExtractionStatus};
 use carmen_db::documents::Document;
 use carmen_s3::Storage;
@@ -102,15 +102,18 @@ impl WorkerActor {
     }
 
     async fn do_extraction(&mut self, extraction: &CollectionExtraction) -> anyhow::Result<()> {
+        let source_type = match extraction.source_type.parse() {
+            Ok(et) => et,
+            Err(_) => bail!(
+                "Unknown source type '{}' (extraction {})",
+                extraction.source_type,
+                extraction.id
+            ),
+        };
+
         let extractor = EXTRACTORS
-            .iter()
-            .find(|ex| ex.can_extract(extraction))
-            .ok_or_else(|| {
-                anyhow!(
-                    "Could not find extractor for collection {}",
-                    extraction.collection_id
-                )
-            })?;
+            .get(&source_type)
+            .expect("known source type should have matching extractor");
 
         info!("Started extraction {}...", extraction.id);
 

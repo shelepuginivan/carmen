@@ -10,10 +10,6 @@ use super::Extractor;
 pub struct GitHubWikiExtractor;
 
 impl Extractor for GitHubWikiExtractor {
-    fn can_extract(&self, extraction: &CollectionExtraction) -> bool {
-        extraction.source_type == "github-wiki"
-    }
-
     async fn extract(
         &self,
         extraction: &CollectionExtraction,

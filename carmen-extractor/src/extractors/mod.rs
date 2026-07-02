@@ -1,8 +1,10 @@
+use std::collections::HashMap;
 use std::path::Path;
 use std::sync::LazyLock;
 
 use carmen_db::collections::CollectionExtraction;
 use enum_dispatch::enum_dispatch;
+use strum::EnumString;
 
 use crate::document::Document;
 
@@ -14,8 +16,6 @@ use github_wiki::GitHubWikiExtractor;
 
 #[enum_dispatch]
 pub trait Extractor {
-    fn can_extract(&self, extraction: &CollectionExtraction) -> bool;
-
     async fn extract(
         &self,
         extraction: &CollectionExtraction,
@@ -29,5 +29,17 @@ pub enum ExtractorEnum {
     GitHubWikiExtractor,
 }
 
-pub static EXTRACTORS: LazyLock<Vec<ExtractorEnum>> =
-    LazyLock::new(|| vec![GitExtractor.into(), GitHubWikiExtractor.into()]);
+#[derive(PartialEq, Eq, Hash, EnumString)]
+#[strum(serialize_all = "snake_case")]
+pub enum SourceType {
+    Git,
+    #[strum(serialize = "github_wiki")]
+    GitHubWiki,
+}
+
+pub static EXTRACTORS: LazyLock<HashMap<SourceType, ExtractorEnum>> = LazyLock::new(|| {
+    HashMap::from([
+        (SourceType::Git, GitExtractor.into()),
+        (SourceType::GitHubWiki, GitHubWikiExtractor.into()),
+    ])
+});

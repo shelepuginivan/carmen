@@ -23,10 +23,6 @@ impl<'a> GitSourceParams<'a> {
 }
 
 impl Extractor for GitExtractor {
-    fn can_extract(&self, extraction: &CollectionExtraction) -> bool {
-        extraction.source_type == "git"
-    }
-
     async fn extract(
         &self,
         extraction: &CollectionExtraction,
