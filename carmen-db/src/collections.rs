@@ -13,7 +13,7 @@ pub struct Collection {
     pub description: Option<String>,
 }
 
-#[derive(sqlx::Type)]
+#[derive(PartialEq, Eq, sqlx::Type)]
 #[sqlx(type_name = "collection_extraction_status", rename_all = "snake_case")]
 pub enum CollectionExtractionStatus {
     Pending,
@@ -145,7 +145,7 @@ impl CollectionExtraction {
         let extraction = sqlx::query_as::<_, Self>(
             r#"
             SELECT * FROM collection_extractions
-            WHERE status = $1 AND created_at > $2
+            WHERE status = $1 AND created_at < $2
             ORDER BY created_at
             LIMIT 1
             FOR UPDATE SKIP LOCKED
@@ -192,23 +192,26 @@ impl CollectionExtraction {
         let extraction = sqlx::query_as::<_, Self>(
             r#"
             SELECT * FROM collection_extractions
-            WHERE id = $1 AND status = $2 AND created_at < $3
+            WHERE id = $1
             FOR UPDATE SKIP LOCKED
             "#,
         )
         .bind(id)
-        .bind(CollectionExtractionStatus::Pending)
-        .bind(Utc::now() - EXTRACTION_DELAY)
-        .fetch_optional(&mut *tx)
+        .fetch_one(&mut *tx)
         .await?;
 
-        if extraction.is_none() {
+        if extraction.status != CollectionExtractionStatus::Pending {
+            tx.rollback().await?;
+            return Ok(false);
+        }
+
+        if extraction.created_at + EXTRACTION_DELAY < Utc::now() {
             tx.rollback().await?;
             return Ok(false);
         }
 
         sqlx::query("UPDATE collection_extractions SET status = $1 WHERE id = $2")
-            .bind(CollectionExtractionStatus::InProgress)
+            .bind(CollectionExtractionStatus::Cancelled)
             .bind(id)
             .execute(&mut *tx)
             .await?;
