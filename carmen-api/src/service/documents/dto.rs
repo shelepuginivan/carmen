@@ -20,14 +20,14 @@ impl From<carmen_db::documents::Document> for Document {
 
 #[derive(Serialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum DocumentIndexingStatus {
+pub enum IndexingStatus {
     Pending,
     InProgress,
     Completed,
     Failed,
 }
 
-impl From<carmen_db::indexing::IndexingStatus> for DocumentIndexingStatus {
+impl From<carmen_db::indexing::IndexingStatus> for IndexingStatus {
     fn from(value: carmen_db::indexing::IndexingStatus) -> Self {
         match value {
             carmen_db::indexing::IndexingStatus::Pending => Self::Pending,
@@ -39,14 +39,14 @@ impl From<carmen_db::indexing::IndexingStatus> for DocumentIndexingStatus {
 }
 
 #[derive(Serialize, ToSchema)]
-pub struct DocumentIndexing {
+pub struct Indexing {
     pub id: Uuid,
     pub document_id: Uuid,
-    pub status: DocumentIndexingStatus,
+    pub status: IndexingStatus,
     pub created_at: DateTime<Utc>,
 }
 
-impl From<carmen_db::indexing::Indexing> for DocumentIndexing {
+impl From<carmen_db::indexing::Indexing> for Indexing {
     fn from(value: carmen_db::indexing::Indexing) -> Self {
         Self {
             id: value.id,

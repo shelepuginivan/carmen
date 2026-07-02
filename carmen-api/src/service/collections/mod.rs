@@ -72,24 +72,24 @@ impl CollectionService {
         Ok(Collection::delete(&self.pool, id).await?.into())
     }
 
-    pub async fn get_extractions(&self, id: Uuid) -> Result<Vec<dto::CollectionExtraction>> {
+    pub async fn get_extractions(&self, id: Uuid) -> Result<Vec<dto::Extraction>> {
         Ok(Extraction::get_for_collection(&self.pool, id)
             .await?
             .into_iter()
-            .map(dto::CollectionExtraction::from)
+            .map(dto::Extraction::from)
             .collect())
     }
 
     pub async fn schedule_extraction(
         &self,
-        dto::ScheduleCollectionExtraction {
+        dto::ScheduleExtraction {
             collection_id,
             source,
             source_type,
             parameters,
             extraction_type,
-        }: dto::ScheduleCollectionExtraction,
-    ) -> Result<dto::CollectionExtraction> {
+        }: dto::ScheduleExtraction,
+    ) -> Result<dto::Extraction> {
         Ok(Extraction::schedule(
             &self.pool,
             collection_id,

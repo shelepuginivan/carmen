@@ -156,7 +156,7 @@ pub async fn delete_document(
         (
             status = 202,
             description = "Indexing scheduled",
-            body = documents::dto::DocumentIndexing,
+            body = documents::dto::Indexing,
         ),
         (
             status = 404,

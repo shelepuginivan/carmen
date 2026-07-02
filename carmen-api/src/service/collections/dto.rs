@@ -35,7 +35,7 @@ impl From<carmen_db::collections::Collection> for Collection {
 
 #[derive(Serialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum CollectionExtractionStatus {
+pub enum ExtractionStatus {
     Pending,
     InProgress,
     Completed,
@@ -43,7 +43,7 @@ pub enum CollectionExtractionStatus {
     Cancelled,
 }
 
-impl From<carmen_db::extractions::ExtractionStatus> for CollectionExtractionStatus {
+impl From<carmen_db::extractions::ExtractionStatus> for ExtractionStatus {
     fn from(value: carmen_db::extractions::ExtractionStatus) -> Self {
         match value {
             carmen_db::extractions::ExtractionStatus::Pending => Self::Pending,
@@ -57,12 +57,12 @@ impl From<carmen_db::extractions::ExtractionStatus> for CollectionExtractionStat
 
 #[derive(Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum CollectionExtractionType {
+pub enum ExtractionType {
     Merge,
     Override,
 }
 
-impl From<carmen_db::extractions::ExtractionType> for CollectionExtractionType {
+impl From<carmen_db::extractions::ExtractionType> for ExtractionType {
     fn from(value: carmen_db::extractions::ExtractionType) -> Self {
         match value {
             carmen_db::extractions::ExtractionType::Merge => Self::Merge,
@@ -71,36 +71,36 @@ impl From<carmen_db::extractions::ExtractionType> for CollectionExtractionType {
     }
 }
 
-impl From<CollectionExtractionType> for carmen_db::extractions::ExtractionType {
-    fn from(val: CollectionExtractionType) -> Self {
+impl From<ExtractionType> for carmen_db::extractions::ExtractionType {
+    fn from(val: ExtractionType) -> Self {
         match val {
-            CollectionExtractionType::Merge => Self::Merge,
-            CollectionExtractionType::Override => Self::Override,
+            ExtractionType::Merge => Self::Merge,
+            ExtractionType::Override => Self::Override,
         }
     }
 }
 
 #[derive(Deserialize, ToSchema)]
-pub struct ScheduleCollectionExtraction {
+pub struct ScheduleExtraction {
     pub collection_id: Uuid,
     pub source: String,
     pub source_type: String,
     pub parameters: serde_json::Value,
-    pub extraction_type: CollectionExtractionType,
+    pub extraction_type: ExtractionType,
 }
 
 #[derive(Serialize, ToSchema)]
-pub struct CollectionExtraction {
+pub struct Extraction {
     pub id: Uuid,
     pub collection_id: Uuid,
-    pub status: CollectionExtractionStatus,
+    pub status: ExtractionStatus,
     pub created_at: DateTime<Utc>,
     pub source: String,
     pub source_type: String,
-    pub extraction_type: CollectionExtractionType,
+    pub extraction_type: ExtractionType,
 }
 
-impl From<carmen_db::extractions::Extraction> for CollectionExtraction {
+impl From<carmen_db::extractions::Extraction> for Extraction {
     fn from(value: carmen_db::extractions::Extraction) -> Self {
         Self {
             id: value.id,

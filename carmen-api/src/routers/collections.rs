@@ -143,7 +143,7 @@ pub async fn update(
         (
             status = 200,
             description = "Collection deleted",
-            body = collections::dto::CollectionExtraction,
+            body = collections::dto::Extraction,
         ),
         (
             status = 404,
@@ -209,7 +209,7 @@ pub async fn get_documents(
         (
             status = 200,
             description = "Extractions of the collection",
-            body = Vec<collections::dto::CollectionExtraction>,
+            body = Vec<collections::dto::Extraction>,
         ),
         (
             status = 404,
@@ -235,12 +235,12 @@ pub async fn get_extractions(
 #[utoipa::path(
     post,
     path = "/api/v1/collections/{id}/schedule",
-    request_body = collections::dto::ScheduleCollectionExtraction,
+    request_body = collections::dto::ScheduleExtraction,
     responses(
         (
             status = 202,
             description = "Scheduled extraction",
-            body = collections::dto::CollectionExtraction,
+            body = collections::dto::Extraction,
         ),
         (
             status = 500,
@@ -251,7 +251,7 @@ pub async fn get_extractions(
 )]
 pub async fn schedule_extraction(
     state: State<AppState>,
-    Json(extraction): Json<collections::dto::ScheduleCollectionExtraction>,
+    Json(extraction): Json<collections::dto::ScheduleExtraction>,
 ) -> Result<impl IntoResponse> {
     let extraction = state.collections.schedule_extraction(extraction).await?;
     Ok((StatusCode::ACCEPTED, Json(extraction)))

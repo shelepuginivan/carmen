@@ -51,7 +51,7 @@ impl DocumentsService {
         Ok(deleted)
     }
 
-    pub async fn schedule_indexing(&self, document_id: Uuid) -> Result<dto::DocumentIndexing> {
+    pub async fn schedule_indexing(&self, document_id: Uuid) -> Result<dto::Indexing> {
         Ok(Indexing::schedule(&self.pool, document_id).await?.into())
     }
 }
