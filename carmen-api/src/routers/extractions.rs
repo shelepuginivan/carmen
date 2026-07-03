@@ -11,7 +11,9 @@ use crate::service::extractions;
 use super::error::{ErrorWithDetail, Result};
 
 pub fn router() -> Router<AppState> {
-    Router::new().route("/{id}/cancel", post(cancel_extraction))
+    Router::new()
+        .route("/{id}/cancel", post(cancel_extraction))
+        .route("/{id}/replay", post(replay))
 }
 
 /// Cancel an extraction
@@ -40,4 +42,29 @@ pub async fn cancel_extraction(
 ) -> Result<impl IntoResponse> {
     let result = state.extractions.cancel(id).await?;
     Ok((StatusCode::OK, Json(result)))
+}
+
+/// Replay an extraction
+#[utoipa::path(
+    post,
+    path = "/api/v1/extractions/{id}/replay",
+    params(
+        ("id" = Uuid, Path, description = "Extraction ID")
+    ),
+    responses(
+        (
+            status = 202,
+            description = "Scheduled extraction",
+            body = extractions::dto::Extraction,
+        ),
+        (
+            status = 500,
+            description = "Internal server error occurred",
+            body = ErrorWithDetail,
+        )
+    ),
+)]
+pub async fn replay(state: State<AppState>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
+    let replay = state.extractions.replay(id).await?;
+    Ok((StatusCode::ACCEPTED, Json(replay)))
 }

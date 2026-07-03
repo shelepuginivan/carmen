@@ -19,6 +19,7 @@ use super::search;
     documents::delete_document,
     documents::schedule_indexing,
     extractions::cancel_extraction,
+    extractions::replay,
     search::full_text,
     search::semantic,
     search::hybrid,

@@ -50,4 +50,19 @@ impl ExtractionService {
         let cancelled = Extraction::cancel(&self.pool, id).await?;
         Ok(dto::CancellationResult { cancelled })
     }
+
+    pub async fn replay(&self, id: Uuid) -> Result<dto::Extraction> {
+        let extraction = Extraction::get_by_id(&self.pool, id).await?;
+        let replay = Extraction::schedule(
+            &self.pool,
+            extraction.collection_id,
+            &extraction.source,
+            &extraction.source_type,
+            extraction.extraction_type,
+            &extraction.parameters,
+        )
+        .await?;
+
+        Ok(replay.into())
+    }
 }
