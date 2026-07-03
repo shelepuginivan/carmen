@@ -161,4 +161,11 @@ impl Extraction {
         tx.commit().await?;
         Ok(true)
     }
+
+    pub async fn delete(pool: &PgPool, id: Uuid) -> sqlx::Result<Self> {
+        sqlx::query_as("DELETE FROM extractions WHERE id = $1 RETURNING *")
+            .bind(id)
+            .fetch_one(pool)
+            .await
+    }
 }
