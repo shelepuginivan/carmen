@@ -66,6 +66,11 @@ impl ExtractionService {
         Ok(replay.into())
     }
 
+    pub async fn get_by_id(&self, id: Uuid) -> Result<dto::Extraction> {
+        let deleted = Extraction::get_by_id(&self.pool, id).await?;
+        Ok(deleted.into())
+    }
+
     pub async fn delete(&self, id: Uuid) -> Result<dto::Extraction> {
         let deleted = Extraction::delete(&self.pool, id).await?;
         Ok(deleted.into())
