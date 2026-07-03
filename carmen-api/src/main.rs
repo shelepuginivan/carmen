@@ -14,7 +14,7 @@ mod service;
 
 use crate::app::AppState;
 use crate::config::Config;
-use crate::routers::{apidoc, collections, documents, search};
+use crate::routers::{apidoc, collections, documents, extractions, search};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -32,6 +32,7 @@ async fn main() -> anyhow::Result<()> {
     let mut app = Router::new()
         .nest("/api/v1/collections", collections::router())
         .nest("/api/v1/documents", documents::router())
+        .nest("/api/v1/extractions", extractions::router())
         .nest("/api/v1/search", search::router())
         .with_state(state);
 

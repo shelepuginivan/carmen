@@ -6,12 +6,14 @@ use sqlx::PgPool;
 
 use crate::service::collections::CollectionService;
 use crate::service::documents::DocumentsService;
+use crate::service::extractions::ExtractionService;
 use crate::service::search::SearchService;
 
 #[derive(Clone)]
 pub struct AppState {
     pub collections: CollectionService,
     pub documents: DocumentsService,
+    pub extractions: ExtractionService,
     pub search: SearchService,
 }
 
@@ -30,11 +32,13 @@ impl AppState {
 
         let collections = CollectionService::new(pool.clone(), storage.clone());
         let documents = DocumentsService::new(pool.clone(), storage);
+        let extractions = ExtractionService::new(pool.clone());
         let search = SearchService::new(pool, embedder, detector, reranker);
 
         Self {
             collections,
             documents,
+            extractions,
             search,
         }
     }

@@ -6,7 +6,7 @@ use axum::{Json, Router};
 use uuid::Uuid;
 
 use crate::app::AppState;
-use crate::service::{collections, documents};
+use crate::service::{collections, documents, extractions};
 
 use super::error::{ErrorWithDetail, Result};
 
@@ -19,8 +19,7 @@ pub fn router() -> Router<AppState> {
         .route("/{id}", delete(delete_collection))
         .route("/{id}/documents", get(get_documents))
         .route("/{id}/extractions", get(get_extractions))
-        .route("/{id}/schedule", post(schedule_extraction))
-        .route("/extractions/{id}/cancel", post(cancel_extraction))
+        .route("/{id}/extract", post(schedule_extraction))
 }
 
 /// Create new collection
@@ -143,7 +142,7 @@ pub async fn update(
         (
             status = 200,
             description = "Collection deleted",
-            body = collections::dto::Extraction,
+            body = collections::dto::Collection,
         ),
         (
             status = 404,
@@ -209,7 +208,7 @@ pub async fn get_documents(
         (
             status = 200,
             description = "Extractions of the collection",
-            body = Vec<collections::dto::Extraction>,
+            body = Vec<extractions::dto::Extraction>,
         ),
         (
             status = 404,
@@ -227,20 +226,20 @@ pub async fn get_extractions(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
-    let extractions = state.collections.get_extractions(id).await?;
+    let extractions = state.extractions.get_for_collection(id).await?;
     Ok((StatusCode::OK, Json(extractions)))
 }
 
 /// Schedule a new extraction of this collection
 #[utoipa::path(
     post,
-    path = "/api/v1/collections/{id}/schedule",
-    request_body = collections::dto::ScheduleExtraction,
+    path = "/api/v1/collections/{id}/extract",
+    request_body = extractions::dto::ScheduleExtraction,
     responses(
         (
             status = 202,
             description = "Scheduled extraction",
-            body = collections::dto::Extraction,
+            body = extractions::dto::Extraction,
         ),
         (
             status = 500,
@@ -251,36 +250,8 @@ pub async fn get_extractions(
 )]
 pub async fn schedule_extraction(
     state: State<AppState>,
-    Json(extraction): Json<collections::dto::ScheduleExtraction>,
+    Json(extraction): Json<extractions::dto::ScheduleExtraction>,
 ) -> Result<impl IntoResponse> {
-    let extraction = state.collections.schedule_extraction(extraction).await?;
+    let extraction = state.extractions.schedule(extraction).await?;
     Ok((StatusCode::ACCEPTED, Json(extraction)))
-}
-
-/// Cancel an extraction
-#[utoipa::path(
-    post,
-    path = "/api/v1/collections/extractions/{id}/cancel",
-    params(
-        ("id" = Uuid, Path, description = "Extraction ID")
-    ),
-    responses(
-        (
-            status = 200,
-            description = "Cancellation result",
-            body = collections::dto::CancellationResult,
-        ),
-        (
-            status = 500,
-            description = "Internal server error occurred",
-            body = ErrorWithDetail,
-        )
-    ),
-)]
-pub async fn cancel_extraction(
-    state: State<AppState>,
-    Path(id): Path<Uuid>,
-) -> Result<impl IntoResponse> {
-    let result = state.collections.cancel_extraction(id).await?;
-    Ok((StatusCode::OK, Json(result)))
 }

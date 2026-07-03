@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use carmen_db::collections::Collection;
 use carmen_db::documents::Document;
-use carmen_db::extractions::Extraction;
 use carmen_s3::Storage;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -70,40 +69,5 @@ impl CollectionService {
         self.storage.delete_documents(&document_ids).await?;
 
         Ok(Collection::delete(&self.pool, id).await?.into())
-    }
-
-    pub async fn get_extractions(&self, id: Uuid) -> Result<Vec<dto::Extraction>> {
-        Ok(Extraction::get_for_collection(&self.pool, id)
-            .await?
-            .into_iter()
-            .map(dto::Extraction::from)
-            .collect())
-    }
-
-    pub async fn schedule_extraction(
-        &self,
-        dto::ScheduleExtraction {
-            collection_id,
-            source,
-            source_type,
-            parameters,
-            extraction_type,
-        }: dto::ScheduleExtraction,
-    ) -> Result<dto::Extraction> {
-        Ok(Extraction::schedule(
-            &self.pool,
-            collection_id,
-            &source,
-            &source_type,
-            extraction_type.into(),
-            &parameters,
-        )
-        .await?
-        .into())
-    }
-
-    pub async fn cancel_extraction(&self, id: Uuid) -> Result<dto::CancellationResult> {
-        let cancelled = Extraction::cancel(&self.pool, id).await?;
-        Ok(dto::CancellationResult { cancelled })
     }
 }

@@ -1,5 +1,6 @@
 use super::collections;
 use super::documents;
+use super::extractions;
 use super::search;
 
 #[derive(utoipa::OpenApi)]
@@ -12,12 +13,12 @@ use super::search;
     collections::get_extractions,
     collections::get_documents,
     collections::schedule_extraction,
-    collections::cancel_extraction,
     documents::get_by_id,
     documents::raw_document,
     documents::exported_document,
     documents::delete_document,
     documents::schedule_indexing,
+    extractions::cancel_extraction,
     search::full_text,
     search::semantic,
     search::hybrid,
