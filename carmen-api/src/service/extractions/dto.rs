@@ -68,6 +68,7 @@ pub struct Extraction {
     pub source: String,
     pub source_type: String,
     pub extraction_type: ExtractionType,
+    pub parameters: serde_json::Value,
 }
 
 impl From<carmen_db::extractions::Extraction> for Extraction {
@@ -80,6 +81,7 @@ impl From<carmen_db::extractions::Extraction> for Extraction {
             source: value.source,
             source_type: value.source_type,
             extraction_type: value.extraction_type.into(),
+            parameters: value.parameters,
         }
     }
 }
