@@ -20,6 +20,7 @@ use super::search;
     documents::schedule_indexing,
     extractions::cancel_extraction,
     extractions::replay,
+    extractions::delete_extraction,
     search::full_text,
     search::semantic,
     search::hybrid,
