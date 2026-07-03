@@ -49,6 +49,13 @@ impl Extraction {
         .await
     }
 
+    pub async fn get_by_id(pool: &PgPool, id: Uuid) -> sqlx::Result<Self> {
+        sqlx::query_as("SELECT * FROM extractions WHERE id = $1")
+            .bind(id)
+            .fetch_one(pool)
+            .await
+    }
+
     pub async fn claim(pool: &PgPool) -> sqlx::Result<Option<Self>> {
         let mut tx = pool.begin().await?;
 
