@@ -21,7 +21,7 @@ impl DocumentsService {
         Self { pool, storage }
     }
 
-    pub async fn get_from_collection(&self, collection_id: Uuid) -> Result<Vec<dto::Document>> {
+    pub async fn get_by_collection_id(&self, collection_id: Uuid) -> Result<Vec<dto::Document>> {
         Ok(Document::get_by_collection_id(&self.pool, collection_id)
             .await?
             .into_iter()
@@ -29,7 +29,7 @@ impl DocumentsService {
             .collect())
     }
 
-    pub async fn get_one(&self, id: Uuid) -> Result<dto::Document> {
+    pub async fn get(&self, id: Uuid) -> Result<dto::Document> {
         Ok(Document::get(&self.pool, id).await?.into())
     }
 

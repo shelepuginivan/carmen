@@ -16,7 +16,12 @@ impl ExtractionService {
         Self { pool }
     }
 
-    pub async fn get_for_collection(&self, id: Uuid) -> Result<Vec<dto::Extraction>> {
+    pub async fn get(&self, id: Uuid) -> Result<dto::Extraction> {
+        let deleted = Extraction::get(&self.pool, id).await?;
+        Ok(deleted.into())
+    }
+
+    pub async fn get_by_collection_id(&self, id: Uuid) -> Result<Vec<dto::Extraction>> {
         Ok(Extraction::get_by_collection_id(&self.pool, id)
             .await?
             .into_iter()
@@ -24,23 +29,14 @@ impl ExtractionService {
             .collect())
     }
 
-    pub async fn schedule(
-        &self,
-        dto::ScheduleExtraction {
-            collection_id,
-            source,
-            source_type,
-            parameters,
-            extraction_type,
-        }: dto::ScheduleExtraction,
-    ) -> Result<dto::Extraction> {
+    pub async fn schedule(&self, v: dto::ScheduleExtraction) -> Result<dto::Extraction> {
         Ok(Extraction::schedule(
             &self.pool,
-            collection_id,
-            &source,
-            &source_type,
-            extraction_type.into(),
-            &parameters,
+            v.collection_id,
+            &v.source,
+            &v.source_type,
+            v.extraction_type.into(),
+            &v.parameters,
         )
         .await?
         .into())
@@ -64,11 +60,6 @@ impl ExtractionService {
         .await?;
 
         Ok(replay.into())
-    }
-
-    pub async fn get_by_id(&self, id: Uuid) -> Result<dto::Extraction> {
-        let deleted = Extraction::get(&self.pool, id).await?;
-        Ok(deleted.into())
     }
 
     pub async fn delete(&self, id: Uuid) -> Result<dto::Extraction> {

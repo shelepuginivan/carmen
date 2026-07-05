@@ -45,7 +45,7 @@ pub fn router() -> Router<AppState> {
     ),
 )]
 pub async fn get_by_id(state: State<AppState>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
-    let document = state.documents.get_one(id).await?;
+    let document = state.documents.get(id).await?;
     Ok((StatusCode::OK, Json(document)))
 }
 

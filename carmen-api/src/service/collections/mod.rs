@@ -21,15 +21,16 @@ impl CollectionService {
         Self { pool, storage }
     }
 
-    pub async fn create(
-        &self,
-        dto::CreateCollection { name, description }: dto::CreateCollection,
-    ) -> Result<dto::Collection> {
+    pub async fn create(&self, v: dto::CreateCollection) -> Result<dto::Collection> {
         Ok(
-            Collection::insert(&self.pool, name.as_ref(), description.as_deref())
+            Collection::insert(&self.pool, v.name.as_ref(), v.description.as_deref())
                 .await?
                 .into(),
         )
+    }
+
+    pub async fn get(&self, id: Uuid) -> Result<dto::Collection> {
+        Ok(Collection::get(&self.pool, id).await?.into())
     }
 
     pub async fn get_all(&self) -> Result<Vec<dto::Collection>> {
@@ -40,23 +41,15 @@ impl CollectionService {
             .collect())
     }
 
-    pub async fn get_one(&self, id: Uuid) -> Result<dto::Collection> {
-        Ok(Collection::get(&self.pool, id).await?.into())
-    }
-
-    pub async fn update(
-        &self,
-        dto::UpdateCollection {
-            id,
-            name,
-            description,
-        }: dto::UpdateCollection,
-    ) -> Result<dto::Collection> {
-        Ok(
-            Collection::update(&self.pool, id, name.as_deref(), description.as_deref())
-                .await?
-                .into(),
+    pub async fn update(&self, v: dto::UpdateCollection) -> Result<dto::Collection> {
+        Ok(Collection::update(
+            &self.pool,
+            v.id,
+            v.name.as_deref(),
+            v.description.as_deref(),
         )
+        .await?
+        .into())
     }
 
     pub async fn delete(&self, id: Uuid) -> Result<dto::Collection> {

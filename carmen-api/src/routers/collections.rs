@@ -96,7 +96,7 @@ pub async fn get_all(state: State<AppState>) -> Result<impl IntoResponse> {
     ),
 )]
 pub async fn get_by_id(state: State<AppState>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
-    let collection = state.collections.get_one(id).await?;
+    let collection = state.collections.get(id).await?;
     Ok((StatusCode::OK, Json(collection)))
 }
 
@@ -193,7 +193,7 @@ pub async fn get_documents(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
-    let documents = state.documents.get_from_collection(id).await?;
+    let documents = state.documents.get_by_collection_id(id).await?;
     Ok((StatusCode::OK, Json(documents)))
 }
 
@@ -226,7 +226,7 @@ pub async fn get_extractions(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
-    let extractions = state.extractions.get_for_collection(id).await?;
+    let extractions = state.extractions.get_by_collection_id(id).await?;
     Ok((StatusCode::OK, Json(extractions)))
 }
 

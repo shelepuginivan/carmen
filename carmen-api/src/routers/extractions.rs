@@ -42,7 +42,7 @@ pub async fn get_extraction(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
-    let deleted = state.extractions.get_by_id(id).await?;
+    let deleted = state.extractions.get(id).await?;
     Ok((StatusCode::OK, Json(deleted)))
 }
 
