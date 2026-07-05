@@ -29,10 +29,14 @@ impl ExtractionService {
             .collect())
     }
 
-    pub async fn schedule(&self, v: dto::ScheduleExtraction) -> Result<dto::Extraction> {
+    pub async fn schedule(
+        &self,
+        collection_id: Uuid,
+        v: dto::ScheduleExtraction,
+    ) -> Result<dto::Extraction> {
         Ok(Extraction::schedule(
             &self.pool,
-            v.collection_id,
+            collection_id,
             &v.source,
             &v.source_type,
             v.extraction_type.into(),

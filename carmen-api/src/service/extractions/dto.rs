@@ -52,7 +52,6 @@ impl From<ExtractionType> for carmen_db::extractions::ExtractionType {
 
 #[derive(Deserialize, ToSchema)]
 pub struct ScheduleExtraction {
-    pub collection_id: Uuid,
     pub source: String,
     pub source_type: String,
     pub parameters: serde_json::Value,

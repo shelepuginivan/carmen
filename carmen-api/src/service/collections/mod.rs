@@ -41,15 +41,12 @@ impl CollectionService {
             .collect())
     }
 
-    pub async fn update(&self, v: dto::UpdateCollection) -> Result<dto::Collection> {
-        Ok(Collection::update(
-            &self.pool,
-            v.id,
-            v.name.as_deref(),
-            v.description.as_deref(),
+    pub async fn update(&self, id: Uuid, v: dto::UpdateCollection) -> Result<dto::Collection> {
+        Ok(
+            Collection::update(&self.pool, id, v.name.as_deref(), v.description.as_deref())
+                .await?
+                .into(),
         )
-        .await?
-        .into())
     }
 
     pub async fn delete(&self, id: Uuid) -> Result<dto::Collection> {

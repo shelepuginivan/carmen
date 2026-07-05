@@ -10,7 +10,6 @@ pub struct CreateCollection {
 
 #[derive(Deserialize, ToSchema)]
 pub struct UpdateCollection {
-    pub id: Uuid,
     pub name: Option<String>,
     pub description: Option<String>,
 }

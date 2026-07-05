@@ -118,6 +118,9 @@ async fn get_collection(state: State<AppState>, Path(id): Path<Uuid>) -> Result<
 #[utoipa::path(
     patch,
     path = "/{id}",
+    params(
+        ("id" = Uuid, Path, description = "Collection ID")
+    ),
     request_body = collections::dto::UpdateCollection,
     responses(
         (
@@ -139,9 +142,10 @@ async fn get_collection(state: State<AppState>, Path(id): Path<Uuid>) -> Result<
 )]
 async fn update_collection(
     state: State<AppState>,
+    Path(id): Path<Uuid>,
     Json(collection_update): Json<collections::dto::UpdateCollection>,
 ) -> Result<impl IntoResponse> {
-    let collection = state.collections.update(collection_update).await?;
+    let collection = state.collections.update(id, collection_update).await?;
     Ok((StatusCode::OK, Json(collection)))
 }
 
@@ -235,6 +239,9 @@ async fn get_extractions(
 #[utoipa::path(
     post,
     path = "/{id}/extract",
+    params(
+        ("id" = Uuid, Path, description = "Collection ID")
+    ),
     request_body = extractions::dto::ScheduleExtraction,
     responses(
         (
@@ -256,8 +263,9 @@ async fn get_extractions(
 )]
 async fn extract_collection(
     state: State<AppState>,
+    Path(id): Path<Uuid>,
     Json(extraction): Json<extractions::dto::ScheduleExtraction>,
 ) -> Result<impl IntoResponse> {
-    let extraction = state.extractions.schedule(extraction).await?;
+    let extraction = state.extractions.schedule(id, extraction).await?;
     Ok((StatusCode::ACCEPTED, Json(extraction)))
 }
