@@ -2,7 +2,7 @@ CREATE EXTENSION vector;
 
 CREATE TABLE collections (
     id             uuid PRIMARY KEY DEFAULT uuidv4(),
-    name           varchar(32) UNIQUE NOT NULL,
+    name           varchar(32),
     description    varchar(256),
     url            varchar(128),
     source         varchar(32)
