@@ -1,6 +1,8 @@
 use sqlx::PgPool;
 use sqlx::types::Uuid;
 
+use crate::documents::Document;
+
 #[derive(sqlx::FromRow)]
 pub struct Chunk {
     pub id: Uuid,
@@ -17,6 +19,8 @@ impl Chunk {
         language: &str,
         embedding: Vec<f32>,
     ) -> sqlx::Result<Self> {
+        Document::assert_exists(pool, document_id).await?;
+
         let embedding = pgvector::Vector::from(embedding);
 
         sqlx::query_as(

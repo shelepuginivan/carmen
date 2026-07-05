@@ -1,6 +1,8 @@
 use sqlx::PgPool;
 use sqlx::types::Uuid;
 
+use crate::collections::Collection;
+
 #[derive(sqlx::FromRow)]
 pub struct Document {
     pub id: Uuid,
@@ -16,6 +18,8 @@ impl Document {
         canonical_path: &str,
         checksum: [u8; 32],
     ) -> sqlx::Result<Self> {
+        Collection::assert_exists(pool, collection_id).await?;
+
         sqlx::query_as(
             r#"
             INSERT INTO documents (collection_id, canonical_path, checksum)
@@ -59,5 +63,13 @@ impl Document {
             .bind(id)
             .fetch_one(pool)
             .await
+    }
+
+    pub(crate) async fn assert_exists(pool: &PgPool, id: Uuid) -> sqlx::Result<()> {
+        sqlx::query("SELECT FROM documents WHERE id = $1")
+            .bind(id)
+            .fetch_one(pool)
+            .await?;
+        Ok(())
     }
 }

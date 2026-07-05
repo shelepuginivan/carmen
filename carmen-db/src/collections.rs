@@ -61,4 +61,12 @@ impl Collection {
             .fetch_one(pool)
             .await
     }
+
+    pub(crate) async fn assert_exists(pool: &PgPool, id: Uuid) -> sqlx::Result<()> {
+        sqlx::query("SELECT FROM collections WHERE id = $1")
+            .bind(id)
+            .fetch_one(pool)
+            .await?;
+        Ok(())
+    }
 }

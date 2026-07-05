@@ -2,6 +2,8 @@ use sqlx::PgPool;
 use sqlx::types::Uuid;
 use sqlx::types::chrono::{DateTime, Utc};
 
+use crate::documents::Document;
+
 #[derive(sqlx::Type)]
 #[sqlx(type_name = "indexing_status", rename_all = "snake_case")]
 pub enum IndexingStatus {
@@ -74,6 +76,8 @@ impl Indexing {
     }
 
     pub async fn schedule(pool: &PgPool, document_id: Uuid) -> sqlx::Result<Self> {
+        Document::assert_exists(pool, document_id).await?;
+
         sqlx::query_as("INSERT INTO indexing (document_id) VALUES ($1) RETURNING *")
             .bind(document_id)
             .fetch_one(pool)

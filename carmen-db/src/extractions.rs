@@ -4,6 +4,8 @@ use sqlx::PgPool;
 use sqlx::types::Uuid;
 use sqlx::types::chrono::{DateTime, Utc};
 
+use crate::collections::Collection;
+
 pub const EXTRACTION_DELAY: Duration = Duration::from_secs(10);
 
 #[derive(PartialEq, Eq, sqlx::Type)]
@@ -111,6 +113,8 @@ impl Extraction {
         extraction_type: ExtractionType,
         parameters: &serde_json::Value,
     ) -> sqlx::Result<Self> {
+        Collection::assert_exists(pool, collection_id).await?;
+
         sqlx::query_as(
             r#"
             INSERT INTO extractions
