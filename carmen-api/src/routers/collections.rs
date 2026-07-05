@@ -3,12 +3,26 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{delete, get, patch, post};
 use axum::{Json, Router};
+use utoipa::OpenApi;
 use uuid::Uuid;
 
 use crate::app::AppState;
 use crate::service::{collections, documents, extractions};
 
 use super::error::{ErrorWithDetail, Result};
+
+#[derive(OpenApi)]
+#[openapi(paths(
+    create_collection,
+    get_all_collections,
+    get_collection,
+    update_collection,
+    delete_collection,
+    get_extractions,
+    get_documents,
+    extract_collection,
+))]
+pub struct ApiDoc;
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -25,7 +39,7 @@ pub fn router() -> Router<AppState> {
 /// Create new collection
 #[utoipa::path(
     post,
-    path = "/api/v1/collections",
+    path = "",
     request_body = collections::dto::CreateCollection,
     responses(
         (
@@ -40,7 +54,7 @@ pub fn router() -> Router<AppState> {
         )
     ),
 )]
-pub async fn create_collection(
+async fn create_collection(
     state: State<AppState>,
     Json(collection_in): Json<collections::dto::CreateCollection>,
 ) -> Result<impl IntoResponse> {
@@ -51,7 +65,7 @@ pub async fn create_collection(
 /// Get all collections
 #[utoipa::path(
     get,
-    path = "/api/v1/collections",
+    path = "",
     responses(
         (
             status = OK,
@@ -65,7 +79,7 @@ pub async fn create_collection(
         )
     ),
 )]
-pub async fn get_all_collections(state: State<AppState>) -> Result<impl IntoResponse> {
+async fn get_all_collections(state: State<AppState>) -> Result<impl IntoResponse> {
     let collections = state.collections.get_all().await?;
     Ok((StatusCode::OK, Json(collections)))
 }
@@ -73,7 +87,7 @@ pub async fn get_all_collections(state: State<AppState>) -> Result<impl IntoResp
 /// Get collection by id
 #[utoipa::path(
     get,
-    path = "/api/v1/collections/{id}",
+    path = "/{id}",
     params(
         ("id" = Uuid, Path, description = "Collection ID")
     ),
@@ -95,10 +109,7 @@ pub async fn get_all_collections(state: State<AppState>) -> Result<impl IntoResp
         )
     ),
 )]
-pub async fn get_collection(
-    state: State<AppState>,
-    Path(id): Path<Uuid>,
-) -> Result<impl IntoResponse> {
+async fn get_collection(state: State<AppState>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
     let collection = state.collections.get(id).await?;
     Ok((StatusCode::OK, Json(collection)))
 }
@@ -106,7 +117,7 @@ pub async fn get_collection(
 /// Update collection
 #[utoipa::path(
     patch,
-    path = "/api/v1/collections/{id}",
+    path = "/{id}",
     request_body = collections::dto::UpdateCollection,
     responses(
         (
@@ -126,7 +137,7 @@ pub async fn get_collection(
         )
     ),
 )]
-pub async fn update_collection(
+async fn update_collection(
     state: State<AppState>,
     Json(collection_update): Json<collections::dto::UpdateCollection>,
 ) -> Result<impl IntoResponse> {
@@ -137,7 +148,7 @@ pub async fn update_collection(
 /// Delete collection
 #[utoipa::path(
     delete,
-    path = "/api/v1/collections/{id}",
+    path = "/{id}",
     params(
         ("id" = Uuid, Path, description = "Collection ID")
     ),
@@ -159,7 +170,7 @@ pub async fn update_collection(
         )
     ),
 )]
-pub async fn delete_collection(
+async fn delete_collection(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
@@ -170,7 +181,7 @@ pub async fn delete_collection(
 /// Get collection documents
 #[utoipa::path(
     get,
-    path = "/api/v1/collections/{id}/documents",
+    path = "/{id}/documents",
     params(
         ("id" = Uuid, Path, description = "Collection ID")
     ),
@@ -187,10 +198,7 @@ pub async fn delete_collection(
         )
     ),
 )]
-pub async fn get_documents(
-    state: State<AppState>,
-    Path(id): Path<Uuid>,
-) -> Result<impl IntoResponse> {
+async fn get_documents(state: State<AppState>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
     let documents = state.documents.get_by_collection_id(id).await?;
     Ok((StatusCode::OK, Json(documents)))
 }
@@ -198,7 +206,7 @@ pub async fn get_documents(
 /// Get collection extractions
 #[utoipa::path(
     get,
-    path = "/api/v1/collections/{id}/extractions",
+    path = "/{id}/extractions",
     params(
         ("id" = Uuid, Path, description = "Collection ID")
     ),
@@ -215,7 +223,7 @@ pub async fn get_documents(
         )
     ),
 )]
-pub async fn get_extractions(
+async fn get_extractions(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
@@ -226,7 +234,7 @@ pub async fn get_extractions(
 /// Schedule a new extraction of this collection
 #[utoipa::path(
     post,
-    path = "/api/v1/collections/{id}/extract",
+    path = "/{id}/extract",
     request_body = extractions::dto::ScheduleExtraction,
     responses(
         (
@@ -246,7 +254,7 @@ pub async fn get_extractions(
         )
     ),
 )]
-pub async fn extract_collection(
+async fn extract_collection(
     state: State<AppState>,
     Json(extraction): Json<extractions::dto::ScheduleExtraction>,
 ) -> Result<impl IntoResponse> {

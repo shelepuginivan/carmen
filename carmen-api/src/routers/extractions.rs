@@ -3,12 +3,22 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{delete, get, post};
 use axum::{Json, Router};
+use utoipa::OpenApi;
 use uuid::Uuid;
 
 use crate::app::AppState;
 use crate::service::extractions;
 
 use super::error::{ErrorWithDetail, Result};
+
+#[derive(OpenApi)]
+#[openapi(paths(
+    get_extraction,
+    delete_extraction,
+    cancel_extraction,
+    replay_extraction,
+))]
+pub struct ApiDoc;
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -21,7 +31,7 @@ pub fn router() -> Router<AppState> {
 /// Get extraction by id
 #[utoipa::path(
     get,
-    path = "/api/v1/extractions/{id}",
+    path = "/{id}",
     params(
         ("id" = Uuid, Path, description = "Extraction ID")
     ),
@@ -43,10 +53,7 @@ pub fn router() -> Router<AppState> {
         )
     ),
 )]
-pub async fn get_extraction(
-    state: State<AppState>,
-    Path(id): Path<Uuid>,
-) -> Result<impl IntoResponse> {
+async fn get_extraction(state: State<AppState>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
     let deleted = state.extractions.get(id).await?;
     Ok((StatusCode::OK, Json(deleted)))
 }
@@ -54,7 +61,7 @@ pub async fn get_extraction(
 /// Delete an extraction
 #[utoipa::path(
     delete,
-    path = "/api/v1/extractions/{id}",
+    path = "/{id}",
     params(
         ("id" = Uuid, Path, description = "Extraction ID")
     ),
@@ -76,7 +83,7 @@ pub async fn get_extraction(
         )
     ),
 )]
-pub async fn delete_extraction(
+async fn delete_extraction(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
@@ -87,7 +94,7 @@ pub async fn delete_extraction(
 /// Cancel an extraction
 #[utoipa::path(
     post,
-    path = "/api/v1/extractions/{id}/cancel",
+    path = "/{id}/cancel",
     params(
         ("id" = Uuid, Path, description = "Extraction ID")
     ),
@@ -109,7 +116,7 @@ pub async fn delete_extraction(
         )
     ),
 )]
-pub async fn cancel_extraction(
+async fn cancel_extraction(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
@@ -120,7 +127,7 @@ pub async fn cancel_extraction(
 /// Replay an extraction
 #[utoipa::path(
     post,
-    path = "/api/v1/extractions/{id}/replay",
+    path = "/{id}/replay",
     params(
         ("id" = Uuid, Path, description = "Extraction ID")
     ),
@@ -142,7 +149,7 @@ pub async fn cancel_extraction(
         )
     ),
 )]
-pub async fn replay_extraction(
+async fn replay_extraction(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {

@@ -14,7 +14,7 @@ mod service;
 
 use crate::app::AppState;
 use crate::config::Config;
-use crate::routers::{apidoc, collections, documents, extractions, search};
+use crate::routers::{ApiDoc, collections, documents, extractions, search};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -38,7 +38,7 @@ async fn main() -> anyhow::Result<()> {
 
     if let Some(docs_path) = config.docs_path {
         info!("API docs is available at {docs_path}");
-        app = app.merge(SwaggerUi::new(docs_path).url("/openapi.json", apidoc::ApiDoc::openapi()));
+        app = app.merge(SwaggerUi::new(docs_path).url("/openapi.json", ApiDoc::openapi()));
     }
 
     let listener = TcpListener::bind(&config.http_addr).await?;

@@ -3,12 +3,16 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::get;
 use axum::{Json, Router};
+use utoipa::OpenApi;
 
 use crate::app::AppState;
 use crate::service::search;
-use crate::service::search::dto::SearchParameters;
 
 use super::error::{ErrorWithDetail, Result};
+
+#[derive(OpenApi)]
+#[openapi(paths(full_text, semantic, hybrid))]
+pub struct ApiDoc;
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -20,8 +24,8 @@ pub fn router() -> Router<AppState> {
 /// Full text search
 #[utoipa::path(
     get,
-    path = "/api/v1/search/fulltext",
-    params(SearchParameters),
+    path = "/fulltext",
+    params(search::dto::SearchParameters),
     responses(
         (
             status = OK,
@@ -35,9 +39,9 @@ pub fn router() -> Router<AppState> {
         )
     ),
 )]
-pub async fn full_text(
+async fn full_text(
     state: State<AppState>,
-    Query(params): Query<SearchParameters>,
+    Query(params): Query<search::dto::SearchParameters>,
 ) -> Result<impl IntoResponse> {
     let results = state.search.full_text(params).await?;
     Ok((StatusCode::OK, Json(results)))
@@ -46,8 +50,8 @@ pub async fn full_text(
 /// Semantic search
 #[utoipa::path(
     get,
-    path = "/api/v1/search/semantic",
-    params(SearchParameters),
+    path = "/semantic",
+    params(search::dto::SearchParameters),
     responses(
         (
             status = OK,
@@ -61,9 +65,9 @@ pub async fn full_text(
         )
     ),
 )]
-pub async fn semantic(
+async fn semantic(
     state: State<AppState>,
-    Query(params): Query<SearchParameters>,
+    Query(params): Query<search::dto::SearchParameters>,
 ) -> Result<impl IntoResponse> {
     let results = state.search.semantic(params).await?;
     Ok((StatusCode::OK, Json(results)))
@@ -72,8 +76,8 @@ pub async fn semantic(
 /// Hybrid search
 #[utoipa::path(
     get,
-    path = "/api/v1/search/hybrid",
-    params(SearchParameters),
+    path = "/hybrid",
+    params(search::dto::SearchParameters),
     responses(
         (
             status = OK,
@@ -87,9 +91,9 @@ pub async fn semantic(
         )
     ),
 )]
-pub async fn hybrid(
+async fn hybrid(
     state: State<AppState>,
-    Query(params): Query<SearchParameters>,
+    Query(params): Query<search::dto::SearchParameters>,
 ) -> Result<impl IntoResponse> {
     let results = state.search.hybrid(params).await?;
     Ok((StatusCode::OK, Json(results)))

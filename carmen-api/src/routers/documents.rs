@@ -3,12 +3,23 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::IntoResponse;
 use axum::routing::{delete, get, post};
 use axum::{Json, Router};
+use utoipa::OpenApi;
 use uuid::Uuid;
 
 use crate::app::AppState;
 use crate::service::documents;
 
 use super::error::{ErrorWithDetail, Result};
+
+#[derive(OpenApi)]
+#[openapi(paths(
+    get_document,
+    stream_raw_document,
+    stream_exported_document,
+    delete_document,
+    index_document,
+))]
+pub struct ApiDoc;
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -22,7 +33,7 @@ pub fn router() -> Router<AppState> {
 /// Get document by id
 #[utoipa::path(
     get,
-    path = "/api/v1/documents/{id}",
+    path = "/{id}",
     params(
         ("id" = Uuid, Path, description = "Document ID")
     ),
@@ -44,10 +55,7 @@ pub fn router() -> Router<AppState> {
         )
     ),
 )]
-pub async fn get_document(
-    state: State<AppState>,
-    Path(id): Path<Uuid>,
-) -> Result<impl IntoResponse> {
+async fn get_document(state: State<AppState>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
     let document = state.documents.get(id).await?;
     Ok((StatusCode::OK, Json(document)))
 }
@@ -55,7 +63,7 @@ pub async fn get_document(
 /// Raw document
 #[utoipa::path(
     get,
-    path = "/api/v1/documents/{id}/raw",
+    path = "/{id}/raw",
     params(
         ("id" = Uuid, Path, description = "Document ID")
     ),
@@ -75,7 +83,7 @@ pub async fn get_document(
         )
     ),
 )]
-pub async fn stream_raw_document(
+async fn stream_raw_document(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
@@ -86,7 +94,7 @@ pub async fn stream_raw_document(
 /// Exported document
 #[utoipa::path(
     get,
-    path = "/api/v1/documents/{id}/exported",
+    path = "/{id}/exported",
     params(
         ("id" = Uuid, Path, description = "Document ID")
     ),
@@ -107,7 +115,7 @@ pub async fn stream_raw_document(
         )
     ),
 )]
-pub async fn stream_exported_document(
+async fn stream_exported_document(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
@@ -122,7 +130,7 @@ pub async fn stream_exported_document(
 /// Delete document
 #[utoipa::path(
     delete,
-    path = "/api/v1/documents/{id}",
+    path = "/{id}",
     params(
         ("id" = Uuid, Path, description = "Document ID")
     ),
@@ -144,7 +152,7 @@ pub async fn stream_exported_document(
         )
     ),
 )]
-pub async fn delete_document(
+async fn delete_document(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
@@ -155,7 +163,7 @@ pub async fn delete_document(
 /// Schedule document indexing
 #[utoipa::path(
     post,
-    path = "/api/v1/documents/{id}/schedule",
+    path = "/{id}/schedule",
     params(
         ("id" = Uuid, Path, description = "Document ID")
     ),
@@ -177,10 +185,7 @@ pub async fn delete_document(
         )
     ),
 )]
-pub async fn index_document(
-    state: State<AppState>,
-    Path(id): Path<Uuid>,
-) -> Result<impl IntoResponse> {
+async fn index_document(state: State<AppState>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
     let indexing = state.documents.schedule_indexing(id).await?;
     Ok((StatusCode::ACCEPTED, Json(indexing)))
 }
