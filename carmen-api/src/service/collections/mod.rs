@@ -60,7 +60,7 @@ impl CollectionService {
     }
 
     pub async fn delete(&self, id: Uuid) -> Result<dto::Collection> {
-        let document_ids: Vec<Uuid> = Document::get_for_collection(&self.pool, id)
+        let document_ids: Vec<Uuid> = Document::get_by_collection_id(&self.pool, id)
             .await?
             .into_iter()
             .map(|doc| doc.id)

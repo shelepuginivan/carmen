@@ -121,7 +121,7 @@ impl WorkerActor {
         let collection = Collection::get(&self.pool, extraction.collection_id).await?;
         let tempdir = TempDir::with_prefix("carmen_extractor-")?;
         let extracted = extractor.extract(extraction, tempdir.path()).await?;
-        let documents = Document::get_for_collection(&self.pool, collection.id).await?;
+        let documents = Document::get_by_collection_id(&self.pool, collection.id).await?;
         let diff = DocumentDiff::compute(documents, extracted).await?;
 
         DocumentUpdater::new(&self.pool, &self.storage)

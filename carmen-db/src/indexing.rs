@@ -68,7 +68,7 @@ impl Indexing {
         Ok(())
     }
 
-    pub async fn get_for_document(pool: &PgPool, document_id: Uuid) -> sqlx::Result<Vec<Self>> {
+    pub async fn get_by_document_id(pool: &PgPool, document_id: Uuid) -> sqlx::Result<Vec<Self>> {
         sqlx::query_as("SELECT * FROM indexing WHERE document_id = $1 ORDER BY created_at DESC")
             .bind(document_id)
             .fetch_all(pool)

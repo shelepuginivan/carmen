@@ -38,7 +38,17 @@ pub struct Extraction {
 }
 
 impl Extraction {
-    pub async fn get_for_collection(pool: &PgPool, collection_id: Uuid) -> sqlx::Result<Vec<Self>> {
+    pub async fn get(pool: &PgPool, id: Uuid) -> sqlx::Result<Self> {
+        sqlx::query_as("SELECT * FROM extractions WHERE id = $1")
+            .bind(id)
+            .fetch_one(pool)
+            .await
+    }
+
+    pub async fn get_by_collection_id(
+        pool: &PgPool,
+        collection_id: Uuid,
+    ) -> sqlx::Result<Vec<Self>> {
         sqlx::query_as(
             r#"
             SELECT * FROM extractions
@@ -49,13 +59,6 @@ impl Extraction {
         .bind(collection_id)
         .fetch_all(pool)
         .await
-    }
-
-    pub async fn get_by_id(pool: &PgPool, id: Uuid) -> sqlx::Result<Self> {
-        sqlx::query_as("SELECT * FROM extractions WHERE id = $1")
-            .bind(id)
-            .fetch_one(pool)
-            .await
     }
 
     pub async fn claim(pool: &PgPool) -> sqlx::Result<Option<Self>> {

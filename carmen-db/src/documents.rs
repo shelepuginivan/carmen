@@ -41,7 +41,10 @@ impl Document {
             .await
     }
 
-    pub async fn get_for_collection(pool: &PgPool, collection_id: Uuid) -> sqlx::Result<Vec<Self>> {
+    pub async fn get_by_collection_id(
+        pool: &PgPool,
+        collection_id: Uuid,
+    ) -> sqlx::Result<Vec<Self>> {
         sqlx::query_as("SELECT * FROM documents WHERE collection_id = $1")
             .bind(collection_id)
             .fetch_all(pool)

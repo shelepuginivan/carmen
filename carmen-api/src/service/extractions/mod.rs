@@ -17,7 +17,7 @@ impl ExtractionService {
     }
 
     pub async fn get_for_collection(&self, id: Uuid) -> Result<Vec<dto::Extraction>> {
-        Ok(Extraction::get_for_collection(&self.pool, id)
+        Ok(Extraction::get_by_collection_id(&self.pool, id)
             .await?
             .into_iter()
             .map(dto::Extraction::from)
@@ -52,7 +52,7 @@ impl ExtractionService {
     }
 
     pub async fn replay(&self, id: Uuid) -> Result<dto::Extraction> {
-        let extraction = Extraction::get_by_id(&self.pool, id).await?;
+        let extraction = Extraction::get(&self.pool, id).await?;
         let replay = Extraction::schedule(
             &self.pool,
             extraction.collection_id,
@@ -67,7 +67,7 @@ impl ExtractionService {
     }
 
     pub async fn get_by_id(&self, id: Uuid) -> Result<dto::Extraction> {
-        let deleted = Extraction::get_by_id(&self.pool, id).await?;
+        let deleted = Extraction::get(&self.pool, id).await?;
         Ok(deleted.into())
     }
 
