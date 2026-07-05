@@ -27,12 +27,17 @@ pub fn router() -> Router<AppState> {
     ),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Extraction",
             body = extractions::dto::Extraction,
         ),
         (
-            status = 500,
+            status = NOT_FOUND,
+            description = "Extraction not found",
+            body = ErrorWithDetail,
+        ),
+        (
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
@@ -55,12 +60,17 @@ pub async fn get_extraction(
     ),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Deleted extraction",
             body = extractions::dto::Extraction,
         ),
         (
-            status = 500,
+            status = NOT_FOUND,
+            description = "Extraction not found",
+            body = ErrorWithDetail,
+        ),
+        (
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
@@ -83,12 +93,17 @@ pub async fn delete_extraction(
     ),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Cancellation result",
             body = extractions::dto::CancellationResult,
         ),
         (
-            status = 500,
+            status = NOT_FOUND,
+            description = "Extraction not found",
+            body = ErrorWithDetail,
+        ),
+        (
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
@@ -111,12 +126,17 @@ pub async fn cancel_extraction(
     ),
     responses(
         (
-            status = 202,
+            status = ACCEPTED,
             description = "Scheduled extraction",
             body = extractions::dto::Extraction,
         ),
         (
-            status = 500,
+            status = NOT_FOUND,
+            description = "Extraction not found",
+            body = ErrorWithDetail,
+        ),
+        (
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )

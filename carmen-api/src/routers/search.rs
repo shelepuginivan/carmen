@@ -24,12 +24,12 @@ pub fn router() -> Router<AppState> {
     params(SearchParameters),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Search results",
             body = Vec<search::dto::Chunk>,
         ),
         (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
@@ -50,12 +50,12 @@ pub async fn full_text(
     params(SearchParameters),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Search results",
             body = Vec<search::dto::Chunk>,
         ),
         (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
@@ -76,12 +76,12 @@ pub async fn semantic(
     params(SearchParameters),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Search results",
             body = Vec<search::dto::Chunk>,
         ),
         (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )

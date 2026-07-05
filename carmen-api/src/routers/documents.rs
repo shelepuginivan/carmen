@@ -12,11 +12,11 @@ use super::error::{ErrorWithDetail, Result};
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/{id}", get(get_by_id))
-        .route("/{id}/raw", get(raw_document))
-        .route("/{id}/exported", get(exported_document))
+        .route("/{id}", get(get_document))
+        .route("/{id}/raw", get(stream_raw_document))
+        .route("/{id}/exported", get(stream_exported_document))
         .route("/{id}", delete(delete_document))
-        .route("/{id}/schedule", post(schedule_indexing))
+        .route("/{id}/index", post(index_document))
 }
 
 /// Get document by id
@@ -28,23 +28,26 @@ pub fn router() -> Router<AppState> {
     ),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "The requested document",
             body = documents::dto::Document,
         ),
         (
-            status = 404,
+            status = NOT_FOUND,
             description = "Document not found",
             body = ErrorWithDetail,
         ),
         (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
     ),
 )]
-pub async fn get_by_id(state: State<AppState>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
+pub async fn get_document(
+    state: State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse> {
     let document = state.documents.get(id).await?;
     Ok((StatusCode::OK, Json(document)))
 }
@@ -58,21 +61,21 @@ pub async fn get_by_id(state: State<AppState>, Path(id): Path<Uuid>) -> Result<i
     ),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Raw document",
         ),
         (
-            status = 404,
+            status = NOT_FOUND,
             description = "Document not found",
         ),
         (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
     ),
 )]
-pub async fn raw_document(
+pub async fn stream_raw_document(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
@@ -89,18 +92,22 @@ pub async fn raw_document(
     ),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Exported document",
             content_type = "text/markdown",
         ),
         (
-            status = 500,
+            status = NOT_FOUND,
+            description = "Document not found",
+        ),
+        (
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
     ),
 )]
-pub async fn exported_document(
+pub async fn stream_exported_document(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
@@ -121,17 +128,17 @@ pub async fn exported_document(
     ),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Document deleted",
             body = documents::dto::Document,
         ),
         (
-            status = 404,
+            status = NOT_FOUND,
             description = "Document not found",
             body = ErrorWithDetail,
         ),
         (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
@@ -154,23 +161,23 @@ pub async fn delete_document(
     ),
     responses(
         (
-            status = 202,
+            status = ACCEPTED,
             description = "Indexing scheduled",
             body = documents::dto::Indexing,
         ),
         (
-            status = 404,
+            status = NOT_FOUND,
             description = "Document not found",
             body = ErrorWithDetail,
         ),
         (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
     ),
 )]
-pub async fn schedule_indexing(
+pub async fn index_document(
     state: State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {

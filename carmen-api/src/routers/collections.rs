@@ -12,14 +12,14 @@ use super::error::{ErrorWithDetail, Result};
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/", post(create))
-        .route("/", get(get_all))
-        .route("/{id}", get(get_by_id))
-        .route("/{id}", patch(update))
+        .route("/", post(create_collection))
+        .route("/", get(get_all_collections))
+        .route("/{id}", get(get_collection))
+        .route("/{id}", patch(update_collection))
         .route("/{id}", delete(delete_collection))
         .route("/{id}/documents", get(get_documents))
         .route("/{id}/extractions", get(get_extractions))
-        .route("/{id}/extract", post(schedule_extraction))
+        .route("/{id}/extract", post(extract_collection))
 }
 
 /// Create new collection
@@ -29,18 +29,18 @@ pub fn router() -> Router<AppState> {
     request_body = collections::dto::CreateCollection,
     responses(
         (
-            status = 201,
+            status = CREATED,
             description = "Collection created successfully",
             body = collections::dto::Collection,
         ),
         (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
     ),
 )]
-pub async fn create(
+pub async fn create_collection(
     state: State<AppState>,
     Json(collection_in): Json<collections::dto::CreateCollection>,
 ) -> Result<impl IntoResponse> {
@@ -54,18 +54,18 @@ pub async fn create(
     path = "/api/v1/collections",
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Collections",
             body = collections::dto::Collection,
         ),
         (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
     ),
 )]
-pub async fn get_all(state: State<AppState>) -> Result<impl IntoResponse> {
+pub async fn get_all_collections(state: State<AppState>) -> Result<impl IntoResponse> {
     let collections = state.collections.get_all().await?;
     Ok((StatusCode::OK, Json(collections)))
 }
@@ -79,23 +79,26 @@ pub async fn get_all(state: State<AppState>) -> Result<impl IntoResponse> {
     ),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "The requested collection",
             body = collections::dto::Collection,
         ),
         (
-            status = 404,
+            status = NOT_FOUND,
             description = "Collection not found",
             body = ErrorWithDetail,
         ),
         (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
     ),
 )]
-pub async fn get_by_id(state: State<AppState>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
+pub async fn get_collection(
+    state: State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse> {
     let collection = state.collections.get(id).await?;
     Ok((StatusCode::OK, Json(collection)))
 }
@@ -107,23 +110,23 @@ pub async fn get_by_id(state: State<AppState>, Path(id): Path<Uuid>) -> Result<i
     request_body = collections::dto::UpdateCollection,
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Collection updated successfully",
             body = collections::dto::Collection,
         ),
         (
-            status = 404,
+            status = NOT_FOUND,
             description = "Collection not found",
             body = ErrorWithDetail,
         ),
         (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
     ),
 )]
-pub async fn update(
+pub async fn update_collection(
     state: State<AppState>,
     Json(collection_update): Json<collections::dto::UpdateCollection>,
 ) -> Result<impl IntoResponse> {
@@ -140,17 +143,17 @@ pub async fn update(
     ),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Collection deleted",
             body = collections::dto::Collection,
         ),
         (
-            status = 404,
+            status = NOT_FOUND,
             description = "Collection not found",
             body = ErrorWithDetail,
         ),
         (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
@@ -173,17 +176,12 @@ pub async fn delete_collection(
     ),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Documents in this collection",
             body = Vec<documents::dto::Document>,
         ),
         (
-            status = 404,
-            description = "Collection not found",
-            body = ErrorWithDetail,
-        ),
-        (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
@@ -206,17 +204,12 @@ pub async fn get_documents(
     ),
     responses(
         (
-            status = 200,
+            status = OK,
             description = "Extractions of the collection",
             body = Vec<extractions::dto::Extraction>,
         ),
         (
-            status = 404,
-            description = "No extractions found",
-            body = ErrorWithDetail,
-        ),
-        (
-            status = 500,
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
@@ -237,18 +230,23 @@ pub async fn get_extractions(
     request_body = extractions::dto::ScheduleExtraction,
     responses(
         (
-            status = 202,
+            status = ACCEPTED,
             description = "Scheduled extraction",
             body = extractions::dto::Extraction,
         ),
         (
-            status = 500,
+            status = NOT_FOUND,
+            description = "Collection not found",
+            body = ErrorWithDetail,
+        ),
+        (
+            status = INTERNAL_SERVER_ERROR,
             description = "Internal server error occurred",
             body = ErrorWithDetail,
         )
     ),
 )]
-pub async fn schedule_extraction(
+pub async fn extract_collection(
     state: State<AppState>,
     Json(extraction): Json<extractions::dto::ScheduleExtraction>,
 ) -> Result<impl IntoResponse> {
