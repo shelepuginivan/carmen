@@ -458,7 +458,6 @@ dependencies = [
 name = "carmen-db"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "env_logger",
  "log",
  "pgvector",
