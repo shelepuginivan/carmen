@@ -22,4 +22,4 @@ podman build --target carmen-search -t localhost/carmen-search:latest .
 
 ## License
 
-Carmen is licensed under [MIT license](./LICENSE).
+Carmen is licensed under [AGPL-3.0-only](./LICENSE).
