@@ -1,5 +1,6 @@
 [package]
 name = "carmen-api"
+description = "Carmen's REST API."
 authors.workspace = true
 version.workspace = true
 edition.workspace = true

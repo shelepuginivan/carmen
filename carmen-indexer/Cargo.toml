@@ -1,5 +1,6 @@
 [package]
 name = "carmen-indexer"
+description = "Carmen's document indexer."
 authors.workspace = true
 version.workspace = true
 edition.workspace = true

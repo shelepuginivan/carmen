@@ -1,5 +1,6 @@
 [package]
 name = "carmen-extractor"
+description = "Carmen's documentation extractor."
 authors.workspace = true
 version.workspace = true
 edition.workspace = true

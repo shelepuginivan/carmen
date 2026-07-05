@@ -1,5 +1,6 @@
 [package]
 name = "carmen-nlp"
+description = "Carmen's shared natural language processing logic."
 authors.workspace = true
 version.workspace = true
 edition.workspace = true

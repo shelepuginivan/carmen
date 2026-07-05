@@ -1,5 +1,6 @@
 [package]
 name = "carmen-s3"
+description = "Carmen's shared S3 object storage logic."
 authors.workspace = true
 version.workspace = true
 edition.workspace = true

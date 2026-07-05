@@ -1,5 +1,6 @@
 [package]
 name = "carmen-db"
+description = "Carmen's database entities, migrations, and utilities."
 authors.workspace = true
 version.workspace = true
 edition.workspace = true
