@@ -1,7 +1,8 @@
 use std::path::Path;
 
 use carmen_db::extractions::Extraction;
-use git2::{FetchOptions, build::RepoBuilder};
+use git2::build::RepoBuilder;
+use git2::{AutotagOption, FetchOptions};
 use walkdir::{DirEntry, WalkDir};
 
 use crate::document::{Document, DocumentBuilder, DocumentFormat};
@@ -12,13 +13,15 @@ pub struct GitExtractor;
 
 struct GitSourceParams<'a> {
     branch: Option<&'a str>,
+    tag: Option<&'a str>,
 }
 
 impl<'a> GitSourceParams<'a> {
     fn from_json(value: &'a serde_json::Value) -> GitSourceParams<'a> {
         let branch = value["branch"].as_str();
+        let tag = value["tag"].as_str();
 
-        Self { branch }
+        Self { branch, tag }
     }
 }
 
@@ -78,15 +81,23 @@ impl GitExtractor {
     ) -> anyhow::Result<()> {
         let mut fetch_opts = FetchOptions::new();
         fetch_opts.depth(1);
+        if params.tag.is_some() {
+            fetch_opts.download_tags(AutotagOption::All);
+        }
 
         let mut builder = RepoBuilder::new();
         builder.fetch_options(fetch_opts);
-
         if let Some(branch) = params.branch {
             builder.branch(branch);
         }
 
-        builder.clone(repo_url, output)?;
+        let repo = builder.clone(repo_url, output)?;
+
+        if let Some(tag) = params.tag {
+            let object = repo.revparse_ext(tag)?.0;
+            repo.checkout_tree(&object, None)?;
+        }
+
         Ok(())
     }
 
