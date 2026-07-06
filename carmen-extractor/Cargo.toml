@@ -12,6 +12,7 @@ enum_dispatch = "0.3"
 env_logger.workspace = true
 git2 = { version = "0.21.0", features = ["https"] }
 log.workspace = true
+reqwest = "0.13"
 serde_json.workspace = true
 sha2 = "0.11"
 sqlx.workspace = true
