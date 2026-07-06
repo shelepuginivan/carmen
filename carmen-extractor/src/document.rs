@@ -5,12 +5,14 @@ use tempfile::NamedTempFile;
 use tokio::process::Command;
 
 #[derive(PartialEq, Eq, Default, strum::Display)]
+#[strum(serialize_all = "snake_case")]
 pub enum DocumentFormat {
     #[default]
     #[strum(to_string = "plain")]
     PlainText,
     #[strum(to_string = "gfm")]
     Markdown,
+    Man,
     #[strum(to_string = "rst")]
     ReStructuredText,
 }
