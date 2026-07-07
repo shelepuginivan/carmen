@@ -135,6 +135,34 @@ impl Extraction {
         .await
     }
 
+    pub async fn bulk_schedule(
+        pool: &PgPool,
+        collection_id: Uuid,
+        source: &Vec<String>,
+        source_type: &str,
+        extraction_type: ExtractionType,
+        parameters: &serde_json::Value,
+    ) -> sqlx::Result<()> {
+        Collection::assert_exists(pool, collection_id).await?;
+
+        sqlx::query(
+            r#"
+            INSERT INTO extractions
+            (collection_id, source, source_type, extraction_type, parameters)
+            VALUES ($1, unnest($2), $3, $4, $5)
+            "#,
+        )
+        .bind(collection_id)
+        .bind(source)
+        .bind(source_type)
+        .bind(extraction_type)
+        .bind(parameters)
+        .execute(pool)
+        .await?;
+
+        Ok(())
+    }
+
     pub async fn cancel(pool: &PgPool, id: Uuid) -> sqlx::Result<bool> {
         let mut tx = pool.begin().await?;
 
