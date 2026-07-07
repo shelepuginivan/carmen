@@ -138,12 +138,35 @@ impl Extraction {
     pub async fn bulk_schedule(
         pool: &PgPool,
         collection_id: Uuid,
-        source: &Vec<String>,
+        source: &[String],
         source_type: &str,
         extraction_type: ExtractionType,
         parameters: &serde_json::Value,
     ) -> sqlx::Result<()> {
+        if source.is_empty() {
+            return Ok(());
+        }
+
         Collection::assert_exists(pool, collection_id).await?;
+
+        // The first source is extracted with the original extraction type. The rest are `merge`
+        // extractions. This is because it is more intuitive that the extraction type is applied to
+        // bulk extraction as a whole. Moreover, it is kinda pointless to overwrite each source by
+        // the next one.
+
+        Self::schedule(
+            pool,
+            collection_id,
+            &source[0],
+            source_type,
+            extraction_type,
+            parameters,
+        )
+        .await?;
+
+        if source.len() == 1 {
+            return Ok(());
+        }
 
         sqlx::query(
             r#"
@@ -153,9 +176,9 @@ impl Extraction {
             "#,
         )
         .bind(collection_id)
-        .bind(source)
+        .bind(&source[1..])
         .bind(source_type)
-        .bind(extraction_type)
+        .bind(ExtractionType::Merge)
         .bind(parameters)
         .execute(pool)
         .await?;
