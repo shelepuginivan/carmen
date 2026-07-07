@@ -18,7 +18,7 @@ impl<'a> DocumentUpdater<'a> {
     }
 
     pub async fn update(&self, extraction: &Extraction, diff: &DocumentDiff) -> anyhow::Result<()> {
-        if extraction.extraction_type == ExtractionType::Override {
+        if extraction.extraction_type == ExtractionType::Overwrite {
             self.remove_documents(&diff.removed).await?;
         }
 

@@ -8,7 +8,7 @@ CREATE TABLE collections (
 
 CREATE TYPE extraction_type AS ENUM (
     'merge',
-    'override'
+    'overwrite'
 );
 
 CREATE TYPE extraction_status AS ENUM (

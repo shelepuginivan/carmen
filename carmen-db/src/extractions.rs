@@ -22,7 +22,7 @@ pub enum ExtractionStatus {
 #[sqlx(type_name = "extraction_type", rename_all = "snake_case")]
 pub enum ExtractionType {
     Merge,
-    Override,
+    Overwrite,
 }
 
 #[derive(sqlx::FromRow)]

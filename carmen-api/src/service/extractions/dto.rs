@@ -29,14 +29,14 @@ impl From<carmen_db::extractions::ExtractionStatus> for ExtractionStatus {
 #[serde(rename_all = "snake_case")]
 pub enum ExtractionType {
     Merge,
-    Override,
+    Overwrite,
 }
 
 impl From<carmen_db::extractions::ExtractionType> for ExtractionType {
     fn from(value: carmen_db::extractions::ExtractionType) -> Self {
         match value {
             carmen_db::extractions::ExtractionType::Merge => Self::Merge,
-            carmen_db::extractions::ExtractionType::Override => Self::Override,
+            carmen_db::extractions::ExtractionType::Overwrite => Self::Overwrite,
         }
     }
 }
@@ -45,7 +45,7 @@ impl From<ExtractionType> for carmen_db::extractions::ExtractionType {
     fn from(val: ExtractionType) -> Self {
         match val {
             ExtractionType::Merge => Self::Merge,
-            ExtractionType::Override => Self::Override,
+            ExtractionType::Overwrite => Self::Overwrite,
         }
     }
 }
