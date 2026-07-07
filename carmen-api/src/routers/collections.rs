@@ -21,6 +21,7 @@ use super::error::{ErrorWithDetail, Result};
     get_extractions,
     get_documents,
     extract_collection,
+    bulk_extract_collection,
 ))]
 pub struct ApiDoc;
 
@@ -34,6 +35,7 @@ pub fn router() -> Router<AppState> {
         .route("/{id}/documents", get(get_documents))
         .route("/{id}/extractions", get(get_extractions))
         .route("/{id}/extract", post(extract_collection))
+        .route("/{id}/extract/bulk", post(bulk_extract_collection))
 }
 
 /// Create new collection
@@ -268,4 +270,38 @@ async fn extract_collection(
 ) -> Result<impl IntoResponse> {
     let extraction = state.extractions.schedule(id, extraction).await?;
     Ok((StatusCode::ACCEPTED, Json(extraction)))
+}
+
+/// Schedule extraction of multiple sources with same parameters
+#[utoipa::path(
+    post,
+    path = "/{id}/extract/bulk",
+    params(
+        ("id" = Uuid, Path, description = "Collection ID")
+    ),
+    request_body = extractions::dto::BulkScheduleExtraction,
+    responses(
+        (
+            status = ACCEPTED,
+            description = "Scheduled extraction",
+        ),
+        (
+            status = NOT_FOUND,
+            description = "Collection not found",
+            body = ErrorWithDetail,
+        ),
+        (
+            status = INTERNAL_SERVER_ERROR,
+            description = "Internal server error occurred",
+            body = ErrorWithDetail,
+        )
+    ),
+)]
+async fn bulk_extract_collection(
+    state: State<AppState>,
+    Path(id): Path<Uuid>,
+    Json(extraction): Json<extractions::dto::BulkScheduleExtraction>,
+) -> Result<impl IntoResponse> {
+    state.extractions.bulk_schedule(id, extraction).await?;
+    Ok(StatusCode::ACCEPTED)
 }

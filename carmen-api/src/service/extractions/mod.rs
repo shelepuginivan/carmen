@@ -46,6 +46,23 @@ impl ExtractionService {
         .into())
     }
 
+    pub async fn bulk_schedule(
+        &self,
+        collection_id: Uuid,
+        v: dto::BulkScheduleExtraction,
+    ) -> Result<()> {
+        Extraction::bulk_schedule(
+            &self.pool,
+            collection_id,
+            &v.source,
+            &v.source_type,
+            v.extraction_type.into(),
+            &v.parameters,
+        )
+        .await?;
+        Ok(())
+    }
+
     pub async fn cancel(&self, id: Uuid) -> Result<dto::CancellationResult> {
         let cancelled = Extraction::cancel(&self.pool, id).await?;
         Ok(dto::CancellationResult { cancelled })

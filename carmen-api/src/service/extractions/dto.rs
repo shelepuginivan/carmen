@@ -25,7 +25,7 @@ impl From<carmen_db::extractions::ExtractionStatus> for ExtractionStatus {
     }
 }
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Clone, Copy, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExtractionType {
     Merge,
@@ -53,6 +53,14 @@ impl From<ExtractionType> for carmen_db::extractions::ExtractionType {
 #[derive(Deserialize, ToSchema)]
 pub struct ScheduleExtraction {
     pub source: String,
+    pub source_type: String,
+    pub parameters: serde_json::Value,
+    pub extraction_type: ExtractionType,
+}
+
+#[derive(Deserialize, ToSchema)]
+pub struct BulkScheduleExtraction {
+    pub source: Vec<String>,
     pub source_type: String,
     pub parameters: serde_json::Value,
     pub extraction_type: ExtractionType,
