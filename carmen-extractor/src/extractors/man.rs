@@ -1,9 +1,11 @@
 use std::collections::VecDeque;
+use std::fmt::{self, Display};
 use std::sync::LazyLock;
 use std::{collections::HashMap, path::Path};
 
 use anyhow::Context;
 use carmen_db::extractions::Extraction;
+use log::{info, warn};
 use regex::Regex;
 use strum::EnumString;
 use tokio::fs;
@@ -42,10 +44,16 @@ impl ManSpec {
     }
 }
 
+impl Display for ManSpec {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}({})", self.page, self.section)
+    }
+}
+
 pub struct ManExtractor;
 
 // TODO: add more providers
-#[derive(Default, EnumString)]
+#[derive(Clone, Copy, Default, EnumString)]
 enum ManProvider {
     #[default]
     #[strum(serialize = "arch", serialize = "archlinux")]
@@ -112,10 +120,23 @@ impl Extractor for ManExtractor {
             }
 
             let current = queue.pop_front().unwrap();
+            info!("Processing man page {}...", current.spec);
 
-            let download_url = params.provider.download_url(&current.spec);
-            let content = reqwest::get(download_url).await?.text().await?;
+            // Bail if depth == 0, i.e. this is the man page from `source`, warn and continue
+            // otherwise.
+            let content = match Self::download_man(&current.spec, params.provider).await {
+                Ok(s) => s,
+                Err(err) if current.depth == 0 => {
+                    return Err(err);
+                }
+                Err(err) => {
+                    warn!("Failed to download {}: {err}", &current.spec);
+                    continue;
+                }
+            };
+
             let document = Self::write_man(tempdir, &current.spec, &content).await?;
+
             processed.insert(current.spec, document);
 
             if current.depth == params.crawl_depth {
@@ -137,6 +158,8 @@ impl Extractor for ManExtractor {
                     continue;
                 }
 
+                info!("Discovered link to {spec}");
+
                 let frame = BFSFrame {
                     spec,
                     depth: current.depth + 1,
@@ -151,6 +174,13 @@ impl Extractor for ManExtractor {
 }
 
 impl ManExtractor {
+    async fn download_man(spec: &ManSpec, provider: ManProvider) -> anyhow::Result<String> {
+        let download_url = provider.download_url(spec);
+        let content = reqwest::get(download_url).await?.text().await?;
+
+        Ok(content)
+    }
+
     async fn write_man(prefix: &Path, spec: &ManSpec, content: &str) -> anyhow::Result<Document> {
         let file_path = prefix.join(spec.filename());
         let canonical_path = spec.canonical_path();
