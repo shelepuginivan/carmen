@@ -1,14 +1,16 @@
 use std::collections::{HashSet, VecDeque};
 use std::fmt::{self, Display};
 use std::sync::LazyLock;
+use std::time::Duration;
 use std::{collections::HashMap, path::Path};
 
-use anyhow::Context;
+use anyhow::{Context, bail};
 use carmen_db::extractions::Extraction;
 use log::{info, warn};
 use regex::Regex;
 use strum::EnumString;
 use tokio::fs;
+use tokio::time::sleep;
 
 use crate::document::{Document, DocumentBuilder, DocumentFormat};
 
@@ -20,6 +22,9 @@ static RE_MAN_LINK: LazyLock<Regex> = LazyLock::new(|| {
 });
 const RE_CAPTURE_GROUP_NAME: usize = 2;
 const RE_CAPTURE_GROUP_SECTION: usize = 4;
+
+const DOWNLOAD_MAX_RETRIES: u8 = 5;
+const DOWNLOAD_BACKOFF_FACTOR: u32 = 2;
 
 #[derive(PartialEq, Eq, Hash)]
 struct ManSpec {
@@ -178,11 +183,32 @@ impl Extractor for ManExtractor {
 }
 
 impl ManExtractor {
+    // TODO: figure out whether it is possible to download many man pages in a single request.
     async fn download_man(spec: &ManSpec, provider: ManProvider) -> anyhow::Result<String> {
         let download_url = provider.download_url(spec);
-        let content = reqwest::get(download_url).await?.text().await?;
+        let mut delay = Duration::from_secs(1);
+        let mut attempt = 1;
 
-        Ok(content)
+        let response = loop {
+            if let Ok(res) = reqwest::get(&download_url).await {
+                break res;
+            }
+
+            if attempt >= DOWNLOAD_MAX_RETRIES {
+                bail!("Failed to download {spec} after {DOWNLOAD_MAX_RETRIES} attempts");
+            }
+
+            warn!(
+                "Failed to download {spec} (attempt {attempt}/{DOWNLOAD_MAX_RETRIES}). Retrying in {}s...",
+                delay.as_secs()
+            );
+
+            sleep(delay).await;
+            attempt += 1;
+            delay *= DOWNLOAD_BACKOFF_FACTOR;
+        };
+
+        Ok(response.text().await?)
     }
 
     async fn write_man(prefix: &Path, spec: &ManSpec, content: &str) -> anyhow::Result<Document> {
