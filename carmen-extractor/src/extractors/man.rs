@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 use std::fmt::{self, Display};
 use std::sync::LazyLock;
 use std::{collections::HashMap, path::Path};
@@ -110,7 +110,7 @@ impl Extractor for ManExtractor {
         let spec = ManSpec::from_source(&extraction.source)?;
         let init_frame = BFSFrame { spec, depth: 0 };
 
-        let mut processed = HashMap::<ManSpec, Document>::new();
+        let mut processed = HashMap::new();
         let mut queue = VecDeque::from([init_frame]);
 
         // For crawling, do a typical BFS with (possibly) limited depth and length.
@@ -143,6 +143,8 @@ impl Extractor for ManExtractor {
                 continue;
             }
 
+            let mut discovered_links = HashSet::new();
+
             for link in RE_MAN_LINK.captures_iter(&content) {
                 let page = match link.get(RE_CAPTURE_GROUP_NAME) {
                     Some(p) => p.as_str().to_owned(),
@@ -154,17 +156,19 @@ impl Extractor for ManExtractor {
                 };
 
                 let spec = ManSpec { page, section };
-                if processed.contains_key(&spec) {
+                if processed.contains_key(&spec) || discovered_links.contains(&spec) {
                     continue;
                 }
 
                 info!("Discovered link to {spec}");
+                discovered_links.insert(spec);
+            }
 
+            for spec in discovered_links {
                 let frame = BFSFrame {
                     spec,
                     depth: current.depth + 1,
                 };
-
                 queue.push_back(frame);
             }
         }
