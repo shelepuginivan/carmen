@@ -502,6 +502,7 @@ dependencies = [
  "env_logger",
  "git2",
  "log",
+ "regex",
  "reqwest 0.13.4",
  "serde_json",
  "sha2 0.11.0",

@@ -6,12 +6,14 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 
+# TODO: split into features for various extractors
 [dependencies]
 anyhow.workspace = true
 enum_dispatch = "0.3"
 env_logger.workspace = true
 git2 = { version = "0.21.0", features = ["https"] }
 log.workspace = true
+regex = "1.12"
 reqwest = "0.13"
 serde_json.workspace = true
 sha2 = "0.11"
