@@ -46,6 +46,6 @@ pub static EXTRACTORS: LazyLock<HashMap<SourceType, ExtractorEnum>> = LazyLock::
     HashMap::from([
         (SourceType::Git, GitExtractor.into()),
         (SourceType::GitHubWiki, GitHubWikiExtractor.into()),
-        (SourceType::Man, ManExtractor.into()),
+        (SourceType::Man, ManExtractor::new_from_env().into()),
     ])
 });
