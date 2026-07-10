@@ -1,10 +1,9 @@
 use std::collections::{HashSet, VecDeque};
-use std::fmt::{self, Display};
 use std::sync::LazyLock;
 use std::time::Duration;
 use std::{collections::HashMap, path::Path};
 
-use anyhow::{Context, bail};
+use anyhow::bail;
 use carmen_db::extractions::Extraction;
 use log::{info, warn};
 use regex::Regex;
@@ -16,6 +15,9 @@ use crate::document::{Document, DocumentBuilder, DocumentFormat};
 
 use super::Extractor;
 
+mod spec;
+use spec::ManSpec;
+
 // Definitely not the most accurate regular expression for links to other man pages.
 static RE_MAN_LINK: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(\\fB)?([0-9A-Za-z\._-]+)(\\fR|\\fP)?\(([0-9A-Za-z\._-])\)").unwrap()
@@ -25,35 +27,6 @@ const RE_CAPTURE_GROUP_SECTION: usize = 4;
 
 const DOWNLOAD_MAX_RETRIES: u8 = 5;
 const DOWNLOAD_BACKOFF_FACTOR: u32 = 2;
-
-#[derive(PartialEq, Eq, Hash)]
-struct ManSpec {
-    page: String,
-    section: String,
-}
-
-impl ManSpec {
-    fn from_source(src: &str) -> anyhow::Result<Self> {
-        let parts = src.split_once('(').context("missing (")?;
-        let page = parts.0.to_owned();
-        let section = parts.1.strip_suffix(')').context("missing )")?.to_owned();
-        Ok(Self { page, section })
-    }
-
-    fn canonical_path(&self) -> String {
-        format!("{}/{}", self.section, self.page)
-    }
-
-    fn filename(&self) -> String {
-        format!("{}.{}.raw", self.page, self.section)
-    }
-}
-
-impl Display for ManSpec {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}({})", self.page, self.section)
-    }
-}
 
 pub struct ManExtractor;
 
