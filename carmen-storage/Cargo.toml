@@ -12,5 +12,6 @@ futures-core = "0.3"
 enum_dispatch.workspace = true
 rust-s3 = "0.37"
 thiserror.workspace = true
+tokio-util = "0.7"
 tokio.workspace = true
 uuid.workspace = true

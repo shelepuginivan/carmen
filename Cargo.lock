@@ -560,6 +560,7 @@ dependencies = [
  "rust-s3",
  "thiserror",
  "tokio",
+ "tokio-util",
  "uuid",
 ]
 
