@@ -9,7 +9,7 @@ license.workspace = true
 # TODO: split into features for various extractors
 [dependencies]
 anyhow.workspace = true
-enum_dispatch = "0.3"
+enum_dispatch.workspace = true
 env_logger.workspace = true
 git2 = { version = "0.21.0", features = ["https"] }
 log.workspace = true

@@ -554,6 +554,7 @@ dependencies = [
 name = "carmen-storage"
 version = "0.1.0"
 dependencies = [
+ "enum_dispatch",
  "rust-s3",
  "thiserror",
  "tokio",
