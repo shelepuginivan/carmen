@@ -11,8 +11,8 @@ pub use drivers::*;
 pub use error::*;
 pub use stream::*;
 
-const EXPORTED_DOCUMENTS_PREFIX: &str = "exported";
-const RAW_DOCUMENTS_PREFIX: &str = "raw";
+pub(crate) const EXPORTED_DOCUMENTS_PREFIX: &str = "exported";
+pub(crate) const RAW_DOCUMENTS_PREFIX: &str = "raw";
 
 pub struct Storage {
     driver: Driver,

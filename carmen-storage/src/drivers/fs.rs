@@ -20,6 +20,9 @@ impl FS {
             std::fs::create_dir_all(&root)?;
         }
 
+        std::fs::create_dir_all(root.join(crate::EXPORTED_DOCUMENTS_PREFIX))?;
+        std::fs::create_dir_all(root.join(crate::RAW_DOCUMENTS_PREFIX))?;
+
         Ok(Self { root })
     }
 
