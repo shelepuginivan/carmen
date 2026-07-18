@@ -1,13 +1,12 @@
 use std::path::{Path, PathBuf};
 
-use bytes::Bytes;
-use futures_core::TryStream;
 use tokio::fs::{self, File};
 use tokio_util::io::ReaderStream;
 
-use crate::drivers::{BoxError, StorageDriver};
+use crate::drivers::StorageDriver;
 use crate::env::read_env;
 use crate::error::{Error, Result};
+use crate::stream::Stream;
 
 pub struct FS {
     root: PathBuf,
@@ -42,14 +41,11 @@ impl StorageDriver for FS {
         Ok(s)
     }
 
-    async fn get_object_as_stream(
-        &self,
-        id: &str,
-    ) -> Result<impl TryStream<Ok: Into<Bytes>, Error: Into<BoxError>>> {
+    async fn get_object_as_stream(&self, id: &str) -> Result<Stream> {
         let path = self.resolve_path(id)?;
         let file = File::open(path).await?;
         let stream = ReaderStream::new(file);
-        Ok(stream)
+        Ok(Stream::FS(stream))
     }
 
     async fn put_object_from_local_file(&self, id: &str, path: &Path) -> Result<()> {
