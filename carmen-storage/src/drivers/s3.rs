@@ -1,14 +1,16 @@
 use std::path::Path;
 
+use bytes::Bytes;
+use futures_core::TryStream;
 use s3::creds::Credentials;
 use s3::serde_types::ObjectIdentifier;
 use s3::{Bucket, Region};
 use tokio::fs::File;
 
+use crate::BoxError;
 use crate::drivers::StorageDriver;
 use crate::env::read_env;
 use crate::error::Result;
-use crate::stream::Stream;
 
 #[derive(Clone, Debug)]
 pub struct S3 {
@@ -36,8 +38,11 @@ impl StorageDriver for S3 {
         Ok(self.bucket.get_object(id).await?.to_string()?)
     }
 
-    async fn get_object_as_stream(&self, id: &str) -> Result<Stream> {
-        Ok(Stream::S3(self.bucket.get_object_stream(id).await?.bytes))
+    async fn get_object_as_stream(
+        &self,
+        id: &str,
+    ) -> Result<impl TryStream<Ok: Into<Bytes>, Error: Into<BoxError>>> {
+        Ok(self.bucket.get_object_stream(id).await?.bytes)
     }
 
     async fn put_object_from_local_file(&self, id: &str, path: &Path) -> Result<()> {
