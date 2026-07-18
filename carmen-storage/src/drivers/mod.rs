@@ -6,8 +6,10 @@ use futures_core::TryStream;
 
 use crate::error::Result;
 
+mod fs;
 mod s3;
 
+use fs::FS;
 use s3::S3;
 
 pub type BoxError = Box<dyn std::error::Error + Send + Sync>;
