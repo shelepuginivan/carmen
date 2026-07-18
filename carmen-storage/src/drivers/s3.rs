@@ -17,11 +17,11 @@ pub struct S3 {
 
 impl S3 {
     pub fn new_from_env() -> Result<Self> {
-        let endpoint = read_env("CARMEN_S3_ENDPOINT")?;
-        let region = read_env("CARMEN_S3_REGION")?;
-        let bucket = read_env("CARMEN_S3_BUCKET")?;
-        let access_key = read_env("CARMEN_S3_ACCESS_KEY")?;
-        let secret_key = read_env("CARMEN_S3_SECRET_KEY")?;
+        let endpoint = read_env("CARMEN_STORAGE_S3_ENDPOINT")?;
+        let region = read_env("CARMEN_STORAGE_S3_REGION")?;
+        let bucket = read_env("CARMEN_STORAGE_S3_BUCKET")?;
+        let access_key = read_env("CARMEN_STORAGE_S3_ACCESS_KEY")?;
+        let secret_key = read_env("CARMEN_STORAGE_S3_SECRET_KEY")?;
 
         let region = Region::Custom { region, endpoint };
         let credentials = Credentials::new(Some(&access_key), Some(&secret_key), None, None, None)?;
