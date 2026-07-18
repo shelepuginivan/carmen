@@ -16,7 +16,7 @@ pub trait StorageDriver {
     async fn get_object_as_string(&self, id: &str) -> Result<String>;
     async fn get_object_as_stream(&self, id: &str) -> Result<Stream>;
     async fn put_object_from_local_file(&self, id: &str, path: &Path) -> Result<()>;
-    async fn delete_many_objects(&self, ids: &[&str]) -> Result<()>;
+    async fn delete_many_objects(&self, ids: &[String]) -> Result<()>;
 }
 
 #[enum_dispatch(StorageDriver)]

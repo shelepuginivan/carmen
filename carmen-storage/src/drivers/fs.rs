@@ -54,7 +54,7 @@ impl StorageDriver for FS {
         Ok(())
     }
 
-    async fn delete_many_objects(&self, ids: &[&str]) -> Result<()> {
+    async fn delete_many_objects(&self, ids: &[String]) -> Result<()> {
         for id in ids {
             let path = self.resolve_path(id)?;
             fs::remove_file(path).await?;

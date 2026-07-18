@@ -46,8 +46,8 @@ impl StorageDriver for S3 {
         Ok(())
     }
 
-    async fn delete_many_objects(&self, ids: &[&str]) -> Result<()> {
-        let objects: Vec<_> = ids.into_iter().map(|s| ObjectIdentifier::new(*s)).collect();
+    async fn delete_many_objects(&self, ids: &[String]) -> Result<()> {
+        let objects: Vec<_> = ids.into_iter().map(ObjectIdentifier::new).collect();
         self.bucket.delete_objects(objects).await?;
         Ok(())
     }
