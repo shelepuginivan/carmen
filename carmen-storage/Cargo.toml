@@ -1,0 +1,13 @@
+[package]
+name = "carmen-storage"
+description = "Carmen's shared storage logic."
+authors.workspace = true
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+rust-s3 = "0.37"
+thiserror.workspace = true
+tokio.workspace = true
+uuid.workspace = true

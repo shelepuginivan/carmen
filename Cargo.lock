@@ -551,6 +551,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "carmen-storage"
+version = "0.1.0"
+dependencies = [
+ "rust-s3",
+ "thiserror",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "castaway"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
