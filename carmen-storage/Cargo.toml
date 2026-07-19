@@ -11,8 +11,6 @@ axum = ["dep:axum"]
 
 [dependencies]
 axum = { workspace = true, optional = true }
-bytes = "1"
-futures-core = "0.3"
 enum_dispatch.workspace = true
 rust-s3 = "0.37"
 thiserror.workspace = true
