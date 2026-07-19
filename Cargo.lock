@@ -541,16 +541,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "carmen-s3"
-version = "0.1.0"
-dependencies = [
- "rust-s3",
- "thiserror",
- "tokio",
- "uuid",
-]
-
-[[package]]
 name = "carmen-storage"
 version = "0.1.0"
 dependencies = [
