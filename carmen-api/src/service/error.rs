@@ -28,10 +28,10 @@ impl From<sqlx::Error> for Error {
     }
 }
 
-impl From<carmen_s3::Error> for Error {
-    fn from(value: carmen_s3::Error) -> Self {
+impl From<carmen_storage::Error> for Error {
+    fn from(value: carmen_storage::Error) -> Self {
         match value {
-            carmen_s3::Error::NotFound => Self::ObjectNotFound,
+            carmen_storage::Error::NotFound => Self::ObjectNotFound,
             _ => Self::Storage,
         }
     }

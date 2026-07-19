@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::body::Body;
 use carmen_db::{documents::Document, indexing::Indexing};
-use carmen_s3::Storage;
+use carmen_storage::Storage;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -34,15 +34,15 @@ impl DocumentsService {
     }
 
     pub async fn get_raw_stream(&self, id: Uuid) -> Result<Body> {
-        let stream = self.storage.get_raw_document_as_stream(id).await?;
-
-        Ok(Body::from_stream(stream.bytes))
+        Ok(self.storage.get_raw_document_as_stream(id).await?.into())
     }
 
     pub async fn get_exported_stream(&self, id: Uuid) -> Result<Body> {
-        let stream = self.storage.get_exported_document_as_stream(id).await?;
-
-        Ok(Body::from_stream(stream.bytes))
+        Ok(self
+            .storage
+            .get_exported_document_as_stream(id)
+            .await?
+            .into())
     }
 
     pub async fn delete(&self, id: Uuid) -> Result<dto::Document> {

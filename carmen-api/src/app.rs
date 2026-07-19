@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use carmen_nlp::{Embedder, LangDetector, Reranker};
-use carmen_s3::Storage;
+use carmen_storage::Storage;
 use sqlx::PgPool;
 
 use crate::service::collections::CollectionService;

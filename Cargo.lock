@@ -462,7 +462,7 @@ dependencies = [
  "axum",
  "carmen-db",
  "carmen-nlp",
- "carmen-s3",
+ "carmen-storage",
  "chrono",
  "env_logger",
  "log",

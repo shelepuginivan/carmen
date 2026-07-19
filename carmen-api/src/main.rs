@@ -1,6 +1,6 @@
 use axum::Router;
 use carmen_nlp::{Embedder, LangDetector, Reranker};
-use carmen_s3::Storage;
+use carmen_storage::Storage;
 use log::info;
 use tokio::net::TcpListener;
 use tokio::signal::unix::{SignalKind, signal};

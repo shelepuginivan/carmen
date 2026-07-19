@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use carmen_db::collections::Collection;
 use carmen_db::documents::Document;
-use carmen_s3::Storage;
+use carmen_storage::Storage;
 use sqlx::PgPool;
 use uuid::Uuid;
 
