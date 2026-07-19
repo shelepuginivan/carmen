@@ -2,7 +2,7 @@ use anyhow::{Context, bail};
 use carmen_db::collections::Collection;
 use carmen_db::documents::Document;
 use carmen_db::extractions::{Extraction, ExtractionStatus};
-use carmen_s3::Storage;
+use carmen_storage::Storage;
 use log::{error, info};
 use sqlx::PgPool;
 use tempfile::TempDir;

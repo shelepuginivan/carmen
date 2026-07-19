@@ -497,7 +497,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "carmen-db",
- "carmen-s3",
+ "carmen-storage",
  "enum_dispatch",
  "env_logger",
  "git2",

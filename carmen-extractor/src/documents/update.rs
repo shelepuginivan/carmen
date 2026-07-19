@@ -1,7 +1,7 @@
 use carmen_db::documents::Document;
 use carmen_db::extractions::{Extraction, ExtractionType};
 use carmen_db::indexing::Indexing;
-use carmen_s3::Storage;
+use carmen_storage::Storage;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -39,11 +39,11 @@ impl<'a> DocumentUpdater<'a> {
         Indexing::schedule(self.pool, new_document.id).await?;
 
         self.storage
-            .put_raw_document_from_path(new_document.id, &doc.raw_path)
+            .put_raw_document_from_file(new_document.id, &doc.raw_path)
             .await?;
 
         self.storage
-            .put_exported_document_from_path(new_document.id, &doc.exported_path)
+            .put_exported_document_from_file(new_document.id, &doc.exported_path)
             .await?;
 
         Ok(())
@@ -54,11 +54,11 @@ impl<'a> DocumentUpdater<'a> {
         Indexing::schedule(self.pool, doc.id).await?;
 
         self.storage
-            .put_raw_document_from_path(doc.id, &doc.raw_path)
+            .put_raw_document_from_file(doc.id, &doc.raw_path)
             .await?;
 
         self.storage
-            .put_exported_document_from_path(doc.id, &doc.exported_path)
+            .put_exported_document_from_file(doc.id, &doc.exported_path)
             .await?;
 
         Ok(())

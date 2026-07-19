@@ -25,4 +25,4 @@ uuid.workspace = true
 walkdir = "2"
 
 carmen-db.workspace = true
-carmen-s3.workspace = true
+carmen-storage.workspace = true
