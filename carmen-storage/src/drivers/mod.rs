@@ -12,6 +12,7 @@ use fs::FS;
 use s3::S3;
 
 #[enum_dispatch]
+#[allow(async_fn_in_trait)]
 pub trait StorageDriver {
     async fn get_object_as_string(&self, id: &str) -> Result<String>;
     async fn get_object_as_stream(&self, id: &str) -> Result<Stream>;
