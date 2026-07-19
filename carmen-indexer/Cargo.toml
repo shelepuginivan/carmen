@@ -17,4 +17,4 @@ uuid.workspace = true
 
 carmen-db.workspace = true
 carmen-nlp.workspace = true
-carmen-s3.workspace = true
+carmen-storage.workspace = true

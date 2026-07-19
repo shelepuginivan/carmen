@@ -521,7 +521,7 @@ dependencies = [
  "anyhow",
  "carmen-db",
  "carmen-nlp",
- "carmen-s3",
+ "carmen-storage",
  "env_logger",
  "log",
  "sqlx",

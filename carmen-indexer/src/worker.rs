@@ -2,7 +2,7 @@ use anyhow::Context;
 use carmen_db::chunks::Chunk;
 use carmen_db::indexing::{Indexing, IndexingStatus};
 use carmen_nlp::{Embedder, LangDetector};
-use carmen_s3::Storage;
+use carmen_storage::Storage;
 use log::{error, info};
 use sqlx::PgPool;
 use text_splitter::{Characters, MarkdownSplitter};
