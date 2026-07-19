@@ -34,3 +34,4 @@ uuid = { version = "1.23", features = ["serde"] }
 carmen-db = { path = "./carmen-db" }
 carmen-nlp = { path = "./carmen-nlp" }
 carmen-s3 = { path = "./carmen-s3" }
+carmen-storage = { path = "./carmen-storage", features = ["axum"] }
