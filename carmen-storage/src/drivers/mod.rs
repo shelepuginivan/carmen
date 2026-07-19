@@ -5,8 +5,8 @@ use enum_dispatch::enum_dispatch;
 use crate::error::Result;
 use crate::stream::Stream;
 
-mod fs;
-mod s3;
+pub mod fs;
+pub mod s3;
 
 use fs::FS;
 use s3::S3;

@@ -11,6 +11,8 @@ pub use drivers::*;
 pub use error::*;
 pub use stream::*;
 
+use crate::env::read_env;
+
 pub(crate) const EXPORTED_DOCUMENTS_PREFIX: &str = "exported";
 pub(crate) const RAW_DOCUMENTS_PREFIX: &str = "raw";
 
@@ -19,6 +21,18 @@ pub struct Storage {
 }
 
 impl Storage {
+    pub fn new_from_env() -> Result<Self> {
+        let driver_type = read_env("CARMEN_STORAGE_DRIVER")?;
+
+        let driver = match driver_type.as_str() {
+            "fs" => drivers::fs::FS::new_from_env()?.into(),
+            "s3" => drivers::s3::S3::new_from_env()?.into(),
+            _ => return Err(Error::UnknownDriver(driver_type)),
+        };
+
+        Ok(Self { driver })
+    }
+
     pub async fn get_exported_document_as_string(&self, id: Uuid) -> Result<String> {
         self.driver
             .get_object_as_string(&format!("{EXPORTED_DOCUMENTS_PREFIX}/{id}"))

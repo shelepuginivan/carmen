@@ -6,6 +6,8 @@ use s3::{creds::error::CredentialsError, error::S3Error};
 pub enum Error {
     #[error("missing environment variable: {0}")]
     Environment(&'static str),
+    #[error("unknown driver type: {0}")]
+    UnknownDriver(String),
     #[error("invalid configuration: {0}")]
     Configuration(String),
     #[error("object not found")]
