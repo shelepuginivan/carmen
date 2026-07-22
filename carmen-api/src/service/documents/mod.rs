@@ -6,6 +6,8 @@ use carmen_storage::Storage;
 use sqlx::PgPool;
 use uuid::Uuid;
 
+use crate::service::pagination::Pagination;
+
 use super::error::Result;
 
 pub mod dto;
@@ -21,12 +23,26 @@ impl DocumentsService {
         Self { pool, storage }
     }
 
-    pub async fn get_by_collection_id(&self, collection_id: Uuid) -> Result<Vec<dto::Document>> {
-        Ok(Document::get_by_collection_id(&self.pool, collection_id)
+    pub async fn get_by_collection_id(
+        &self,
+        collection_id: Uuid,
+        pagination: Pagination,
+    ) -> Result<Vec<dto::Document>> {
+        let page = pagination.page.saturating_sub(1);
+        let offset = page.saturating_mul(pagination.size);
+
+        Ok(
+            Document::get_by_collection_id_pages(
+                &self.pool,
+                collection_id,
+                pagination.size,
+                offset,
+            )
             .await?
             .into_iter()
             .map(dto::Document::from)
-            .collect())
+            .collect(),
+        )
     }
 
     pub async fn get(&self, id: Uuid) -> Result<dto::Document> {

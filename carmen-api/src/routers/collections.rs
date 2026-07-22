@@ -1,4 +1,4 @@
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{delete, get, patch, post};
@@ -7,6 +7,7 @@ use utoipa::OpenApi;
 use uuid::Uuid;
 
 use crate::app::AppState;
+use crate::service::pagination::Pagination;
 use crate::service::{collections, documents, extractions};
 
 use super::error::{ErrorWithDetail, Result};
@@ -189,7 +190,9 @@ async fn delete_collection(
     get,
     path = "/{id}/documents",
     params(
-        ("id" = Uuid, Path, description = "Collection ID")
+        ("id" = Uuid, Path, description = "Collection ID"),
+        ("page" = u32, Query, description = "Page number (1-indexed)"),
+        ("size" = u32, Query, description = "Page size"),
     ),
     responses(
         (
@@ -204,8 +207,12 @@ async fn delete_collection(
         )
     ),
 )]
-async fn get_documents(state: State<AppState>, Path(id): Path<Uuid>) -> Result<impl IntoResponse> {
-    let documents = state.documents.get_by_collection_id(id).await?;
+async fn get_documents(
+    state: State<AppState>,
+    Path(id): Path<Uuid>,
+    Query(pagination): Query<Pagination>,
+) -> Result<impl IntoResponse> {
+    let documents = state.documents.get_by_collection_id(id, pagination).await?;
     Ok((StatusCode::OK, Json(documents)))
 }
 
