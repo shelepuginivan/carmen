@@ -51,6 +51,28 @@ impl Document {
             .await
     }
 
+    pub async fn get_by_collection_id_pages(
+        pool: &PgPool,
+        collection_id: Uuid,
+        limit: u32,
+        offset: u32,
+    ) -> sqlx::Result<Vec<Self>> {
+        sqlx::query_as(
+            r#"
+            SELECT * FROM documents
+            WHERE collection_id = $1
+            ORDER BY canonical_path
+            LIMIT $2
+            OFFSET $3
+            "#,
+        )
+        .bind(collection_id)
+        .bind(limit as i64)
+        .bind(offset as i64)
+        .fetch_all(pool)
+        .await
+    }
+
     pub async fn get_by_canonical_path(
         pool: &PgPool,
         collection_id: Uuid,
