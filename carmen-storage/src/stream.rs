@@ -8,11 +8,11 @@ pub enum Stream {
 }
 
 #[cfg(feature = "axum")]
-impl Into<axum::body::Body> for Stream {
-    fn into(self) -> axum::body::Body {
-        match self {
-            Self::FS(s) => axum::body::Body::from_stream(s),
-            Self::S3(s) => axum::body::Body::from_stream(s),
+impl From<Stream> for axum::body::Body {
+    fn from(value: Stream) -> Self {
+        match value {
+            Stream::FS(s) => axum::body::Body::from_stream(s),
+            Stream::S3(s) => axum::body::Body::from_stream(s),
         }
     }
 }
