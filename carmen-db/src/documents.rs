@@ -51,6 +51,24 @@ impl Document {
             .await
     }
 
+    pub async fn get_by_canonical_path(
+        pool: &PgPool,
+        collection_id: Uuid,
+        canonical_path: &str,
+    ) -> sqlx::Result<Document> {
+        sqlx::query_as(
+            r#"
+            SELECT * FROM documents
+            WHERE collection_id = $1 AND canonical_path = $2
+            LIMIT 1
+            "#,
+        )
+        .bind(collection_id)
+        .bind(canonical_path)
+        .fetch_one(pool)
+        .await
+    }
+
     pub async fn update_checksum(pool: &PgPool, id: Uuid, checksum: [u8; 32]) -> sqlx::Result<()> {
         sqlx::query("UPDATE documents SET checksum = $1 WHERE id = $2")
             .bind(checksum)
