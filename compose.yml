@@ -1,230 +1,92 @@
+# TODO: replace `image: localhost/*` images with actual image paths once they
+# are published to CR.
+
 services:
-  nginx-gateway:
-    image: nginx:alpine
-    container_name: carmen-nginx-gateway
+  postgres:
+    image: pgvector/pgvector:pg18-trixie
+    container_name: carmen-postgres
+    env_file:
+      - env/.env.postgres
     restart: unless-stopped
-    ports:
-      - 5124:80    # search API
-      - 9001:9001  # RustFS console
     volumes:
-      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - search
-      - rustfs
+      - pg_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   rustfs:
     image: rustfs/rustfs:latest
     container_name: carmen-rustfs
-    environment:
-      RUSTFS_ADDRESS: :9000
-      RUSTFS_CONSOLE_ADDRESS: :9001
-      RUSTFS_CONSOLE_ENABLE: "true"
-      RUSTFS_VOLUMES: /data/rustfs
+    ports:
+      - 9001:9001  # Web console
     env_file:
-      # Contains RUSTFS_ACCESS_KEY and RUSTFS_SECRET_KEY
       - env/.env.rustfs
     restart: unless-stopped
     volumes:
       - rustfs_data:/data/rustfs
 
-  postgres:
-    image: pgvector/pgvector:pg18-trixie
-    container_name: carmen-postgres
-    environment:
-      POSTGRES_DB: carmen
+  migrations:
+    image: localhost/carmen-migrations:latest
+    container_name: carmen-migrations
     env_file:
-      # Contains POSTGRES_USER and POSTGRES_PASSWORD
-      - env/.env.postgres
-    restart: unless-stopped
-    volumes:
-      - pg_data:/var/lib/postgresql
-
-  kafka-controller:
-    image: apache/kafka:latest
-    container_name: carmen-kafka-controller
-    environment:
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: controller
-      KAFKA_LISTENERS: CONTROLLER://:9093
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-controller:9093
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 1000
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
-    restart: unless-stopped
-    volumes:
-      - kafka-controller-data:/var/lib/kafka/data
-
-  kafka-broker:
-    image: apache/kafka:latest
-    container_name: carmen-kafka-broker
-    environment:
-      KAFKA_NODE_ID: 2
-      KAFKA_PROCESS_ROLES: broker
-      KAFKA_LISTENERS: PLAINTEXT://:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:9092
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-controller:9093
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 1000
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
-    restart: unless-stopped
+      - env/.env.migrations
+    restart: "no"
     depends_on:
-      - kafka-controller
-    volumes:
-      - kafka-broker-data:/var/lib/kafka/data
-    healthcheck:
-      test: ["CMD", "sh", "-c", "nc -z localhost 9092"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
-  kafka-init:
-    image: apache/kafka:latest
-    container_name: carmen-kafka-init
-    depends_on:
-      - kafka-controller
-      - kafka-broker
-    entrypoint: [ '/bin/sh', '-c' ]
-    command: |
-      "
-      until /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --list; do
-        echo 'Waiting for Kafka broker to be ready...'
-        sleep 5
-      done
-      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic chunks.queue
-      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic chunks.ready
-      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic documents.queue
-      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-broker:9092 --create --if-not-exists --topic documents.ready
-      "
-
-  embedding-chunks:
-    image: localhost/carmen_embedding:latest
-    container_name: carmen-embedding-chunks
-    build:
-      context: ./embedding
-      args:
-        # Should match environment variables below.
-        SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
-        SENTENCE_TRANSFORMERS_MODELS: |
-          [
-            "sentence-transformers/static-similarity-mrl-multilingual-v1"
-          ]
-    environment:
-      CARMEN_EMBEDDING_WORKING_MODE: chunks
-      CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
-      CARMEN_EMBEDDING_MODEL__ENGLISH: sentence-transformers/static-similarity-mrl-multilingual-v1
-      CARMEN_EMBEDDING_MODEL__RUSSIAN: sentence-transformers/static-similarity-mrl-multilingual-v1
-      CARMEN_EMBEDDING_LANGDETECTOR_URL: http://langdetector:8000
-      CARMEN_EMBEDDING_KAFKA_URI: kafka-broker:9092
-      CARMEN_EMBEDDING_KAFKA_CONSUMER_GROUP: embedding-consumer-group
-      CARMEN_EMBEDDING_KAFKA_TOPIC_CHUNKS_QUEUE: chunks.queue
-      CARMEN_EMBEDDING_KAFKA_TOPIC_CHUNKS_READY: chunks.ready
-    restart: unless-stopped
-    depends_on:
-      kafka-init:
-        condition: service_completed_successfully
-      kafka-broker:
+      postgres:
         condition: service_healthy
-      langdetector:
-        condition: service_started
 
-  embedding-search:
-    image: localhost/carmen_embedding:latest
-    container_name: carmen-embedding-search
-    environment:
-      CARMEN_EMBEDDING_WORKING_MODE: search
-      CARMEN_EMBEDDING_SENTENCE_TRANSFORMERS_HOME: /opt/sentence-transformers
-      CARMEN_EMBEDDING_MODEL__ENGLISH: sentence-transformers/static-similarity-mrl-multilingual-v1
-      CARMEN_EMBEDDING_MODEL__RUSSIAN: sentence-transformers/static-similarity-mrl-multilingual-v1
-      CARMEN_EMBEDDING_LANGDETECTOR_URL: http://langdetector:8000
+  api:
+    image: localhost/carmen-api:latest
+    container_name: carmen-api
+    env_file:
+      - env/.env.api
+    ports:
+      - 5124:5124
     restart: unless-stopped
     depends_on:
-      langdetector:
+      postgres:
+        condition: service_healthy
+      rustfs:
         condition: service_started
+      migrations:
+        condition: service_completed_successfully
+    volumes:
+      - fastembed_cache:/app/.fastembed_cache
 
   extractor:
+    image: localhost/carmen-extractor:latest
     container_name: carmen-extractor
-    build:
-      context: ./extractor
-    environment:
-      CARMEN_EXTRACTOR_S3_ENDPOINT: http://rustfs:9000
-      CARMEN_EXTRACTOR_S3_REGION: eu-central-1
-      CARMEN_EXTRACTOR_S3_BUCKET: carmen-documents
-      CARMEN_EXTRACTOR_KAFKA_URI: kafka-broker:9092
-      CARMEN_EXTRACTOR_KAFKA_CONSUMER_GROUP: extractor-consumer-group
-      CARMEN_EXTRACTOR_KAFKA_TOPIC_DOCUMENTS_QUEUE: documents.queue
-      CARMEN_EXTRACTOR_KAFKA_TOPIC_CHUNKS_QUEUE: chunks.queue
     env_file:
-      # Contains CARMEN_EXTRACTOR_S3_ACCESS_KEY and
-      # CARMEN_EXTRACTOR_S3_SECRET_KEY 
       - env/.env.extractor
     restart: unless-stopped
     depends_on:
-      kafka-init:
-        condition: service_completed_successfully
-      kafka-broker:
+      postgres:
         condition: service_healthy
       rustfs:
         condition: service_started
+      migrations:
+        condition: service_completed_successfully
 
-  langdetector:
-    container_name: carmen-langdetector
-    build:
-      context: ./langdetector
-    restart: unless-stopped
-    environment:
-      CARMEN_LANGDETECTOR_LANGUAGES: '["en", "ru"]'
-      CARMEN_LANGDETECTOR_FALLBACK_LANGUAGE: en
-      CARMEN_LANGDETECTOR_LOW_ACCURACY: false
-      CARMEN_LANGDETECTOR_PRELOAD: true
-
-  search:
-    container_name: carmen-search
-    build:
-      context: ./search
-    environment:
-      CARMEN_SEARCH_SERVER_ADDR: :8000
-      CARMEN_SEARCH_POSTGRES_DB: carmen
-      CARMEN_SEARCH_POSTGRES_HOST: postgres
-      CARMEN_SEARCH_POSTGRES_PORT: 5432
-      CARMEN_SEARCH_S3_REGION: eu-central-1
-      CARMEN_SEARCH_S3_ENDPOINT: http://rustfs:9000
-      CARMEN_SEARCH_S3_BUCKET: carmen-documents
-      CARMEN_SEARCH_KAFKA_URI: kafka-broker:9092
-      CARMEN_SEARCH_KAFKA_CONSUMER_GROUP: search-consumer-group
-      CARMEN_SEARCH_KAFKA_TOPIC_DOCUMENTS_QUEUE: documents.queue
-      CARMEN_SEARCH_KAFKA_TOPIC_CHUNKS_READY: chunks.ready
-      CARMEN_SEARCH_SERVICE_EMBEDDING_URL: http://embedding-search:8000
-      CARMEN_SEARCH_SERVICE_LANGDETECTOR_URL: http://langdetector:8000
+  indexer:
+    image: localhost/carmen-indexer:latest
+    container_name: carmen-indexer
     env_file:
-      # Contains the following env variables:
-      #   - CARMEN_SEARCH_POSTGRES_USER
-      #   - CARMEN_SEARCH_POSTGRES_PASSWORD
-      #   - CARMEN_SEARCH_S3_ACCESS_KEY
-      #   - CARMEN_SEARCH_S3_SECRET_KEY
-      - env/.env.search
+      - env/.env.indexer
     restart: unless-stopped
     depends_on:
-      kafka-broker:
-        condition: service_healthy
-      kafka-init:
-        condition: service_completed_successfully
       postgres:
-        condition: service_started
+        condition: service_healthy
       rustfs:
         condition: service_started
-      langdetector:
-        condition: service_started
-      embedding-search:
-        condition: service_started
+      migrations:
+        condition: service_completed_successfully
+    volumes:
+      - fastembed_cache:/app/.fastembed_cache
+
 
 volumes:
-  kafka-controller-data:
-  kafka-broker-data:
-  rustfs_data:
   pg_data:
+  rustfs_data:
+  fastembed_cache:
